@@ -39,8 +39,8 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
         /* Sayfa yüklenmeden içerik görünmesin (FOUC önleme) */
-        html { visibility: hidden; opacity:0; transition: opacity 0.3s; }
-        html.loaded { visibility: visible; opacity: 1; }
+        /* GÖRÜNÜRLÜK DÜZELTMESİ: Sayfa her zaman görünür olsun */
+        html { visibility: visible; opacity: 1; }
 
         body {
             font-family: 'Manrope', sans-serif;
