@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <title>English Master v8.1 Restored</title>
+    <title>English Master v8.2 Fixed</title>
     
     <!-- Font: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -123,7 +123,7 @@
         .quest-card { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.03); border-radius: 15px; border: 1px solid transparent; }
         .quest-card.completed { border-color: var(--neon-green); background: rgba(16,185,129,0.05); }
 
-        /* --- PROFILE COMPONENTS (Restored) --- */
+        /* --- PROFILE COMPONENTS --- */
         .progress-ring-container { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; }
         .progress-ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
         .progress-ring-circle-bg { fill: transparent; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
@@ -227,7 +227,7 @@
             <div id="quests-container"></div>
         </div>
 
-        <!-- TAB: QUIZ (RESTORED) -->
+        <!-- TAB: QUIZ -->
         <div id="tab-quiz" class="hidden fade-in">
             <div id="quiz-play-area">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -281,7 +281,7 @@
             </div>
         </div>
 
-        <!-- TAB: PROFILE (RESTORED) -->
+        <!-- TAB: PROFILE -->
         <div id="tab-profile" class="hidden fade-in">
             <div style="text-align:center; margin:30px 0;">
                 <!-- Auth Status -->
@@ -724,6 +724,33 @@
             });
         }
 
+        window.renderFavs = function() {
+            const list = document.getElementById('favorites-list');
+            list.innerHTML = '';
+            if(app.favs.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:var(--text-muted);">Favori kelime yok.</div>';
+                return;
+            }
+            
+            app.favs.forEach(f => {
+                const w = words.find(i => i.en === f);
+                if(w) {
+                    list.innerHTML += `
+                        <div class="glass-panel" style="padding:15px; display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <span>${w.en}</span>
+                            <span style="color:var(--text-muted)">${w.tr}</span>
+                            <button class="btn" onclick="removeFav('${f}')" style="background:transparent; color:var(--neon-red);">✕</button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        window.removeFav = function(f) {
+             app.favs = app.favs.filter(i => i !== f);
+             save();
+        }
+
         function renderProfile() {
             document.getElementById('stat-xp').innerText = app.xp;
             document.getElementById('stat-words').innerText = app.learned.length;
@@ -753,22 +780,8 @@
                     </div>
                 `;
             });
-
-            const list = document.getElementById('favorites-list');
-            list.innerHTML = '';
-            if(app.favs.length === 0) list.innerHTML = '<div style="text-align:center; color:var(--text-muted);">Favori kelime yok.</div>';
             
-            app.favs.forEach(f => {
-                const w = words.find(i => i.en === f);
-                if(w) {
-                    list.innerHTML += `
-                        <div class="glass-panel" style="padding:15px; display:flex; justify-content:space-between; margin-bottom:10px;">
-                            <span>${w.en}</span>
-                            <span style="color:var(--text-muted)">${w.tr}</span>
-                        </div>
-                    `;
-                }
-            });
+            window.renderFavs();
         }
         
         window.forceSync = function() {
