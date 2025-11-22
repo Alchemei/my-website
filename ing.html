@@ -6,8 +6,9 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Favicon hatasını engellemek için boş ikon -->
     <link rel="icon" href="data:,"> 
-    <title>English Master v6.2 Stable</title>
+    <title>English Master v6.1 Final (Fixed)</title>
     
     <!-- Font: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +38,7 @@
         /* --- RESET & BASE --- */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
-        /* Görünürlük ayarı: Sayfa her zaman görünür olsun */
+        /* GÖRÜNÜRLÜK DÜZELTMESİ: Sayfa her zaman görünür olsun */
         html { visibility: visible; opacity: 1; }
 
         body {
@@ -92,19 +93,19 @@
         .hud-badge {
             background: rgba(15, 23, 42, 0.8);
             border: 1px solid var(--glass-border);
-            padding: 0 14px;
+            padding: 0 14px; /* Yükseklik sabitlemesi için padding ayarlandı */
             border-radius: 100px;
             font-size: 0.85rem; font-weight: 700;
             display: flex; align-items: center; gap: 6px;
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            height: 34px;
+            height: 34px; /* Sabit yükseklik */
         }
         .streak-badge { color: var(--neon-orange); }
         .currency-badge { color: var(--neon-green); }
         
         .sync-status {
-            width: 34px; height: 34px;
+            width: 34px; height: 34px; /* Boyut eşitlendi */
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border);
@@ -146,41 +147,32 @@
         .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
         .progress-text { font-family: monospace; color: var(--neon-blue); font-weight: 700; font-size: 1.1rem; }
 
-        .flashcard-container { 
-            perspective: 1000px; 
-            height: 380px; 
-            width: 100%; 
-            cursor: pointer; 
-        }
+        .flashcard-container { perspective: 1200px; height: 380px; width: 100%; cursor: pointer; }
         .flashcard {
             position: relative; width: 100%; height: 100%;
-            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-style: preserve-3d;
         }
         .flashcard.flipped { transform: rotateY(180deg); }
         
         .card-face {
             position: absolute; width: 100%; height: 100%; 
-            -webkit-backface-visibility: hidden; /* Safari */
-            backface-visibility: hidden;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
             border-radius: var(--radius-xl);
+            /* DÜZELTME: Tam opak arka plan */
+            background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 1px solid var(--glass-border);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             padding: 30px; text-align: center;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-            transform: translateZ(0); /* Hardware acceleration fix */
+            overflow: hidden;
+            z-index: 2; /* Ön yüz üstte */
         }
-
-        .card-face.card-front {
-            background: linear-gradient(145deg, #1e293b, #020617);
-            transform: rotateY(0deg) translateZ(1px);
-            z-index: 2;
-        }
-
-        .card-face.card-back { 
+        .card-back { 
+            transform: rotateY(180deg); 
+            /* DÜZELTME: Tam opak arka plan */
             background: linear-gradient(145deg, #4c1d95, #0f172a); 
             border-color: var(--neon-purple); 
-            transform: rotateY(180deg) translateZ(1px);
             z-index: 1;
         }
 
@@ -508,7 +500,7 @@
         let syncTimeout = null;
 
         // --- DATA ---
-        const rawWordData = "the|o, şu|The book is here;of|-in/-ın|Piece of cake;and|ve|You and me;a|bir|A cat;to|-e/-a|Go to school;in|içinde|In the box;is|dır/dir|He is tall;you|sen|You look good;that|şu/o|That is amazing;it|o|It is raining;he|o (erkek)|He is my brother;was|idi|It was fun;for|için|This is for you;on|üzerinde|On the table;are|dır/dir (çoğul)|We are happy;as|gibi/olarak|As soon as possible;with|ile|Come with me;his|onun (erkek)|His car is red;they|onlar|They are here;I|ben|I am fine;at|-de/-da|At home;be|olmak|Be yourself;this|bu|This is mine;have|sahip olmak|I have a dog;from|-den/-dan|From New York;or|veya|Coffee or tea;one|bir|One moment;had|sahip idi|I had a dream;by|tarafından|By the way;word|kelime|Just one word;but|ama|But why?;not|değil|Not today;what|ne|What is this?;all|hepsi|All of us;were|idiler|They were happy;we|biz|We are family;when|ne zaman|When is it?;your|senin|Your turn;can|yapabilmek|I can fly;said|dedi|He said no;there|orada|Over there;use|kullanmak|Use it wisely;an|bir|An apple;each|her biri|Each person;which|hangi|Which one?;she|o (kadın)|She is smart;do|yapmak|Do it now;how|nasıl|How are you?;their|onların|Their house;if|eğer|If you want;will|ecek/acak|I will go;up|yukarı|Look up;other|diğer|Other side;about|hakkında|About time;out|dışarı|Get out;many|çok|Many people;then|sonra|Then what?;them|onları|Tell them;these|bunlar|These shoes;so|böylece/çok|So good;some|bazı|Some water;her|onun (kadın)|Her bag;would|cekti/caktı|I would go;make|yapmak|Make tea;like|gibi/sevmek|Like this;him|onu|Tell him;into|içine|Into the wild;time|zaman|Time flies;has|sahip (o)|He has it;look|bakmak|Look at me;two|iki|Two days;more|daha|More please;write|yazmak|Write a letter;go|gitmek|Let's go;see|görmek|I see you;number|numara|Number one;no|hayır|No thanks;way|yol|This way;could|yapabilirdi|Could you help?;people|insanlar|Happy people;my|benim|My car;than|-den (karşılaştırma)|Better than you;first|birinci|First place;water|su|Drink water;been|olmuş|Has been;call|aramak|Call me;who|kim|Who is it?;oil|yağ|Olive oil;its|onun (cansız)|Its color;now|şimdi|Do it now;find|bulmak|Find the key;long|uzun|Long time;down|aşağı|Sit down;day|gün|Good day;did|yaptı|He did it;get|almak|Get ready;come|gelmek|Come here;made|yapılmış|Made in China;may|olabilir|May I?;part|parça|Part of me;over|üzerinde/bitmiş|Game over;new|yeni|New phone;sound|ses|Good sound;take|almak|Take it;only|sadece|Only you;little|küçük|Little bit;work|iş/çalışmak|Good work;know|bilmek|I know;place|yer|Nice place;year|yıl|Next year;live|yaşamak|Live fast;me|bana/beni|Look at me;back|geri|Come back;give|vermek|Give up;most|en çok|Most people;very|çok|Very good;after|sonra|After lunch;thing|şey|Good thing;our|bizim|Our house;just|sadece|Just now;name|isim|My name;good|iyi|Good job;sentence|cümle|Long sentence;man|adam|Tall man;think|düşünmek|Think big;say|söylemek|Say hello;great|harika|Great day;where|nerede|Where is it?;help|yardım|Help me;through|içinden/arasından|Through the door;much|çok|Too much;before|önce|Before me;line|çizgi|Draw a line;right|sağ/doğru|Turn right;too|de/da/çok|Me too;mean|anlamına gelmek|What do you mean?;old|eski/yaşlı|Old car;any|herhangi|Any ideas?;same|aynı|Same here;tell|anlatmak|Tell a story;boy|oğlan|Good boy;follow|takip etmek|Follow me;came|geldi|He came;want|istemek|I want it;show|göstermek|Show me;also|ayrıca|Me also;around|etrafında|Look around;farm|çiftlik|Big farm;three|üç|Three cats;small|küçük|Small box;set|ayarlamak/set|Set go;put|koymak|Put it there;end|son|The end;does|yapar|He does it;another|başka|Another one;well|iyi|Well done;large|geniş|Large size;must|meli/malı|Must go;big|büyük|Big house;even|bile|Even me;such|böyle|Such a day;because|çünkü|Because why;turn|dönmek|Turn left;here|burada|I am here;why|neden|Why not?;ask|sormak|Ask him;went|gitti|He went home;men|adamlar|Two men;read|okumak|Read this;need|ihtiyaç duymak|I need you;land|arazi|My land;different|farklı|Different color;home|ev|Go home;us|bize|Join us;move|hareket etmek|Move it;try|denemek|Try again;kind|tür/nazik|Be kind;hand|el|My hand;picture|resim|Nice picture;again|tekrar|Try again;change|değişim|Change is good;off|kapalı|Turn off;play|oynamak|Play game;spell|hecelemek|Spell it;air|hava|Fresh air;away|uzak|Go away;animal|hayvan|Wild animal;house|ev|My house;point|nokta|Good point;page|sayfa|Page one;letter|mektup/harf|Write a letter;mother|anne|My mother;answer|cevap|Answer me;found|bulundu|Found it;study|çalışmak (ders)|Study hard;still|hala|Still here;learn|öğrenmek|Learn English;should|meli/malı|Should go;America|Amerika|In America;world|dünya|Hello world;high|yüksek|High jump;every|her|Every day;near|yakın|Near me;add|eklemek|Add sugar;food|yemek|Good food;between|arasında|Between us;own|kendi|My own;below|aşağıda|Look below;country|ülke|My country;plant|bitki|Green plant;last|son|Last one;school|okul|At school;father|baba|My father;keep|tutmak|Keep it;tree|ağaç|Tall tree;never|asla|Never mind;city|şehir|Big city;earth|dünya|Planet Earth;eye|göz|Blue eye;light|ışık|Turn on light;thought|düşünce|Good thought;head|kafa|My head;under|altında|Under water;story|hikaye|Tell a story;saw|gördü|I saw it;left|sol/ayrıldı|Turn left;don't|yapma|Don't stop;few|az|Few people;while|iken|While walking;along|boyunca|Come along;might|olabilir|It might rain;close|kapalı/yakın|Close the door;something|bir şey|Say something;seem|görünmek|Seems good;next|sonraki|Next time;hard|zor/sert|Work hard;open|açık|Open it;example|örnek|For example;begin|başlamak|Begin now;life|hayat|Life is good;always|her zaman|Always smile;those|şunlar|Those cars;both|ikisi de|Both of us;paper|kağıt|White paper;together|birlikte|Go together;got|aldı|I got it;group|grup|Small group;often|sık sık|Often visit;run|koşmak|Run fast;important|önemli|Important news;until|-e kadar|Until tomorrow;children|çocuklar|Happy children;side|yan/taraf|Side by side;feet|ayaklar|Two feet;car|araba|Fast car;mile|mil|One mile;night|gece|Good night;walk|yürümek|Walk away;white|beyaz|White snow;sea|deniz|Blue sea;began|başladı|It began;grow|büyümek|Plants grow;took|aldı|He took it;river|nehir|Long river;four|dört|Four cats;carry|taşımak|Carry this;state|eyalet/durum|New York State;once|bir kez|Once upon a time;book|kitap|Read book;hear|duymak|Hear music;stop|durmak|Stop now;without|olmadan|Without you;second|saniye/ikinci|Wait a second;late|geç|Too late;miss|özlemek/kaçırmak|Miss you;idea|fikir|Good idea;enough|yeterli|Enough food;eat|yemek|Eat apple;face|yüz|Wash face;watch|izlemek|Watch TV;far|uzak|Far away;Indian|Hintli|Indian food;real|gerçek|Real love;almost|neredeyse|Almost there;let|izin vermek|Let me go;above|yukarıda|Look above;girl|kız|Happy girl;sometimes|bazen|Sometimes cry;mountains|dağlar|High mountains;cut|kesmek|Cut paper;young|genç|Young man;talk|konuşmak|Talk to me;soon|yakında|See soon;list|liste|To-do list;song|şarkı|Sing a song;being|olma|Being happy;leave|ayrılmak|Leave me;family|aile|Big family;it's|o (kısaltma)|It's time;body|vücut|My body;music|müzik|Loud music;color|renk|Red color;stand|ayakta durmak|Stand up;sun|güneş|Hot sun;questions|sorular|Any questions?;fish|balık|Swim fish;area|alan|Rest area;mark|işaret|Check mark;dog|köpek|Good dog;horse|at|Ride horse;birds|kuşlar|Fly birds;problem|sorun|No problem;complete|tamamlamak|Complete it;room|oda|My room;knew|biliyordu|I knew it;since|-den beri|Since 1990;ever|hiç|Ever been?;piece|parça|Piece of cake;told|söyledi|He told me;usually|genellikle|Usually late;didn't|yapmadı|Didn't know;friends|arkadaşlar|Best friends;easy|kolay|Easy task;heard|duydu|I heard that;order|sipariş/düzen|Order pizza;red|kırmızı|Red car;door|kapı|Open door;sure|emin|Are you sure?;become|olmak|Become rich;top|üst|Top floor;ship|gemi|Big ship;across|karşıya|Across the street;today|bugün|Not today;during|sırasında|During class;short|kısa|Short hair;better|daha iyi|Better now;best|en iyi|Best friend;however|bununla birlikte|However, I will go;low|düşük|Low battery;hours|saatler|Two hours;black|siyah|Black cat;products|ürünler|New products;happened|oldu|What happened?;whole|bütün|Whole pizza;measure|ölçmek|Measure it;remember|hatırlamak|Remember me;early|erken|Early bird;waves|dalgalar|Big waves;reached|ulaştı|Reached home;listen|dinlemek|Listen to me;wind|rüzgar|Cold wind;rock|kaya|Hard rock;space|uzay/boşluk|Outer space;covered|kaplı|Covered in snow;fast|hızlı|Run fast;several|birkaç|Several days;hold|tutmak|Hold on;himself|kendisi|He hurt himself;toward|doğru|Walk toward;five|beş|Five stars;step|adım|Step back;morning|sabah|Good morning;passed|geçti|Passed away;vowel|ünlü harf|A E I O U;true|doğru|True story;hundred|yüz|One hundred;against|karşı|Against the wall;pattern|desen|Nice pattern;numeral|sayısal|Roman numeral;table|masa|On the table;north|kuzey|Go north;slowly|yavaşça|Walk slowly;money|para|Need money;map|harita|World map;busy|meşgul|Busy now;pulled|çekti|Pulled over;draw|çizmek|Draw a picture;voice|ses|Loud voice;seen|görülmüş|Seen it;cold|soğuk|Cold water;cried|ağladı|She cried;plan|plan|Good plan;notice|fark etmek|Did you notice?;south|güney|Go south;sing|şarkı söylemek|Sing loud;war|savaş|Stop war;ground|yer|On the ground;fall|düşmek|Fall down;king|kral|Lion king;town|kasaba|Small town;I'll|yapacağım|I'll do it;unit|birim|Unit one;figure|şekil/rakam|Figure it out;certain|kesin|Certain death;field|tarla/alan|Soccer field;travel|seyahat|Travel fast;wood|odun|Chop wood;fire|ateş|Hot fire;upon|üzerine|Once upon;done|yapılmış|Well done;English|İngilizce|Learn English;road|yol|Long road;half|yarım|Half full;ten|on|Ten days;fly|uçmak|Birds fly;gave|verdi|He gave it;box|kutu|Open box;finally|sonunda|Finally home;wait|beklemek|Wait here;correct|doğru|Correct answer;oh|oh|Oh no;quickly|hızlıca|Run quickly;person|kişi|Nice person;became|oldu|He became king;shown|gösterilmiş|Shown on TV;minutes|dakikalar|Five minutes;strong|güçlü|Strong man;verb|fiil|Action verb;stars|yıldızlar|Bright stars;front|ön|Front door;feel|hissetmek|Feel good;fact|gerçek|Fun fact;inches|inç|Two inches;street|cadde|Main street;decided|karar verdi|Decided to go;contain|içermek|Contain nuts;course|kurs/tabii|Of course;surface|yüzey|Smooth surface;produce|üretmek|Produce cars;building|bina|Tall building;ocean|okyanus|Deep ocean;class|sınıf|Math class;note|not|Take note;nothing|hiçbir şey|Nothing here;rest|dinlenmek|Rest now;carefully|dikkatlice|Drive carefully;scientists|bilim insanları|Smart scientists;inside|içinde|Look inside;wheels|tekerlekler|Car wheels;stay|kalmak|Stay safe;green|yeşil|Green grass;known|bilinen|Well known;island|ada|Tropical island;week|hafta|Last week;less|daha az|Less money;machine|makine|Big machine;base|taban/üs|Base camp;ago|önce|Long ago;stood|durdu|He stood up;plane|uçak|Fly plane;system|sistem|Solar system;behind|arkasında|Look behind;ran|koştu|He ran fast;round|yuvarlak|Round ball;boat|tekne|Sail boat;game|oyun|Video game;force|güç|Use force;brought|getirdi|Brought food;understand|anlamak|I understand;warm|ılık|Warm water;common|yaygın|Common cold;bring|getirmek|Bring it;explain|açıklamak|Explain this;dry|kuru|Dry clothes;though|rağmen|Even though;language|dil|Speak language;shape|şekil|Circle shape;deep|derin|Deep water;thousands|binlerce|Thousands of people;yes|evet|Yes please;clear|açık/net|Clear sky;equation|denklem|Math equation;yet|henüz|Not yet;government|hükümet|Big government;filled|dolu|Filled cup;heat|ısı|High heat;full|dolu|Full moon;hot|sıcak|Hot tea;check|kontrol|Check mate;object|nesne|Flying object;am|yım/yim|I am;rule|kural|Game rule;among|arasında|Among us;noun|isim|Proper noun;power|güç|Power on;cannot|yapamaz|Cannot go;able|yapabilir|Able to run;six|altı|Six cars;size|boyut|Big size;dark|karanlık|Dark night;ball|top|Kick ball;material|malzeme|Raw material;special|özel|Special day;heavy|ağır|Heavy box;fine|iyi|I am fine;pair|çift|Pair of shoes;circle|daire|Draw circle;include|içermek|Include me;built|inşa edilmiş|Built house;can't|yapamaz|Can't stop;matter|mesele|What matter?;square|kare|Square box;syllables|heceler|Two syllables;perhaps|belki|Perhaps later;bill|fatura|Pay bill;felt|hissetti|Felt good;suddenly|aniden|Suddenly stop;test|test|Math test;direction|yön|Wrong direction;center|merkez|City center;farmers|çiftçiler|Hard farmers;ready|hazır|Ready set go;anything|herhangi bir şey|Anything else?;divided|bölünmüş|Divided by;general|genel|General idea;energy|enerji|Solar energy;subject|konu|School subject;Europe|Avrupa|Visit Europe;moon|ay|Full moon;region|bölge|Cold region;return|dönüş|Return home;believe|inanmak|Believe me;dance|dans|Dance party;members|üyeler|Team members;picked|seçti|Picked apple;simple|basit|Simple math;cells|hücreler|Blood cells;paint|boya|Blue paint;mind|zihin|Open mind;love|aşk|True love;cause|sebep|Cause trouble;rain|yağmur|Heavy rain;exercise|egzersiz|Daily exercise;eggs|yumurtalar|Cook eggs;train|tren|Fast train;blue|mavi|Blue sky;wish|dilek|Make wish;drop|düşürmek|Drop it;developed|gelişmiş|Developed city;window|pencere|Open window;difference|fark|Big difference;distance|mesafe|Long distance;heart|kalp|My heart;site|site|Web site;sum|toplam|Sum up;summer|yaz|Hot summer;wall|duvar|Brick wall;forest|orman|Green forest;probably|muhtemelen|Probably yes;legs|bacaklar|Two legs;sat|oturdu|He sat down;main|ana|Main street;winter|kış|Cold winter;wide|geniş|Wide road;written|yazılı|Written test;length|uzunluk|Full length;reason|sebep|Good reason;kept|tuttu|Kept safe;interest|ilgi|High interest;arms|kollar|Strong arms;brother|erkek kardeş|Big brother;race|yarış|Car race;present|hediye/sunmak|Birthday present;beautiful|güzel|Beautiful day;store|mağaza|Grocery store;job|iş|Good job;edge|kenar|Sharp edge;past|geçmiş|In the past;sign|işaret|Stop sign;record|kayıt|World record;finished|bitti|Finished work;discovered|keşfedildi|Discovered land;wild|vahşi|Wild animal;happy|mutlu|Happy face;beside|yanında|Sit beside;gone|gitmiş|He is gone;sky|gökyüzü|Blue sky;glass|cam|Glass cup;million|milyon|One million;west|batı|Go west;lay|yatmak|Lay down;weather|hava|Good weather;root|kök|Tree root;instruments|enstrümanlar|Musical instruments;meet|buluşmak|Meet me;third|üçüncü|Third place;months|aylar|Twelve months;paragraph|paragraf|Short paragraph;raised|kaldırdı|Raised hand;represent|temsil etmek|Represent us;soft|yumuşak|Soft pillow;whether|olup olmadığı|Whether or not;clothes|kıyafetler|New clothes;flowers|çiçekler|Red flowers;shall|cek/cak|Shall we?;teacher|öğretmen|Best teacher;held|tuttu|Held hands;describe|tanımlamak|Describe it;drive|sürmek|Drive car;adventure|macera|Big adventure;advice|tavsiye|Good advice;afraid|korkmuş|Afraid of dark;afternoon|öğleden sonra|Good afternoon;age|yaş|What age?;ago|önce|Years ago;airport|havalimanı|Busy airport;alarm|alarm|Fire alarm;alive|hayatta|Still alive;alone|yalnız|Home alone;angry|kızgın|Angry bird;apartment|daire|New apartment;apple|elma|Red apple;arm|kol|Strong arm;army|ordu|Big army;arrive|varmak|Arrive early;art|sanat|Modern art;article|makale|Read article;artist|sanatçı|Famous artist;attack|saldırı|Surprise attack;aunt|teyze/hala|My aunt;autumn|sonbahar|Cold autumn;baby|bebek|Cute baby;bad|kötü|Bad luck;bag|çanta|Blue bag;ball|top|Soccer ball;banana|muz|Yellow banana;band|grup (müzik)|Rock band;bank|banka|Save money;bath|banyo|Hot bath;bathroom|banyo odası|Clean bathroom;beach|plaj|Sandy beach;bear|ayı|Brown bear;beautiful|güzel|Beautiful flower;bed|yatak|Soft bed;bedroom|yatak odası|Big bedroom;beer|bira|Cold beer;bell|zil|Ring bell;bicycle|bisiklet|Ride bicycle;big|büyük|Big house;bird|kuş|Fly bird;birthday|doğum günü|Happy birthday;bite|ısırmak|Dog bite;black|siyah|Black cat;blind|kör|Blind man;blood|kan|Red blood;blue|mavi|Blue sky;board|tahta/kurul|White board;boat|tekne|Sail boat;body|vücut|Human body;bone|kemik|Dog bone;book|kitap|Read book;born|doğmuş|Born in May;boss|patron|Big boss;bottle|şişe|Water bottle;box|kutu|Open box;boy|erkek çocuk|Little boy;brain|beyin|Smart brain;bread|ekmek|Eat bread;break|kırmak|Break glass;breakfast|kahvaltı|Eat breakfast;bridge|köprü|Long bridge;bright|parlak|Bright light;broken|kırık|Broken heart;brother|erkek kardeş|My brother;brown|kahverengi|Brown bear;brush|fırça|Hair brush;build|inşa etmek|Build house;burn|yanmak|Fire burn;bus|otobüs|School bus;busy|meşgul|Busy street;butter|tereyağı|Bread and butter;button|düğme|Press button;buy|satın almak|Buy food;cake|kek|Birthday cake;camera|kamera|Take photo;camp|kamp|Summer camp;card|kart|Credit card;care|bakım/umursamak|Take care;cat|kedi|Cute cat;catch|yakalamak|Catch ball;ceiling|tavan|High ceiling;center|merkez|City center;chair|sandalye|Sit on chair;cheap|ucuz|Cheap price;cheese|peynir|Swiss cheese;chicken|tavuk|Fried chicken;child|çocuk|Happy child;church|kilise|Old church;circle|daire|Draw circle;city|şehir|Big city;class|sınıf|Math class;clean|temiz|Clean room;climb|tırmanmak|Climb mountain;clock|saat (duvar)|Wall clock;close|kapatmak/yakın|Close door;clothes|kıyafetler|New clothes;cloud|bulut|White cloud;club|kulüp|Dance club;coat|mont|Winter coat;coffee|kahve|Hot coffee;cold|soğuk|Cold weather;color|renk|Red color;comb|tarak|Comb hair;come|gelmek|Come here;computer|bilgisayar|Fast computer;cook|pişirmek|Cook dinner;cool|serin/havalı|Cool guy;copy|kopyalamak|Copy paste;corner|köşe|Street corner;cost|maliyet|High cost;count|saymak|Count numbers;country|ülke|My country;course|kurs/ders|English course;cousin|kuzen|My cousin;cow|inek|Milk cow;crazy|çılgın|Crazy idea;cream|krema|Ice cream;cross|geçmek|Cross street;cry|ağlamak|Baby cry;cup|fincan|Coffee cup;cut|kesmek|Cut paper;dad|baba|Hi dad;dance|dans|Dance music;dangerous|tehlikeli|Dangerous road;dark|karanlık|Dark night;date|tarih/hurma|What date?;daughter|kız evlat|My daughter;day|gün|Sunny day;dead|ölü|Dead end;dear|sevgili|Dear friend;death|ölüm|Life and death;deep|derin|Deep sea;desk|sıra/masa|Work desk;die|ölmek|Plants die;dirty|kirli|Dirty hands;doctor|doktor|Visit doctor;dog|köpek|Good dog;doll|oyuncak bebek|Play doll;door|kapı|Open door;down|aşağı|Sit down;draw|çizmek|Draw picture;dream|rüya|Sweet dream;dress|elbise|Red dress;drink|içmek|Drink water;drive|sürmek|Drive car;drop|düşürmek|Drop it;dry|kuru|Dry hair;duck|ördek|Quack duck;dust|toz|Clean dust;ear|kulak|Listen ear;early|erken|Wake early;earth|dünya|Planet Earth;east|doğu|Go east;easy|kolay|Easy job;eat|yemek|Eat food;egg|yumurta|Fried egg;eight|sekiz|Eight balls;elephant|fil|Big elephant;empty|boş|Empty box;end|son|The end;enemy|düşman|Fight enemy;energy|enerji|Solar energy;engine|motor|Car engine;engineer|mühendis|Civil engineer;enjoy|zevk almak|Enjoy life;enough|yeterli|Enough food;enter|girmek|Enter room;evening|akşam|Good evening;exam|sınav|Hard exam;exit|çıkış|Emergency exit;expensive|pahalı|Expensive car;explain|açıklamak|Explain this;eye|göz|Blue eye;face|yüz|Happy face;factory|fabrika|Big factory;fall|düşmek/sonbahar|Leaves fall;family|aile|Big family;famous|ünlü|Famous star;fan|hayran/pervane|Ceiling fan;far|uzak|Far away;farm|çiftlik|Old farm;fast|hızlı|Fast car;fat|şişman/yağ|Fat cat;father|baba|My father;fear|korku|No fear;feed|beslemek|Feed dog;feel|hissetmek|Feel good;female|dişi|Female lion;fight|dövüşmek|Fight hard;fill|doldurmak|Fill cup;film|film|Watch film;find|bulmak|Find key;finger|parmak|Ten fingers;fire|ateş|Hot fire;fish|balık|Gold fish;five|beş|Five fingers;flag|bayrak|Red flag;flat|düz/daire|Flat tire;floor|zemin|Wood floor;flower|çiçek|Red flower;fly|uçmak|Birds fly;fog|sis|Thick fog;food|yiyecek|Fast food;foot|ayak|Left foot;football|futbol|Play football;for|için|For you;forest|orman|Green forest;forget|unutmak|Don't forget;fork|çatal|Knife and fork;four|dört|Four cats;fox|tilki|Clever fox;free|özgür/bedava|Free time;fresh|taze|Fresh fruit;friend|arkadaş|Best friend;frog|kurbağa|Green frog;fruit|meyve|Fresh fruit;full|dolu|Full moon;fun|eğlence|Have fun;funny|komik|Funny joke;game|oyun|Play game;garden|bahçe|Green garden;gas|gaz/benzin|Gas station;gate|kapı (bahçe)|Iron gate;gift|hediye|Birthday gift;girl|kız|Happy girl;give|vermek|Give gift;glass|cam/bardak|Water glass;go|gitmek|Go home;goat|keçi|White goat;god|tanrı|Oh god;gold|altın|Gold ring;good|iyi|Good morning;grandfather|büyükbaba|Old grandfather;grandmother|büyükanne|Kind grandmother;grass|çim|Green grass;gray|gri|Gray hair;great|harika|Great job;green|yeşil|Green tree;ground|yer|On ground;group|grup|Small group;grow|büyümek|Plants grow;guest|misafir|House guest;guide|rehber|Tour guide;gun|silah|Toy gun;hair|saç|Long hair;half|yarım|Half hour;hall|salon/hol|City hall;hand|el|Right hand;happen|olmak|What happened?;happy|mutlu|Happy face;hard|sert/zor|Hard rock;hat|şapka|Red hat;hate|nefret etmek|I hate rain;have|sahip olmak|I have money;he|o (erkek)|He is nice;head|kafa|Big head;health|sağlık|Good health;hear|duymak|Hear sound;heart|kalp|My heart;heat|ısı|High heat;heavy|ağır|Heavy bag;hell|cehennem|Go to hell;hello|merhaba|Say hello;help|yardım etmek|Help me;her|onun (kadın)|Her name;here|burada|Come here;high|yüksek|High jump;hill|tepe|Green hill;him|onu (erkek)|Ask him;history|tarih|World history;hit|vurmak|Hit ball;hobby|hobi|My hobby;hold|tutmak|Hold hand;hole|delik|Deep hole;holiday|tatil|Summer holiday;home|ev|Go home;hope|umut|Lose hope;horse|at|Ride horse;hospital|hastane|City hospital;hot|sıcak|Hot tea;hotel|otel|Nice hotel;hour|saat|One hour;house|ev|Big house;how|nasıl|How are you?;human|insan|Human rights;hungry|aç|I am hungry;hunt|avlamak|Hunt animals;hurt|incitmek|It hurts;husband|koca|My husband;ice|buz|Ice cream;idea|fikir|Good idea;if|eğer|If you can;ill|hasta|Feel ill;important|önemli|Important person;in|içinde|In box;increase|artmak|Increase volume;inside|içeride|Go inside;into|içine|Into water;iron|demir/ütü|Iron man;island|ada|Small island;job|iş|New job;join|katılmak|Join us;joke|şaka|Funny joke;juice|meyve suyu|Orange juice;jump|zıplamak|High jump;keep|tutmak|Keep it;key|anahtar|Car key;kick|tekmelemek|Kick ball;kid|çocuk|Happy kid;kill|öldürmek|Kill bug;kind|nazik/tür|Kind person;king|kral|Lion king;kiss|öpmek|Kiss me;kitchen|mutfak|Clean kitchen;knee|diz|Left knee;knife|bıçak|Sharp knife;know|bilmek|I know;ladder|merdiven|Climb ladder;lady|bayan|Nice lady;lake|göl|Blue lake;lamp|lamba|Desk lamp;land|arazi/kara|Land rover;language|dil|Speak language;large|geniş|Large pizza;last|son|Last day;late|geç|Late night;laugh|gülmek|Laugh loud;law|kanun|Break law;leaf|yaprak|Green leaf;learn|öğrenmek|Learn fast;leave|ayrılmak|Leave home;left|sol|Turn left;leg|bacak|Long leg;lemon|limon|Sour lemon;lesson|ders|Math lesson;let|izin vermek|Let me go;letter|mektup/harf|Write a letter;mother|anne|My mother;answer|cevap|Answer me;found|bulundu|Found it;study|çalışmak (ders)|Study hard;still|hala|Still here;learn|öğrenmek|Learn English;should|meli/malı|Should go;America|Amerika|In America;world|dünya|Hello world;high|yüksek|High jump;every|her|Every day;near|yakın|Near me;add|eklemek|Add sugar;food|yemek|Good food;between|arasında|Between us;own|kendi|My own;below|aşağıda|Look below;country|ülke|My country;plant|bitki|Green plant;last|son|Last one;school|okul|At school;father|baba|My father;keep|tutmak|Keep it;tree|ağaç|Tall tree;never|asla|Never mind;city|şehir|Big city;earth|dünya|Planet Earth;eye|göz|Blue eye;light|ışık|Turn on light;thought|düşünce|Good thought;head|kafa|My head;under|altında|Under water;story|hikaye|Tell a story;saw|gördü|I saw it;left|sol/ayrıldı|Turn left;don't|yapma|Don't stop;few|az|Few people;while|iken|While walking;along|boyunca|Come along;might|olabilir|It might rain;close|kapalı/yakın|Close the door;something|bir şey|Say something;seem|görünmek|Seems good;next|sonraki|Next time;hard|zor/sert|Work hard;open|açık|Open it;example|örnek|For example;begin|başlamak|Begin now;life|hayat|Life is good;always|her zaman|Always smile;those|şunlar|Those cars;both|ikisi de|Both of us;paper|kağıt|White paper;together|birlikte|Go together;got|aldı|I got it;group|grup|Small group;often|sık sık|Often visit;run|koşmak|Run fast;important|önemli|Important news;until|-e kadar|Until tomorrow;children|çocuklar|Happy children;side|yan/taraf|Side by side;feet|ayaklar|Two feet;car|araba|Fast car;mile|mil|One mile;night|gece|Good night;walk|yürümek|Walk away;white|beyaz|White snow;sea|deniz|Blue sea;began|başladı|It began;grow|büyümek|Plants grow;took|aldı|He took it;river|nehir|Long river;four|dört|Four cats;carry|taşımak|Carry this;state|eyalet/durum|New York State;once|bir kez|Once upon a time;book|kitap|Read book;hear|duymak|Hear music;stop|durmak|Stop now;without|olmadan|Without you;second|saniye/ikinci|Wait a second;late|geç|Too late;miss|özlemek/kaçırmak|Miss you;idea|fikir|Good idea;enough|yeterli|Enough food;eat|yemek|Eat apple;face|yüz|Wash face;watch|izlemek|Watch TV;far|uzak|Far away;Indian|Hintli|Indian food;real|gerçek|Real love;almost|neredeyse|Almost there;let|izin vermek|Let me go;above|yukarıda|Look above;girl|kız|Happy girl;sometimes|bazen|Sometimes cry;mountains|dağlar|High mountains;cut|kesmek|Cut paper;young|genç|Young man;talk|konuşmak|Talk to me;soon|yakında|See soon;list|liste|To-do list;song|şarkı|Sing a song;being|olma|Being happy;leave|ayrılmak|Leave me;family|aile|Big family;it's|o (kısaltma)|It's time;body|vücut|My body;music|müzik|Loud music;color|renk|Red color;stand|ayakta durmak|Stand up;sun|güneş|Hot sun;questions|sorular|Any questions?;fish|balık|Swim fish;area|alan|Rest area;mark|işaret|Check mark;dog|köpek|Good dog;horse|at|Ride horse;birds|kuşlar|Fly birds;problem|sorun|No problem;complete|tamamlamak|Complete it;room|oda|My room;knew|biliyordu|I knew it;since|-den beri|Since 1990;ever|hiç|Ever been?;piece|parça|Piece of cake;told|söyledi|He told me;usually|genellikle|Usually late;didn't|yapmadı|Didn't know;friends|arkadaşlar|Best friends;easy|kolay|Easy task;heard|duydu|I heard that;order|sipariş/düzen|Order pizza;red|kırmızı|Red car;door|kapı|Open door;sure|emin|Are you sure?;become|olmak|Become rich;top|üst|Top floor;ship|gemi|Big ship;across|karşıya|Across the street;today|bugün|Not today;during|sırasında|During class;short|kısa|Short hair;better|daha iyi|Better now;best|en iyi|Best friend;however|bununla birlikte|However, I will go;low|düşük|Low battery;hours|saatler|Two hours;black|siyah|Black cat;products|ürünler|New products;happened|oldu|What happened?;whole|bütün|Whole pizza;measure|ölçmek|Measure it;remember|hatırlamak|Remember me;early|erken|Early bird;waves|dalgalar|Big waves;reached|ulaştı|Reached home;listen|dinlemek|Listen to me;wind|rüzgar|Cold wind;rock|kaya|Hard rock;space|uzay/boşluk|Outer space;covered|kaplı|Covered in snow;fast|hızlı|Run fast;several|birkaç|Several days;hold|tutmak|Hold on;himself|kendisi|He hurt himself;toward|doğru|Walk toward;five|beş|Five stars;step|adım|Step back;morning|sabah|Good morning;passed|geçti|Passed away;vowel|ünlü harf|A E I O U;true|doğru|True story;hundred|yüz|One hundred;against|karşı|Against the wall;pattern|desen|Nice pattern;numeral|sayısal|Roman numeral;table|masa|On the table;north|kuzey|Go north;slowly|yavaşça|Walk slowly;money|para|Need money;map|harita|World map;busy|meşgul|Busy now;pulled|çekti|Pulled over;draw|çizmek|Draw a picture;voice|ses|Loud voice;seen|görülmüş|Seen it;cold|soğuk|Cold water;cried|ağladı|She cried;plan|plan|Good plan;notice|fark etmek|Did you notice?;south|güney|Go south;sing|şarkı söylemek|Sing loud;war|savaş|Stop war;ground|yer|On the ground;fall|düşmek|Fall down;king|kral|Lion king;town|kasaba|Small town;I'll|yapacağım|I'll do it;unit|birim|Unit one;figure|şekil/rakam|Figure it out;certain|kesin|Certain death;field|tarla/alan|Soccer field;travel|seyahat|Travel fast;wood|odun|Chop wood;fire|ateş|Hot fire;upon|üzerine|Once upon;done|yapılmış|Well done;English|İngilizce|Learn English;road|yol|Long road;half|yarım|Half full;ten|on|Ten days;fly|uçmak|Birds fly;gave|verdi|He gave it;box|kutu|Open box;finally|sonunda|Finally home;wait|beklemek|Wait here;correct|doğru|Correct answer;oh|oh|Oh no;quickly|hızlıca|Run quickly;person|kişi|Nice person;became|oldu|He became king;shown|gösterilmiş|Shown on TV;minutes|dakikalar|Five minutes;strong|güçlü|Strong man;verb|fiil|Action verb;stars|yıldızlar|Bright stars;front|ön|Front door;feel|hissetmek|Feel good;fact|gerçek|Fun fact;inches|inç|Two inches;street|cadde|Main street;decided|karar verdi|Decided to go;contain|içermek|Contain nuts;course|kurs/tabii|Of course;surface|yüzey|Smooth surface;produce|üretmek|Produce cars;building|bina|Tall building;ocean|okyanus|Deep ocean;class|sınıf|Math class;note|not|Take note;nothing|hiçbir şey|Nothing here;rest|dinlenmek|Rest now;carefully|dikkatlice|Drive carefully;scientists|bilim insanları|Smart scientists;inside|içinde|Look inside;wheels|tekerlekler|Car wheels;stay|kalmak|Stay safe;green|yeşil|Green grass;known|bilinen|Well known;island|ada|Tropical island;week|hafta|Last week;less|daha az|Less money;machine|makine|Big machine;base|taban/üs|Base camp;ago|önce|Long ago;stood|durdu|He stood up;plane|uçak|Fly plane;system|sistem|Solar system;behind|arkasında|Look behind;ran|koştu|He ran fast;round|yuvarlak|Round ball;boat|tekne|Sail boat;game|oyun|Video game;force|güç|Use force;brought|getirdi|Brought food;understand|anlamak|I understand;warm|ılık|Warm water;common|yaygın|Common cold;bring|getirmek|Bring it;explain|açıklamak|Explain this;dry|kuru|Dry clothes;though|rağmen|Even though;language|dil|Speak language;shape|şekil|Circle shape;deep|derin|Deep water;thousands|binlerce|Thousands of people;yes|evet|Yes please;clear|açık/net|Clear sky;equation|denklem|Math equation;yet|henüz|Not yet;government|hükümet|Big government;filled|dolu|Filled cup;heat|ısı|High heat;full|dolu|Full moon;hot|sıcak|Hot tea;check|kontrol|Check mate;object|nesne|Flying object;am|yım/yim|I am;rule|kural|Game rule;among|arasında|Among us;noun|isim|Proper noun;power|güç|Power on;cannot|yapamaz|Cannot go;able|yapabilir|Able to run;six|altı|Six cars;size|boyut|Big size;dark|karanlık|Dark night;ball|top|Kick ball;material|malzeme|Raw material;special|özel|Special day;heavy|ağır|Heavy box;fine|iyi|I am fine;pair|çift|Pair of shoes;circle|daire|Draw circle;include|içermek|Include me;built|inşa edilmiş|Built house;can't|yapamaz|Can't stop;matter|mesele|What matter?;square|kare|Square box;syllables|heceler|Two syllables;perhaps|belki|Perhaps later;bill|fatura|Pay bill;felt|hissetti|Felt good;suddenly|aniden|Suddenly stop;test|test|Math test;direction|yön|Wrong direction;center|merkez|City center;farmers|çiftçiler|Hard farmers;ready|hazır|Ready set go;anything|herhangi bir şey|Anything else?;divided|bölünmüş|Divided by;general|genel|General idea;energy|enerji|Solar energy;subject|konu|School subject;Europe|Avrupa|Visit Europe;moon|ay|Full moon;region|bölge|Cold region;return|dönüş|Return home;believe|inanmak|Believe me;dance|dans|Dance party;members|üyeler|Team members;picked|seçti|Picked apple;simple|basit|Simple math;cells|hücreler|Blood cells;paint|boya|Blue paint;mind|zihin|Open mind;love|aşk|True love;cause|sebep|Cause trouble;rain|yağmur|Heavy rain;exercise|egzersiz|Daily exercise;eggs|yumurtalar|Cook eggs;train|tren|Fast train;blue|mavi|Blue sky;wish|dilek|Make wish;drop|düşürmek|Drop it;developed|gelişmiş|Developed city;window|pencere|Open window;difference|fark|Big difference;distance|mesafe|Long distance;heart|kalp|My heart;site|site|Web site;sum|toplam|Sum up;summer|yaz|Hot summer;wall|duvar|Brick wall;forest|orman|Green forest;probably|muhtemelen|Probably yes;legs|bacaklar|Two legs;sat|oturdu|He sat down;main|ana|Main street;winter|kış|Cold winter;wide|geniş|Wide road;written|yazılı|Written test;length|uzunluk|Full length;reason|sebep|Good reason;kept|tuttu|Kept safe;interest|ilgi|High interest;arms|kollar|Strong arms;brother|erkek kardeş|Big brother;race|yarış|Car race;present|hediye/sunmak|Birthday present;beautiful|güzel|Beautiful day;store|mağaza|Grocery store;job|iş|Good job;edge|kenar|Sharp edge;past|geçmiş|In the past;sign|işaret|Stop sign;record|kayıt|World record;finished|bitti|Finished work;discovered|keşfedildi|Discovered land;wild|vahşi|Wild animal;happy|mutlu|Happy face;beside|yanında|Sit beside;gone|gitmiş|He is gone;sky|gökyüzü|Blue sky;glass|cam|Glass cup;million|milyon|One million;west|batı|Go west;lay|yatmak|Lay down;weather|hava|Good weather;root|kök|Tree root;instruments|enstrümanlar|Musical instruments;meet|buluşmak|Meet me;third|üçüncü|Third place;months|aylar|Twelve months;paragraph|paragraf|Short paragraph;raised|kaldırdı|Raised hand;represent|temsil etmek|Represent us;soft|yumuşak|Soft pillow;whether|olup olmadığı|Whether or not;clothes|kıyafetler|New clothes;flowers|çiçekler|Red flowers;shall|cek/cak|Shall we?;teacher|öğretmen|Best teacher;held|tuttu|Held hands;describe|tanımlamak|Describe it;drive|sürmek|Drive car;adventure|macera|Big adventure;advice|tavsiye|Good advice;afraid|korkmuş|Afraid of dark;afternoon|öğleden sonra|Good afternoon;age|yaş|What age?;ago|önce|Years ago;airport|havalimanı|Busy airport;alarm|alarm|Fire alarm;alive|hayatta|Still alive;alone|yalnız|Home alone;angry|kızgın|Angry bird;apartment|daire|New apartment;apple|elma|Red apple;arm|kol|Strong arm;army|ordu|Big army;arrive|varmak|Arrive early;art|sanat|Modern art;article|makale|Read article;artist|sanatçı|Famous artist;attack|saldırı|Surprise attack;aunt|teyze/hala|My aunt;autumn|sonbahar|Cold autumn;baby|bebek|Cute baby;bad|kötü|Bad luck;bag|çanta|Blue bag;ball|top|Soccer ball;banana|muz|Yellow banana;band|grup (müzik)|Rock band;bank|banka|Save money;bath|banyo|Hot bath;bathroom|banyo odası|Clean bathroom;beach|plaj|Sandy beach;bear|ayı|Brown bear;beautiful|güzel|Beautiful flower;bed|yatak|Soft bed;bedroom|yatak odası|Big bedroom;beer|bira|Cold beer;bell|zil|Ring bell;bicycle|bisiklet|Ride bicycle;big|büyük|Big house;bird|kuş|Fly bird;birthday|doğum günü|Happy birthday;bite|ısırmak|Dog bite;black|siyah|Black cat;blind|kör|Blind man;blood|kan|Red blood;blue|mavi|Blue sky;board|tahta/kurul|White board;boat|tekne|Sail boat;body|vücut|Human body;bone|kemik|Dog bone;book|kitap|Read book;born|doğmuş|Born in May;boss|patron|Big boss;bottle|şişe|Water bottle;box|kutu|Open box;boy|erkek çocuk|Little boy;brain|beyin|Smart brain;bread|ekmek|Eat bread;break|kırmak|Break glass;breakfast|kahvaltı|Eat breakfast;bridge|köprü|Long bridge;bright|parlak|Bright light;broken|kırık|Broken heart;brother|erkek kardeş|My brother;brown|kahverengi|Brown bear;brush|fırça|Hair brush;build|inşa etmek|Build house;burn|yanmak|Fire burn;bus|otobüs|School bus;busy|meşgul|Busy street;butter|tereyağı|Bread and butter;button|düğme|Press button;buy|satın almak|Buy food;cake|kek|Birthday cake;camera|kamera|Take photo;camp|kamp|Summer camp;card|kart|Credit card;care|bakım/umursamak|Take care;cat|kedi|Cute cat;catch|yakalamak|Catch ball;ceiling|tavan|High ceiling;center|merkez|City center;chair|sandalye|Sit on chair;cheap|ucuz|Cheap price;cheese|peynir|Swiss cheese;chicken|tavuk|Fried chicken;child|çocuk|Happy child;church|kilise|Old church;circle|daire|Draw circle;city|şehir|Big city;class|sınıf|Math class;clean|temiz|Clean room;climb|tırmanmak|Climb mountain;clock|saat (duvar)|Wall clock;close|kapatmak/yakın|Close door;clothes|kıyafetler|New clothes;cloud|bulut|White cloud;club|kulüp|Dance club;coat|mont|Winter coat;coffee|kahve|Hot coffee;cold|soğuk|Cold weather;color|renk|Red color;comb|tarak|Comb hair;come|gelmek|Come here;computer|bilgisayar|Fast computer;cook|pişirmek|Cook dinner;cool|serin/havalı|Cool guy;copy|kopyalamak|Copy paste;corner|köşe|Street corner;cost|maliyet|High cost;count|saymak|Count numbers;country|ülke|My country;course|kurs/ders|English course;cousin|kuzen|My cousin;cow|inek|Milk cow;crazy|çılgın|Crazy idea;cream|krema|Ice cream;cross|geçmek|Cross street;cry|ağlamak|Baby cry;cup|fincan|Coffee cup;cut|kesmek|Cut paper;dad|baba|Hi dad;dance|dans|Dance music;dangerous|tehlikeli|Dangerous road;dark|karanlık|Dark night;date|tarih/hurma|What date?;daughter|kız evlat|My daughter;day|gün|Sunny day;dead|ölü|Dead end;dear|sevgili|Dear friend;death|ölüm|Life and death;deep|derin|Deep sea;desk|sıra/masa|Work desk;die|ölmek|Plants die;dirty|kirli|Dirty hands;doctor|doktor|Visit doctor;dog|köpek|Good dog;doll|oyuncak bebek|Play doll;door|kapı|Open door;down|aşağı|Sit down;draw|çizmek|Draw picture;dream|rüya|Sweet dream;dress|elbise|Red dress;drink|içmek|Drink water;drive|sürmek|Drive car;drop|düşürmek|Drop it;dry|kuru|Dry hair;duck|ördek|Quack duck;dust|toz|Clean dust;ear|kulak|Listen ear;early|erken|Wake early;earth|dünya|Planet Earth;east|doğu|Go east;easy|kolay|Easy job;eat|yemek|Eat food;egg|yumurta|Fried egg;eight|sekiz|Eight balls;elephant|fil|Big elephant;empty|boş|Empty box;end|son|The end;enemy|düşman|Fight enemy;energy|enerji|Solar energy;engine|motor|Car engine;engineer|mühendis|Civil engineer;enjoy|zevk almak|Enjoy life;enough|yeterli|Enough food;enter|girmek|Enter room;evening|akşam|Good evening;exam|sınav|Hard exam;exit|çıkış|Emergency exit;expensive|pahalı|Expensive car;explain|açıklamak|Explain this;eye|göz|Blue eye;face|yüz|Happy face;factory|fabrika|Big factory;fall|düşmek/sonbahar|Leaves fall;family|aile|Big family;famous|ünlü|Famous star;fan|hayran/pervane|Ceiling fan;far|uzak|Far away;farm|çiftlik|Old farm;fast|hızlı|Fast car;fat|şişman/yağ|Fat cat;father|baba|My father;fear|korku|No fear;feed|beslemek|Feed dog;feel|hissetmek|Feel good;female|dişi|Female lion;fight|dövüşmek|Fight hard;fill|doldurmak|Fill cup;film|film|Watch film;find|bulmak|Find key;finger|parmak|Ten fingers;fire|ateş|Hot fire;fish|balık|Gold fish;five|beş|Five fingers;flag|bayrak|Red flag;flat|düz/daire|Flat tire;floor|zemin|Wood floor;flower|çiçek|Red flower;fly|uçmak|Birds fly;fog|sis|Thick fog;food|yiyecek|Fast food;foot|ayak|Left foot;football|futbol|Play football;for|için|For you;forest|orman|Green forest;forget|unutmak|Don't forget;fork|çatal|Knife and fork;four|dört|Four cats;fox|tilki|Clever fox;free|özgür/bedava|Free time;fresh|taze|Fresh fruit;friend|arkadaş|Best friend;frog|kurbağa|Green frog;fruit|meyve|Fresh fruit;full|dolu|Full moon;fun|eğlence|Have fun;funny|komik|Funny joke;game|oyun|Play game;garden|bahçe|Green garden;gas|gaz/benzin|Gas station;gate|kapı (bahçe)|Iron gate;gift|hediye|Birthday gift;girl|kız|Happy girl;give|vermek|Give gift;glass|cam/bardak|Water glass;go|gitmek|Go home;goat|keçi|White goat;god|tanrı|Oh god;gold|altın|Gold ring;good|iyi|Good morning;grandfather|büyükbaba|Old grandfather;grandmother|büyükanne|Kind grandmother;grass|çim|Green grass;gray|gri|Gray hair;great|harika|Great job;green|yeşil|Green tree;ground|yer|On ground;group|grup|Small group;grow|büyümek|Plants grow;guest|misafir|House guest;guide|rehber|Tour guide;gun|silah|Toy gun;hair|saç|Long hair;half|yarım|Half hour;hall|salon/hol|City hall;hand|el|Right hand;happen|olmak|What happened?;happy|mutlu|Happy face;hard|sert/zor|Hard rock;hat|şapka|Red hat;hate|nefret etmek|I hate rain;have|sahip olmak|I have money;he|o (erkek)|He is nice;head|kafa|Big head;health|sa";
+        const rawWordData = "the|o, şu|The book is here;of|-in/-ın|Piece of cake;and|ve|You and me;a|bir|A cat;to|-e/-a|Go to school;in|içinde|In the box;is|dır/dir|He is tall;you|sen|You look good;that|şu/o|That is amazing;it|o|It is raining;he|o (erkek)|He is my brother;was|idi|It was fun;for|için|This is for you;on|üzerinde|On the table;are|dır/dir (çoğul)|We are happy;as|gibi/olarak|As soon as possible;with|ile|Come with me;his|onun (erkek)|His car is red;they|onlar|They are here;I|ben|I am fine;at|-de/-da|At home;be|olmak|Be yourself;this|bu|This is mine;have|sahip olmak|I have a dog;from|-den/-dan|From New York;or|veya|Coffee or tea;one|bir|One moment;had|sahip idi|I had a dream;by|tarafından|By the way;word|kelime|Just one word;but|ama|But why?;not|değil|Not today;what|ne|What is this?;all|hepsi|All of us;were|idiler|They were happy;we|biz|We are family;when|ne zaman|When is it?;your|senin|Your turn;can|yapabilmek|I can fly;said|dedi|He said no;there|orada|Over there;use|kullanmak|Use it wisely;an|bir|An apple;each|her biri|Each person;which|hangi|Which one?;she|o (kadın)|She is smart;do|yapmak|Do it now;how|nasıl|How are you?;their|onların|Their house;if|eğer|If you want;will|ecek/acak|I will go;up|yukarı|Look up;other|diğer|Other side;about|hakkında|About time;out|dışarı|Get out;many|çok|Many people;then|sonra|Then what?;them|onları|Tell them;these|bunlar|These shoes;so|böylece/çok|So good;some|bazı|Some water;her|onun (kadın)|Her bag;would|cekti/caktı|I would go;make|yapmak|Make tea;like|gibi/sevmek|Like this;him|onu|Tell him;into|içine|Into the wild;time|zaman|Time flies;has|sahip (o)|He has it;look|bakmak|Look at me;two|iki|Two days;more|daha|More please;write|yazmak|Write a letter;go|gitmek|Let's go;see|görmek|I see you;number|numara|Number one;no|hayır|No thanks;way|yol|This way;could|yapabilirdi|Could you help?;people|insanlar|Happy people;my|benim|My car;than|-den (karşılaştırma)|Better than you;first|birinci|First place;water|su|Drink water;been|olmuş|Has been;call|aramak|Call me;who|kim|Who is it?;oil|yağ|Olive oil;its|onun (cansız)|Its color;now|şimdi|Do it now;find|bulmak|Find the key;long|uzun|Long time;down|aşağı|Sit down;day|gün|Good day;did|yaptı|He did it;get|almak|Get ready;come|gelmek|Come here;made|yapılmış|Made in China;may|olabilir|May I?;part|parça|Part of me;over|üzerinde/bitmiş|Game over;new|yeni|New phone;sound|ses|Good sound;take|almak|Take it;only|sadece|Only you;little|küçük|Little bit;work|iş/çalışmak|Good work;know|bilmek|I know;place|yer|Nice place;year|yıl|Next year;live|yaşamak|Live fast;me|bana/beni|Look at me;back|geri|Come back;give|vermek|Give up;most|en çok|Most people;very|çok|Very good;after|sonra|After lunch;thing|şey|Good thing;our|bizim|Our house;just|sadece|Just now;name|isim|My name;good|iyi|Good job;sentence|cümle|Long sentence;man|adam|Tall man;think|düşünmek|Think big;say|söylemek|Say hello;great|harika|Great day;where|nerede|Where is it?;help|yardım|Help me;through|içinden/arasından|Through the door;much|çok|Too much;before|önce|Before me;line|çizgi|Draw a line;right|sağ/doğru|Turn right;too|de/da/çok|Me too;mean|anlamına gelmek|What do you mean?;old|eski/yaşlı|Old car;any|herhangi|Any ideas?;same|aynı|Same here;tell|anlatmak|Tell a story;boy|oğlan|Good boy;follow|takip etmek|Follow me;came|geldi|He came;want|istemek|I want it;show|göstermek|Show me;also|ayrıca|Me also;around|etrafında|Look around;farm|çiftlik|Big farm;three|üç|Three cats;small|küçük|Small box;set|ayarlamak/set|Set go;put|koymak|Put it there;end|son|The end;does|yapar|He does it;another|başka|Another one;well|iyi|Well done;large|geniş|Large size;must|meli/malı|Must go;big|büyük|Big house;even|bile|Even me;such|böyle|Such a day;because|çünkü|Because why;turn|dönmek|Turn left;here|burada|I am here;why|neden|Why not?;ask|sormak|Ask him;went|gitti|He went home;men|adamlar|Two men;read|okumak|Read this;need|ihtiyaç duymak|I need you;land|arazi|My land;different|farklı|Different color;home|ev|Go home;us|bize|Join us;move|hareket etmek|Move it;try|denemek|Try again;kind|tür/nazik|Be kind;hand|el|My hand;picture|resim|Nice picture;again|tekrar|Try again;change|değişim|Change is good;off|kapalı|Turn off;play|oynamak|Play game;spell|hecelemek|Spell it;air|hava|Fresh air;away|uzak|Go away;animal|hayvan|Wild animal;house|ev|My house;point|nokta|Good point;page|sayfa|Page one;letter|mektup/harf|Write a letter;mother|anne|My mother;answer|cevap|Answer me;found|bulundu|Found it;study|çalışmak (ders)|Study hard;still|hala|Still here;learn|öğrenmek|Learn English;should|meli/malı|Should go;America|Amerika|In America;world|dünya|Hello world;high|yüksek|High jump;every|her|Every day;near|yakın|Near me;add|eklemek|Add sugar;food|yemek|Good food;between|arasında|Between us;own|kendi|My own;below|aşağıda|Look below;country|ülke|My country;plant|bitki|Green plant;last|son|Last one;school|okul|At school;father|baba|My father;keep|tutmak|Keep it;tree|ağaç|Tall tree;never|asla|Never mind;city|şehir|Big city;earth|dünya|Planet Earth;eye|göz|Blue eye;light|ışık|Turn on light;thought|düşünce|Good thought;head|kafa|My head;under|altında|Under water;story|hikaye|Tell a story;saw|gördü|I saw it;left|sol/ayrıldı|Turn left;don't|yapma|Don't stop;few|az|Few people;while|iken|While walking;along|boyunca|Come along;might|olabilir|It might rain;close|kapalı/yakın|Close the door;something|bir şey|Say something;seem|görünmek|Seems good;next|sonraki|Next time;hard|zor/sert|Work hard;open|açık|Open it;example|örnek|For example;begin|başlamak|Begin now;life|hayat|Life is good;always|her zaman|Always smile;those|şunlar|Those cars;both|ikisi de|Both of us;paper|kağıt|White paper;together|birlikte|Go together;got|aldı|I got it;group|grup|Small group;often|sık sık|Often visit;run|koşmak|Run fast;important|önemli|Important news;until|-e kadar|Until tomorrow;children|çocuklar|Happy children;side|yan/taraf|Side by side;feet|ayaklar|Two feet;car|araba|Fast car;mile|mil|One mile;night|gece|Good night;walk|yürümek|Walk away;white|beyaz|White snow;sea|deniz|Blue sea;began|başladı|It began;grow|büyümek|Plants grow;took|aldı|He took it;river|nehir|Long river;four|dört|Four cats;carry|taşımak|Carry this;state|eyalet/durum|New York State;once|bir kez|Once upon a time;book|kitap|Read book;hear|duymak|Hear music;stop|durmak|Stop now;without|olmadan|Without you;second|saniye/ikinci|Wait a second;late|geç|Too late;miss|özlemek/kaçırmak|Miss you;idea|fikir|Good idea;enough|yeterli|Enough food;eat|yemek|Eat apple;face|yüz|Wash face;watch|izlemek|Watch TV;far|uzak|Far away;Indian|Hintli|Indian food;real|gerçek|Real love;almost|neredeyse|Almost there;let|izin vermek|Let me go;above|yukarıda|Look above;girl|kız|Happy girl;sometimes|bazen|Sometimes cry;mountains|dağlar|High mountains;cut|kesmek|Cut paper;young|genç|Young man;talk|konuşmak|Talk to me;soon|yakında|See soon;list|liste|To-do list;song|şarkı|Sing a song;being|olma|Being happy;leave|ayrılmak|Leave me;family|aile|Big family;it's|o (kısaltma)|It's time;body|vücut|My body;music|müzik|Loud music;color|renk|Red color;stand|ayakta durmak|Stand up;sun|güneş|Hot sun;questions|sorular|Any questions?;fish|balık|Swim fish;area|alan|Rest area;mark|işaret|Check mark;dog|köpek|Good dog;horse|at|Ride horse;birds|kuşlar|Fly birds;problem|sorun|No problem;complete|tamamlamak|Complete it;room|oda|My room;knew|biliyordu|I knew it;since|-den beri|Since 1990;ever|hiç|Ever been?;piece|parça|Piece of cake;told|söyledi|He told me;usually|genellikle|Usually late;didn't|yapmadı|Didn't know;friends|arkadaşlar|Best friends;easy|kolay|Easy task;heard|duydu|I heard that;order|sipariş/düzen|Order pizza;red|kırmızı|Red car;door|kapı|Open door;sure|emin|Are you sure?;become|olmak|Become rich;top|üst|Top floor;ship|gemi|Big ship;across|karşıya|Across the street;today|bugün|Not today;during|sırasında|During class;short|kısa|Short hair;better|daha iyi|Better now;best|en iyi|Best friend;however|bununla birlikte|However, I will go;low|düşük|Low battery;hours|saatler|Two hours;black|siyah|Black cat;products|ürünler|New products;happened|oldu|What happened?;whole|bütün|Whole pizza;measure|ölçmek|Measure it;remember|hatırlamak|Remember me;early|erken|Early bird;waves|dalgalar|Big waves;reached|ulaştı|Reached home;listen|dinlemek|Listen to me;wind|rüzgar|Cold wind;rock|kaya|Hard rock;space|uzay/boşluk|Outer space;covered|kaplı|Covered in snow;fast|hızlı|Run fast;several|birkaç|Several days;hold|tutmak|Hold on;himself|kendisi|He hurt himself;toward|doğru|Walk toward;five|beş|Five stars;step|adım|Step back;morning|sabah|Good morning;passed|geçti|Passed away;vowel|ünlü harf|A E I O U;true|doğru|True story;hundred|yüz|One hundred;against|karşı|Against the wall;pattern|desen|Nice pattern;numeral|sayısal|Roman numeral;table|masa|On the table;north|kuzey|Go north;slowly|yavaşça|Walk slowly;money|para|Need money;map|harita|World map;busy|meşgul|Busy now;pulled|çekti|Pulled over;draw|çizmek|Draw a picture;voice|ses|Loud voice;seen|görülmüş|Seen it;cold|soğuk|Cold water;cried|ağladı|She cried;plan|plan|Good plan;notice|fark etmek|Did you notice?;south|güney|Go south;sing|şarkı söylemek|Sing loud;war|savaş|Stop war;ground|yer|On the ground;fall|düşmek|Fall down;king|kral|Lion king;town|kasaba|Small town;I'll|yapacağım|I'll do it;unit|birim|Unit one;figure|şekil/rakam|Figure it out;certain|kesin|Certain death;field|tarla/alan|Soccer field;travel|seyahat|Travel fast;wood|odun|Chop wood;fire|ateş|Hot fire;upon|üzerine|Once upon;done|yapılmış|Well done;English|İngilizce|Learn English;road|yol|Long road;half|yarım|Half full;ten|on|Ten days;fly|uçmak|Birds fly;gave|verdi|He gave it;box|kutu|Open box;finally|sonunda|Finally home;wait|beklemek|Wait here;correct|doğru|Correct answer;oh|oh|Oh no;quickly|hızlıca|Run quickly;person|kişi|Nice person;became|oldu|He became king;shown|gösterilmiş|Shown on TV;minutes|dakikalar|Five minutes;strong|güçlü|Strong man;verb|fiil|Action verb;stars|yıldızlar|Bright stars;front|ön|Front door;feel|hissetmek|Feel good;fact|gerçek|Fun fact;inches|inç|Two inches;street|cadde|Main street;decided|karar verdi|Decided to go;contain|içermek|Contain nuts;course|kurs/tabii|Of course;surface|yüzey|Smooth surface;produce|üretmek|Produce cars;building|bina|Tall building;ocean|okyanus|Deep ocean;class|sınıf|Math class;note|not|Take note;nothing|hiçbir şey|Nothing here;rest|dinlenmek|Rest now;carefully|dikkatlice|Drive carefully;scientists|bilim insanları|Smart scientists;inside|içinde|Look inside;wheels|tekerlekler|Car wheels;stay|kalmak|Stay safe;green|yeşil|Green grass;known|bilinen|Well known;island|ada|Tropical island;week|hafta|Last week;less|daha az|Less money;machine|makine|Big machine;base|taban/üs|Base camp;ago|önce|Long ago;stood|durdu|He stood up;plane|uçak|Fly plane;system|sistem|Solar system;behind|arkasında|Look behind;ran|koştu|He ran fast;round|yuvarlak|Round ball;boat|tekne|Sail boat;game|oyun|Video game;force|güç|Use force;brought|getirdi|Brought food;understand|anlamak|I understand;warm|ılık|Warm water;common|yaygın|Common cold;bring|getirmek|Bring it;explain|açıklamak|Explain this;dry|kuru|Dry clothes;though|rağmen|Even though;language|dil|Speak language;shape|şekil|Circle shape;deep|derin|Deep water;thousands|binlerce|Thousands of people;yes|evet|Yes please;clear|açık/net|Clear sky;equation|denklem|Math equation;yet|henüz|Not yet;government|hükümet|Big government;filled|dolu|Filled cup;heat|ısı|High heat;full|dolu|Full moon;hot|sıcak|Hot tea;check|kontrol|Check mate;object|nesne|Flying object;am|yım/yim|I am;rule|kural|Game rule;among|arasında|Among us;noun|isim|Proper noun;power|güç|Power on;cannot|yapamaz|Cannot go;able|yapabilir|Able to run;six|altı|Six cars;size|boyut|Big size;dark|karanlık|Dark night;ball|top|Kick ball;material|malzeme|Raw material;special|özel|Special day;heavy|ağır|Heavy box;fine|iyi|I am fine;pair|çift|Pair of shoes;circle|daire|Draw circle;include|içermek|Include me;built|inşa edilmiş|Built house;can't|yapamaz|Can't stop;matter|mesele|What matter?;square|kare|Square box;syllables|heceler|Two syllables;perhaps|belki|Perhaps later;bill|fatura|Pay bill;felt|hissetti|Felt good;suddenly|aniden|Suddenly stop;test|test|Math test;direction|yön|Wrong direction;center|merkez|City center;farmers|çiftçiler|Hard farmers;ready|hazır|Ready set go;anything|herhangi bir şey|Anything else?;divided|bölünmüş|Divided by;general|genel|General idea;energy|enerji|Solar energy;subject|konu|School subject;Europe|Avrupa|Visit Europe;moon|ay|Full moon;region|bölge|Cold region;return|dönüş|Return home;believe|inanmak|Believe me;dance|dans|Dance party;members|üyeler|Team members;picked|seçti|Picked apple;simple|basit|Simple math;cells|hücreler|Blood cells;paint|boya|Blue paint;mind|zihin|Open mind;love|aşk|True love;cause|sebep|Cause trouble;rain|yağmur|Heavy rain;exercise|egzersiz|Daily exercise;eggs|yumurtalar|Cook eggs;train|tren|Fast train;blue|mavi|Blue sky;wish|dilek|Make wish;drop|düşürmek|Drop it;developed|gelişmiş|Developed city;window|pencere|Open window;difference|fark|Big difference;distance|mesafe|Long distance;heart|kalp|My heart;site|site|Web site;sum|toplam|Sum up;summer|yaz|Hot summer;wall|duvar|Brick wall;forest|orman|Green forest;probably|muhtemelen|Probably yes;legs|bacaklar|Two legs;sat|oturdu|He sat down;main|ana|Main street;winter|kış|Cold winter;wide|geniş|Wide road;written|yazılı|Written test;length|uzunluk|Full length;reason|sebep|Good reason;kept|tuttu|Kept safe;interest|ilgi|High interest;arms|kollar|Strong arms;brother|erkek kardeş|Big brother;race|yarış|Car race;present|hediye/sunmak|Birthday present;beautiful|güzel|Beautiful day;store|mağaza|Grocery store;job|iş|Good job;edge|kenar|Sharp edge;past|geçmiş|In the past;sign|işaret|Stop sign;record|kayıt|World record;finished|bitti|Finished work;discovered|keşfedildi|Discovered land;wild|vahşi|Wild animal;happy|mutlu|Happy face;beside|yanında|Sit beside;gone|gitmiş|He is gone;sky|gökyüzü|Blue sky;glass|cam|Glass cup;million|milyon|One million;west|batı|Go west;lay|yatmak|Lay down;weather|hava|Good weather;root|kök|Tree root;instruments|enstrümanlar|Musical instruments;meet|buluşmak|Meet me;third|üçüncü|Third place;months|aylar|Twelve months;paragraph|paragraf|Short paragraph;raised|kaldırdı|Raised hand;represent|temsil etmek|Represent us;soft|yumuşak|Soft pillow;whether|olup olmadığı|Whether or not;clothes|kıyafetler|New clothes;flowers|çiçekler|Red flowers;shall|cek/cak|Shall we?;teacher|öğretmen|Best teacher;held|tuttu|Held hands;describe|tanımlamak|Describe it;drive|sürmek|Drive car;adventure|macera|Big adventure;advice|tavsiye|Good advice;afraid|korkmuş|Afraid of dark;afternoon|öğleden sonra|Good afternoon;age|yaş|What age?;ago|önce|Years ago;airport|havalimanı|Busy airport;alarm|alarm|Fire alarm;alive|hayatta|Still alive;alone|yalnız|Home alone;angry|kızgın|Angry bird;apartment|daire|New apartment;apple|elma|Red apple;arm|kol|Strong arm;army|ordu|Big army;arrive|varmak|Arrive early;art|sanat|Modern art;article|makale|Read article;artist|sanatçı|Famous artist;attack|saldırı|Surprise attack;aunt|teyze/hala|My aunt;autumn|sonbahar|Cold autumn;baby|bebek|Cute baby;bad|kötü|Bad luck;bag|çanta|Blue bag;ball|top|Soccer ball;banana|muz|Yellow banana;band|grup (müzik)|Rock band;bank|banka|Save money;bath|banyo|Hot bath;bathroom|banyo odası|Clean bathroom;beach|plaj|Sandy beach;bear|ayı|Brown bear;beautiful|güzel|Beautiful flower;bed|yatak|Soft bed;bedroom|yatak odası|Big bedroom;beer|bira|Cold beer;bell|zil|Ring bell;bicycle|bisiklet|Ride bicycle;big|büyük|Big house;bird|kuş|Fly bird;birthday|doğum günü|Happy birthday;bite|ısırmak|Dog bite;black|siyah|Black cat;blind|kör|Blind man;blood|kan|Red blood;blue|mavi|Blue sky;board|tahta/kurul|White board;boat|tekne|Sail boat;body|vücut|Human body;bone|kemik|Dog bone;book|kitap|Read book;born|doğmuş|Born in May;boss|patron|Big boss;bottle|şişe|Water bottle;box|kutu|Open box;boy|erkek çocuk|Little boy;brain|beyin|Smart brain;bread|ekmek|Eat bread;break|kırmak|Break glass;breakfast|kahvaltı|Eat breakfast;bridge|köprü|Long bridge;bright|parlak|Bright light;broken|kırık|Broken heart;brother|erkek kardeş|My brother;brown|kahverengi|Brown bear;brush|fırça|Hair brush;build|inşa etmek|Build house;burn|yanmak|Fire burn;bus|otobüs|School bus;busy|meşgul|Busy street;butter|tereyağı|Bread and butter;button|düğme|Press button;buy|satın almak|Buy food;cake|kek|Birthday cake;camera|kamera|Take photo;camp|kamp|Summer camp;card|kart|Credit card;care|bakım/umursamak|Take care;cat|kedi|Cute cat;catch|yakalamak|Catch ball;ceiling|tavan|High ceiling;center|merkez|City center;chair|sandalye|Sit on chair;cheap|ucuz|Cheap price;cheese|peynir|Swiss cheese;chicken|tavuk|Fried chicken;child|çocuk|Happy child;church|kilise|Old church;circle|daire|Draw circle;city|şehir|Big city;class|sınıf|Math class;clean|temiz|Clean room;climb|tırmanmak|Climb mountain;clock|saat (duvar)|Wall clock;close|kapatmak/yakın|Close door;clothes|kıyafetler|New clothes;cloud|bulut|White cloud;club|kulüp|Dance club;coat|mont|Winter coat;coffee|kahve|Hot coffee;cold|soğuk|Cold weather;color|renk|Red color;comb|tarak|Comb hair;come|gelmek|Come here;computer|bilgisayar|Fast computer;cook|pişirmek|Cook dinner;cool|serin/havalı|Cool guy;copy|kopyalamak|Copy paste;corner|köşe|Street corner;cost|maliyet|High cost;count|saymak|Count numbers;country|ülke|My country;course|kurs/ders|English course;cousin|kuzen|My cousin;cow|inek|Milk cow;crazy|çılgın|Crazy idea;cream|krema|Ice cream;cross|geçmek|Cross street;cry|ağlamak|Baby cry;cup|fincan|Coffee cup;cut|kesmek|Cut paper;dad|baba|Hi dad;dance|dans|Dance music;dangerous|tehlikeli|Dangerous road;dark|karanlık|Dark night;date|tarih/hurma|What date?;daughter|kız evlat|My daughter;day|gün|Sunny day;dead|ölü|Dead end;dear|sevgili|Dear friend;death|ölüm|Life and death;deep|derin|Deep sea;desk|sıra/masa|Work desk;die|ölmek|Plants die;dirty|kirli|Dirty hands;doctor|doktor|Visit doctor;dog|köpek|Good dog;doll|oyuncak bebek|Play doll;door|kapı|Open door;down|aşağı|Sit down;draw|çizmek|Draw picture;dream|rüya|Sweet dream;dress|elbise|Red dress;drink|içmek|Drink water;drive|sürmek|Drive car;drop|düşürmek|Drop it;dry|kuru|Dry hair;duck|ördek|Quack duck;dust|toz|Clean dust;ear|kulak|Listen ear;early|erken|Wake early;earth|dünya|Planet Earth;east|doğu|Go east;easy|kolay|Easy job;eat|yemek|Eat food;egg|yumurta|Fried egg;eight|sekiz|Eight balls;elephant|fil|Big elephant;empty|boş|Empty box;end|son|The end;enemy|düşman|Fight enemy;energy|enerji|Solar energy;engine|motor|Car engine;engineer|mühendis|Civil engineer;enjoy|zevk almak|Enjoy life;enough|yeterli|Enough food;enter|girmek|Enter room;evening|akşam|Good evening;exam|sınav|Hard exam;exit|çıkış|Emergency exit;expensive|pahalı|Expensive car;explain|açıklamak|Explain this;eye|göz|Blue eye;face|yüz|Happy face;factory|fabrika|Big factory;fall|düşmek/sonbahar|Leaves fall;family|aile|Big family;famous|ünlü|Famous star;fan|hayran/pervane|Ceiling fan;far|uzak|Far away;farm|çiftlik|Old farm;fast|hızlı|Fast car;fat|şişman/yağ|Fat cat;father|baba|My father;fear|korku|No fear;feed|beslemek|Feed dog;feel|hissetmek|Feel good;female|dişi|Female lion;fight|dövüşmek|Fight hard;fill|doldurmak|Fill cup;film|film|Watch film;find|bulmak|Find key;finger|parmak|Ten fingers;fire|ateş|Hot fire;fish|balık|Gold fish;five|beş|Five fingers;flag|bayrak|Red flag;flat|düz/daire|Flat tire;floor|zemin|Wood floor;flower|çiçek|Red flower;fly|uçmak|Birds fly;fog|sis|Thick fog;food|yiyecek|Fast food;foot|ayak|Left foot;football|futbol|Play football;for|için|For you;forest|orman|Green forest;forget|unutmak|Don't forget;fork|çatal|Knife and fork;four|dört|Four cats;fox|tilki|Clever fox;free|özgür/bedava|Free time;fresh|taze|Fresh fruit;friend|arkadaş|Best friend;frog|kurbağa|Green frog;fruit|meyve|Fresh fruit;full|dolu|Full moon;fun|eğlence|Have fun;funny|komik|Funny joke;game|oyun|Play game;garden|bahçe|Green garden;gas|gaz/benzin|Gas station;gate|kapı (bahçe)|Iron gate;gift|hediye|Birthday gift;girl|kız|Happy girl;give|vermek|Give gift;glass|cam/bardak|Water glass;go|gitmek|Go home;goat|keçi|White goat;god|tanrı|Oh god;gold|altın|Gold ring;good|iyi|Good morning;grandfather|büyükbaba|Old grandfather;grandmother|büyükanne|Kind grandmother;grass|çim|Green grass;gray|gri|Gray hair;great|harika|Great job;green|yeşil|Green tree;ground|yer|On ground;group|grup|Small group;grow|büyümek|Plants grow;guest|misafir|House guest;guide|rehber|Tour guide;gun|silah|Toy gun;hair|saç|Long hair;half|yarım|Half hour;hall|salon/hol|City hall;hand|el|Right hand;happen|olmak|What happened?;happy|mutlu|Happy face;hard|sert/zor|Hard rock;hat|şapka|Red hat;hate|nefret etmek|I hate rain;have|sahip olmak|I have money;he|o (erkek)|He is nice;head|kafa|Big head;health|sağlık|Good health;hear|duymak|Hear sound;heart|kalp|My heart;heat|ısı|High heat;heavy|ağır|Heavy bag;hell|cehennem|Go to hell;hello|merhaba|Say hello;help|yardım etmek|Help me;her|onun (kadın)|Her name;here|burada|Come here;high|yüksek|High jump;hill|tepe|Green hill;him|onu (erkek)|Ask him;history|tarih|World history;hit|vurmak|Hit ball;hobby|hobi|My hobby;hold|tutmak|Hold hand;hole|delik|Deep hole;holiday|tatil|Summer holiday;home|ev|Go home;hope|umut|Lose hope;horse|at|Ride horse;hospital|hastane|City hospital;hot|sıcak|Hot tea;hotel|otel|Nice hotel;hour|saat|One hour;house|ev|Big house;how|nasıl|How are you?;human|insan|Human rights;hungry|aç|I am hungry;hunt|avlamak|Hunt animals;hurt|incitmek|It hurts;husband|koca|My husband;ice|buz|Ice cream;idea|fikir|Good idea;if|eğer|If you can;ill|hasta|Feel ill;important|önemli|Important person;in|içinde|In box;increase|artmak|Increase volume;inside|içeride|Go inside;into|içine|Into water;iron|demir/ütü|Iron man;island|ada|Small island;job|iş|New job;join|katılmak|Join us;joke|şaka|Funny joke;juice|meyve suyu|Orange juice;jump|zıplamak|High jump;keep|tutmak|Keep it;key|anahtar|Car key;kick|tekmelemek|Kick ball;kid|çocuk|Happy kid;kill|öldürmek|Kill bug;kind|nazik/tür|Kind person;king|kral|Lion king;kiss|öpmek|Kiss me;kitchen|mutfak|Clean kitchen;knee|diz|Left knee;knife|bıçak|Sharp knife;know|bilmek|I know;ladder|merdiven|Climb ladder;lady|bayan|Nice lady;lake|göl|Blue lake;lamp|lamba|Desk lamp;land|arazi/kara|Land rover;language|dil|Speak language;large|geniş|Large pizza;last|son|Last day;late|geç|Late night;laugh|gülmek|Laugh loud;law|kanun|Break law;leaf|yaprak|Green leaf;learn|öğrenmek|Learn fast;leave|ayrılmak|Leave home;left|sol|Turn left;leg|bacak|Long leg;lemon|limon|Sour lemon;lesson|ders|Math lesson;let|izin vermek|Let me go;letter|mektup/harf|Love letter;library|kütüphane|School library;lie|yalan söylemek/uzanmak|Tell lie;life|hayat|Good life;lift|kaldırmak/asansör|Lift weights;light|ışık/hafif|Turn on light;like|sevmek/gibi|Like pizza;line|çizgi|Straight line;lion|aslan|King lion;lip|dudak|Red lip;list|liste|Shopping list;listen|dinlemek|Listen music;little|küçük|Little boy;live|yaşamak|Live here;lock|kilitlemek|Lock door;long|uzun|Long hair;look|bakmak|Look there;lose|kaybetmek|Lose game;love|aşk|True love;low|düşük|Low price;luck|şans|Good luck;lunch|öğle yemeği|Eat lunch;machine|makine|Washing machine;magazine|dergi|Read magazine;mail|posta|Send mail;main|ana|Main street;make|yapmak|Make cake;male|erkek|Male voice;man|adam|Tall man;many|çok|Many cars;map|harita|City map;market|pazar|Super market;marry|evlenmek|Marry me;match|maç/eşleşmek|Football match;matter|konu/önem|No matter;may|mayıs/belki|May I?;me|ben|Help me;meal|öğün|Good meal;mean|anlamına gelmek|What mean?;meat|et|Red meat;medicine|ilaç|Take medicine;meet|buluşmak|Meet friend;member|üye|Club member;memory|hafıza|Good memory;metal|metal|Heavy metal;middle|orta|Middle age;milk|süt|Drink milk;million|milyon|One million;mind|zihin|Open mind;minute|dakika|One minute;mirror|ayna|Look mirror;miss|özlemek/kaçırmak|Miss bus;mistake|hata|Big mistake;mix|karıştırmak|Mix colors;model|model|Super model;modern|modern|Modern art;mom|anne|Hi mom;moment|an|Wait moment;money|para|Spend money;monkey|maymun|Funny monkey;month|ay|Next month;moon|ay|Full moon;more|daha|More food;morning|sabah|Good morning;most|en çok|Most people;mother|anne|My mother;mountain|dağ|High mountain;mouse|fare|Small mouse;mouth|ağız|Open mouth;move|hareket etmek|Move fast;movie|film|Watch movie;much|çok|Too much;museum|müze|Art museum;music|müzik|Pop music;must|meli/malı|Must go;name|isim|My name;narrow|dar|Narrow road;nation|ulus|One nation;nature|doğa|Love nature;near|yakın|Near home;neck|boyun|Long neck;need|ihtiyaç|Need water;neighbor|komşu|Good neighbor;never|asla|Never say;new|yeni|New car;news|haber|Good news;next|sonraki|Next week;nice|güzel|Nice day;night|gece|Good night;nine|dokuz|Nine lives;no|hayır|No thanks;noise|gürültü|Loud noise;none|hiçbiri|None left;noon|öğlen|High noon;normal|normal|Normal day;north|kuzey|North pole;nose|burun|Big nose;not|değil|Not me;note|not|Take note;nothing|hiçbir şey|Nothing happened;now|şimdi|Right now;number|numara|Phone number;nurse|hemşire|School nurse;object|nesne|Flying object;ocean|okyanus|Blue ocean;of|nın/nin|Cup of tea;off|kapalı|Lights off;offer|teklif|Best offer;office|ofis|Work office;often|sık sık|Often go;oil|yağ|Olive oil;old|eski/yaşlı|Old man;on|üzerinde|On table;one|bir|One day;only|sadece|Only you;open|açık|Open door;orange|turuncu/portakal|Orange juice;order|sipariş|Order pizza;other|diğer|Other side;our|bizim|Our house;out|dışarı|Go out;outside|dışarısı|Play outside;over|üzerinde/bitmiş|Game over;own|kendi|My own;page|sayfa|Turn page;pain|acı|Feel pain;paint|boya|Blue paint;pair|çift|Pair shoes;paper|kağıt|White paper;parent|ebeveyn|Single parent;park|park|City park;part|parça|Car part;party|parti|Birthday party;pass|geçmek|Pass ball;past|geçmiş|Past time;pay|ödemek|Pay bill;pen|tükenmez kalem|Blue pen;pencil|kalem|Sharp pencil;people|insanlar|Many people;pepper|biber|Black pepper;perfect|mükemmel|Perfect day;person|kişi|Nice person;pet|evcil hayvan|Pet dog;phone|telefon|Smart phone;photo|fotoğraf|Take photo;piano|piyano|Play piano;pick|seçmek/toplamak|Pick apple;picture|resim|Draw picture;piece|parça|Piece cake;pig|domuz|Pink pig;pilot|pilot|Plane pilot;pink|pembe|Pink flower;place|yer|Nice place;plane|uçak|Fly plane;plant|bitki|Green plant;plastic|plastik|Plastic bag;plate|tabak|Clean plate;play|oynamak|Play game;player|oyuncu|Best player;please|lütfen|Please help;pocket|cep|Pants pocket;point|nokta/işaret|Point finger;police|polis|Police car;pool|havuz|Swim pool;poor|fakir|Poor man;popular|popüler|Popular song;position|pozisyon|Top position;possible|mümkün|Mission possible;potato|patates|Hot potato;power|güç|Electric power;practice|pratik|Practice hard;pray|dua etmek|Pray god;prepare|hazırlamak|Prepare food;present|hediye/sunmak|Present time;president|başkan|Mr president;press|basmak|Press button;pretty|güzel|Pretty girl;price|fiyat|High price;prince|prens|Little prince;prison|hapishane|Go prison;private|özel|Private room;prize|ödül|Win prize;problem|sorun|No problem;produce|üretmek|Produce car;program|program|TV program;promise|söz vermek|I promise;protect|korumak|Protect me;public|halka açık|Public park;pull|çekmek|Pull door;punish|cezalandırmak|Punish him;pupil|öğrenci|Good pupil;push|itmek|Push door;put|koymak|Put down;queen|kraliçe|Save queen;question|soru|Ask question;quick|hızlı|Quick run;quiet|sessiz|Be quiet;radio|radyo|Listen radio;rain|yağmur|Heavy rain;raise|kaldırmak|Raise hand;rare|nadir|Rare bird;rat|sıçan|Big rat;reach|ulaşmak|Reach goal;read|okumak|Read book;ready|hazır|Ready go;real|gerçek|Real life;reason|sebep|Good reason;receive|almak|Receive mail;record|kayıt|Record song;red|kırmızı|Red apple;remember|hatırlamak|Remember me;repair|tamir etmek|Repair car;repeat|tekrar etmek|Repeat after;reply|cevaplamak|Reply mail;report|rapor|News report;rest|dinlenmek|Have rest;return|dönmek|Return home;rice|pirinç|Eat rice;rich|zengin|Rich man;ride|sürmek|Ride bike;right|sağ/doğru|Right hand;ring|yüzük/çalmak|Gold ring;rise|yükselmek|Sun rise;river|nehir|Long river;road|yol|Long road;robot|robot|Smart robot;rock|kaya|Hard rock;rocket|roket|Fly rocket;roof|çatı|House roof;room|oda|My room;rope|ip|Jump rope;rose|gül|Red rose;round|yuvarlak|Round ball;run|koşmak|Run fast;sad|üzgün|Sad face;safe|güvenli|Safe place;sail|yelken açmak|Sail boat;salt|tuz|Salt water;same|aynı|Same thing;sand|kum|White sand;save|kurtarmak/kaydetmek|Save money;say|söylemek|Say hi;school|okul|Go school;science|bilim|Science class;scissors|makas|Cut scissors;score|skor|High score;sea|deniz|Blue sea;search|aramak|Search web;season|mevsim|Winter season;seat|koltuk|Take seat;second|saniye/ikinci|One second;secret|sır|Top secret;see|görmek|See you;seed|tohum|Plant seed;sell|satmak|Sell car;send|göndermek|Send mail;sentence|cümle|Write sentence;serve|servis etmek|Serve food;seven|yedi|Seven days;sex|cinsiyet|Male sex;shake|sallamak|Shake hand;shape|şekil|Round shape;share|paylaşmak|Share food;shark|köpekbalığı|Big shark;sharp|keskin|Sharp knife;she|o (kadın)|She runs;sheep|koyun|White sheep;sheet|çarşaf/kağıt|Paper sheet;shelf|raf|Book shelf;ship|gemi|Big ship;shirt|gömlek|Blue shirt;shoe|ayakkabı|New shoe;shoot|ateş etmek|Shoot gun;shop|dükkan|Pet shop;short|kısa|Short hair;shoulder|omuz|Left shoulder;shout|bağırmak|Shout loud;show|göstermek|Show me;shut|kapatmak|Shut door;sick|hasta|Feel sick;side|yan|Side walk;sign|işaret/imza|Stop sign;silence|sessizlik|Total silence;silver|gümüş|Silver coin;simple|basit|Simple math;sing|şarkı söylemek|Sing song;single|tek/bekar|Single room;sister|kız kardeş|Little sister;sit|oturmak|Sit down;six|altı|Six cars;size|boyut|Big size;skin|deri|Soft skin;skirt|etek|Red skirt;sky|gökyüzü|Blue sky;sleep|uyumak|Sleep well;slow|yavaş|Slow car;small|küçük|Small box;smell|koklamak|Smell flower;smile|gülümsemek|Smile please;smoke|duman|Black smoke;snake|yılan|Long snake;snow|kar|White snow;soap|sabun|Hand soap;sock|çorap|White sock;soft|yumuşak|Soft pillow;soldier|asker|Brave soldier;some|bazı|Some water;son|oğul|My son;song|şarkı|Love song;soon|yakında|See soon;sorry|üzgün|I am sorry;sound|ses|Loud sound;soup|çorba|Hot soup;south|güney|South pole;space|uzay/boşluk|Outer space;speak|konuşmak|Speak English;speed|hız|High speed;spell|hecelemek|Spell word;spend|harcamak|Spend money;spoon|kaşık|Soup spoon;sport|spor|Play sport;spring|ilkbahar|Spring time;square|kare|Square box;stair|merdiven|Climb stair;stamp|pul|Post stamp;stand|ayakta durmak|Stand up;star|yıldız|Shine star;start|başlamak|Start game;station|istasyon|Bus station;stay|kalmak|Stay here;steal|çalmak|Steal money;steam|buhar|Hot steam;step|adım|Watch step;stick|sopa/yapıştırmak|Wood stick;still|hala/durgun|Still here;stone|taş|Hard stone;stop|durmak|Stop bus;store|dükkan|Toy store;storm|fırtına|Big storm;story|hikaye|Love story;strange|tuhaf|Strange man;street|cadde|Main street;strong|güçlü|Strong man;student|öğrenci|Good student;study|çalışmak|Study hard;stupid|aptal|Stupid mistake;subject|konu|Math subject;subway|metro|Take subway;sugar|şeker|Sweet sugar;summer|yaz|Hot summer;sun|güneş|Hot sun;super|süper|Super man;supper|akşam yemeği|Eat supper;support|destek|Tech support;sure|emin|I am sure;surprise|sürpriz|Big surprise;sweet|tatlı|Sweet candy;swim|yüzmek|Swim fast;sword|kılıç|Sharp sword;table|masa|Round table;tail|kuyruk|Cat tail;take|almak|Take it;talk|konuşmak|Talk loud;tall|uzun|Tall tree;taste|tatmak|Taste good;taxi|taksi|Yellow taxi;tea|çay|Hot tea;teach|öğretmek|Teach English;team|takım|Good team;tear|gözyaşı/yırtmak|Shed tear;telephone|telefon|Old telephone;television|televizyon|Watch television;tell|anlatmak|Tell story;ten|on|Ten fingers;tennis|tenis|Play tennis;terrible|korkunç|Terrible news;test|test|Math test;text|metin|Text message;than|-den|More than;thank|teşekkür etmek|Thank you;that|şu|That car;the|o (belirteç)|The end;theater|tiyatro|Movie theater;their|onların|Their house;them|onları|See them;then|sonra|And then;there|orada|Over there;these|bunlar|These books;they|onlar|They run;thick|kalın|Thick book;thin|ince|Thin paper;thing|şey|Good thing;think|düşünmek|Think fast;third|üçüncü|Third place;this|bu|This one;those|şunlar|Those cars;though|rağmen|Even though;thought|düşünce|Good thought;thousand|bin|One thousand;thread|iplik|Red thread;three|üç|Three cats;throat|boğaz|Sore throat;through|içinden|Go through;throw|atmak|Throw ball;thumb|başparmak|Thumbs up;ticket|bilet|Bus ticket;tie|kravat/bağlamak|Wear tie;tiger|kaplan|Big tiger;tight|sıkı|Tight jeans;time|zaman|Time flies;tire|tekerlek/yormak|Car tire;tired|yorgun|Tired man;to|-e doğru|Go to;toast|tost/kadeh|Eat toast;today|bugün|Not today;toe|ayak parmağı|Big toe;together|birlikte|Go together;toilet|tuvalet|Clean toilet;tomato|domates|Red tomato;tomorrow|yarın|See tomorrow;tongue|dil (organ)|Red tongue;tonight|bu gece|Party tonight;too|çok/de|Too hot;tool|alet|Fix tool;tooth|diş|White tooth;top|üst|Top floor;total|toplam|Total cost;touch|dokunmak|Don't touch;tour|tur|City tour;towel|havlu|Wet towel;town|kasaba|Small town;toy|oyuncak|Toy car;traffic|trafik|Bad traffic;train|tren|Fast train;translate|çevirmek|Translate it;trash|çöp|Trash can;travel|seyahat etmek|Travel world;tree|ağaç|Green tree;trip|gezi|School trip;trouble|sorun|Big trouble;truck|kamyon|Big truck;true|doğru|True story;trust|güvenmek|Trust me;try|denemek|Try again;turn|dönmek|Turn left;twelve|on iki|Twelve months;twenty|yirmi|Twenty dollars;twice|iki kez|Twice a day;two|iki|Two cats;type|tür/yazmak|Type letter;ugly|çirkin|Ugly duck;uncle|amca/dayı|Uncle Sam;under|altında|Under bed;understand|anlamak|I understand;unit|birim|Unit one;universe|evren|Big universe;university|üniversite|Go university;until|-e kadar|Wait until;up|yukarı|Stand up;use|kullanmak|Use phone;usual|olağan|Usual day;vacation|tatil|Summer vacation;vegetable|sebze|Eat vegetable;very|çok|Very good;video|video|Watch video;village|köy|Small village;visit|ziyaret etmek|Visit mom;voice|ses|Loud voice;wait|beklemek|Wait here;wake|uyanmak|Wake up;walk|yürümek|Walk fast;wall|duvar|White wall;want|istemek|Want candy;war|savaş|World war;warm|ılık|Warm water;wash|yıkamak|Wash hands;watch|izlemek/saat|Watch TV;water|su|Drink water;wave|dalga/el sallamak|Big wave;way|yol|This way;we|biz|We are;weak|zayıf|Weak man;wear|giymek|Wear hat;weather|hava|Good weather;wedding|düğün|Wedding day;week|hafta|Last week;weekend|hafta sonu|Nice weekend;weigh|tartmak|Weigh fruit;welcome|hoşgeldin|Welcome home;well|iyi|Very well;west|batı|Go west;wet|ıslak|Wet hair;what|ne|What time?;wheel|tekerlek|Car wheel;when|ne zaman|When go?;where|nerede|Where is?;which|hangi|Which one?;while|iken|While eating;white|beyaz|White snow;who|kim|Who is?;whole|bütün|Whole cake;why|neden|Why not?;wide|geniş|Wide road;wife|eş (kadın)|My wife;wild|vahşi|Wild dog;will|ecek/acak|I will;win|kazanmak|Win game;wind|rüzgar|Cold wind;window|pencere|Open window;wine|şarap|Red wine;wing|kanat|Bird wing;winter|kış|Cold winter;wire|tel|Copper wire;wise|bilge|Wise man;wish|dilemek|Make wish;with|ile|With you;without|sız/siz|Without water;woman|kadın|Nice woman;wonder|merak etmek|I wonder;wood|odun|Chop wood;wool|yün|Wool coat;word|kelime|New word;work|çalışmak|Work hard;world|dünya|Big world;worry|endişelenmek|Don't worry;worse|daha kötü|Worse day;worst|en kötü|Worst day;write|yazmak|Write name;wrong|yanlış|Wrong way;yard|avlu|Back yard;year|yıl|New year;yellow|sarı|Yellow sun;yes|evet|Say yes;yesterday|dün|Yesterday gone;yet|henüz|Not yet;you|sen|You are;young|genç|Young boy;zero|sıfır|Zero points;zoo|hayvanat bahçesi|Visit zoo";
 
         const taskTemplates = [
             { id: 'learn', text: '5 Yeni Kelime', target: 5, reward: 50, type: 'learn' },
@@ -516,7 +508,6 @@
             { id: 'quiz', text: 'Quiz Tamamla', target: 1, reward: 40, type: 'quiz' }
         ];
 
-        // STATE
         let app = { 
             xp: 0, coins: 200, streak: 1, learned: [], favs: [], 
             wordIndex: 0, lastLogin: new Date().toDateString(), tasks: [],
@@ -528,18 +519,12 @@
         let isFlipped = false;
         let quizState = { active: false, currentQ: 0, score: 0, totalQ: 20 };
 
-        // HELPER: Get Local ISO Date Key (YYYY-MM-DD)
-        // Fixes timezone issues where late night activity counts as previous day
-        function getLocalKey(dateObj) {
-            const offset = dateObj.getTimezoneOffset() * 60000;
-            return new Date(dateObj.getTime() - offset).toISOString().split('T')[0];
-        }
-
-        // INIT
-        window.onload = () => {
+        // --- CORE LOGIC ---
+        function init() {
             parseWords();
             
-            const saved = localStorage.getItem('engApp_v51');
+            // 1. Load Local First
+            const saved = localStorage.getItem('engApp_v60');
             if(saved) {
                 try {
                     let parsed = JSON.parse(saved);
@@ -548,14 +533,133 @@
                 } catch(e) {}
             }
             
-            checkDailyTasks();
-            updateHistory(0); // Init history for today
-            render();
-            renderTasks();
-            renderFavs();
-            renderChart();
+            // 2. Start Auth
+            initAuth();
+            
+            // 3. Render UI (Wait for tasks generation in initAuth -> checkDailyTasks)
+            // If no tasks yet, generate them now to prevent empty screen
+            if(app.tasks.length === 0) generateNewTasks();
+            renderAll();
             findNextWord();
-        };
+        }
+
+        async function initAuth() {
+            updateSyncStatus('active');
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                // Fallback for anonymous if not Google
+                // But we wait for onAuthStateChanged to decide
+            }
+            
+            onAuthStateChanged(auth, async (u) => {
+                if(u) {
+                    user = u;
+                    // UI Update for Logged In User
+                    if(!u.isAnonymous) {
+                        document.getElementById('google-login-btn').classList.add('hidden');
+                        document.getElementById('logout-btn').classList.remove('hidden');
+                        document.getElementById('career-badge').innerText = `Lvl ${Math.floor(app.xp/100) + 1} • ${u.displayName || 'Kullanıcı'}`;
+                        document.getElementById('user-email').innerText = u.email;
+                        document.getElementById('user-email').style.opacity = 1;
+                        
+                        // IMPORTANT: Load Cloud Data and OVERWRITE local if exists
+                        // This fulfills "Same data everywhere" requirement
+                        await loadFromCloud(true);
+                    } else {
+                        // Anonymous user
+                        document.getElementById('google-login-btn').classList.remove('hidden');
+                        document.getElementById('logout-btn').classList.add('hidden');
+                    }
+                    checkDailyTasks();
+                } else {
+                    // No user, sign in anonymously to allow usage
+                    await signInAnonymously(auth);
+                }
+            });
+        }
+
+        // EXPORTED FUNCTIONS
+        window.loginGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                // onAuthStateChanged will handle the rest
+            } catch (error) {
+                console.error(error);
+                toast("Giriş Hatası: " + error.message);
+            }
+        }
+
+        window.logoutGoogle = async () => {
+            try {
+                await signOut(auth);
+                location.reload(); // Reload to reset state to anonymous/fresh
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function loadFromCloud(forceOverwrite = false) {
+            if(!user) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'profile');
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    // If forceOverwrite is true (Google Login), we trust Cloud.
+                    // OR if cloud has more progress.
+                    if(forceOverwrite || cloudData.xp > app.xp) {
+                        app = { ...app, ...cloudData };
+                        saveLocal();
+                        renderAll();
+                        toast("Bulut verileri yüklendi ✅");
+                    } else if (app.xp > cloudData.xp) {
+                        // Local ahead (played offline), push to cloud
+                        saveCloud();
+                    }
+                } else {
+                    // First time on cloud, save current local data
+                    saveCloud();
+                }
+                updateSyncStatus('done');
+            } catch(e) {
+                console.error("Sync error:", e);
+                updateSyncStatus('error');
+            }
+        }
+
+        function updateSyncStatus(state) {
+            const icon = document.getElementById('sync-status');
+            icon.className = 'sync-status';
+            if(state === 'active') icon.classList.add('sync-active');
+            if(state === 'done') icon.classList.add('sync-done');
+            if(state === 'error') icon.classList.add('sync-error');
+        }
+
+        function save() {
+            saveLocal();
+            clearTimeout(syncTimeout);
+            updateSyncStatus('active');
+            syncTimeout = setTimeout(saveCloud, 2000);
+        }
+
+        function saveLocal() {
+            localStorage.setItem('engApp_v60', JSON.stringify(app));
+            renderAll();
+        }
+
+        async function saveCloud() {
+            if(!user) return;
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'profile'), app);
+                updateSyncStatus('done');
+            } catch(e) {
+                console.error(e);
+                updateSyncStatus('error');
+            }
+        }
 
         function parseWords() {
             words = rawWordData.split(';').map(s => {
@@ -564,22 +668,18 @@
             });
         }
 
-        function save() {
-            localStorage.setItem('engApp_v51', JSON.stringify(app));
-            render();
+        function getLocalKey(dateObj) {
+            const offset = dateObj.getTimezoneOffset() * 60000;
+            return new Date(dateObj.getTime() - offset).toISOString().split('T')[0];
         }
 
         function updateHistory(amount) {
-            // Use local date key instead of UTC to prevent day shifts
             const todayKey = getLocalKey(new Date());
-            
             if(!app.history[todayKey]) app.history[todayKey] = 0;
             app.history[todayKey] += amount;
             save();
-            renderChart();
         }
 
-        // LOGIC
         function checkDailyTasks() {
             const today = new Date().toDateString();
             if(app.lastLogin !== today) {
@@ -587,7 +687,7 @@
                 if(app.lastLogin !== yesterday.toDateString()) {
                     if(app.activeItems.freeze) {
                         app.activeItems.freeze = false; 
-                        toast("❄️ Streak Protected!");
+                        toast("❄️ Seri Korundu!");
                     } else {
                         app.streak = 1;
                     }
@@ -596,15 +696,15 @@
                 }
                 app.lastLogin = today;
                 generateNewTasks();
-                save();
             } else if (app.tasks.length === 0) {
                 generateNewTasks();
             }
+            renderAll();
         }
 
         function generateNewTasks() {
             app.tasks = [...taskTemplates].sort(()=>0.5-Math.random()).map(t=>({...t, progress:0, claimed:false}));
-            save();
+            saveLocal(); // Save immediately so render works
         }
 
         function updateTask(type, amt) {
@@ -612,23 +712,25 @@
             app.tasks.forEach(t => {
                 if(t.type===type && !t.claimed && t.progress < t.target) {
                     t.progress += amt;
-                    if(t.progress >= t.target) { t.progress = t.target; toast(`Quest Done: ${t.text}`); }
+                    if(t.progress >= t.target) { t.progress = t.target; toast(`Görev: ${t.text}`); }
                     updated = true;
                 }
             });
-            if(updated) { save(); renderTasks(); }
+            if(updated) save();
         }
 
-        function claimReward(idx) {
+        // --- GLOBAL ACTIONS ---
+        window.claimReward = function(idx) {
             const t = app.tasks[idx];
             if(t.progress >= t.target && !t.claimed) {
                 t.claimed = true; app.coins += t.reward; app.xp += 10;
                 updateHistory(10);
-                confetti(); toast(`+${t.reward} Coins!`);
-                save(); renderTasks();
+                confetti(); toast(`+${t.reward} Altın!`);
+                save();
             }
-        }
+        };
 
+        window.findNextWord = function() { findNextWord(); }
         function findNextWord() {
             let foundIndex = -1;
             for(let i=0; i<words.length; i++) {
@@ -640,7 +742,6 @@
             }
             if(foundIndex === -1) {
                 foundIndex = Math.floor(Math.random() * words.length);
-                toast("Review Mode: All words learned!");
             }
             app.wordIndex = foundIndex;
             loadCard();
@@ -657,16 +758,17 @@
             const isFav = app.favs.includes(w.en);
             const icon = document.getElementById('fav-icon');
             icon.setAttribute('fill', isFav ? 'currentColor' : 'none');
+            icon.style.color = isFav ? 'var(--neon-red)' : 'white';
         }
 
-        function toggleFav() {
+        window.toggleFav = function() {
             const w = words[app.wordIndex].en;
             if(app.favs.includes(w)) app.favs = app.favs.filter(x => x!==w);
             else { app.favs.push(w); toast("Favorilere eklendi"); }
-            save(); loadCard(); renderFavs();
+            save(); loadCard();
         }
 
-        function vote(known) {
+        window.vote = function(known) {
             const w = words[app.wordIndex].en;
             let gainedXp = 10;
 
@@ -690,8 +792,7 @@
             setTimeout(findNextWord, 300);
         }
 
-        // --- QUIZ ---
-        function startQuiz() {
+        window.startQuiz = function() {
             document.getElementById('quiz-play-area').classList.remove('hidden');
             document.getElementById('quiz-result-area').classList.add('hidden');
             quizState = { active: true, currentQ: 1, score: 0, totalQ: 20 };
@@ -720,12 +821,12 @@
 
             let isCorrect = (selected === correct);
             if(isCorrect) {
-                btn.style.background = "rgba(16, 185, 129, 0.3)"; btn.style.borderColor = "var(--neon-green)";
+                btn.style.background = "rgba(16, 185, 129, 0.4)"; btn.style.borderColor = "var(--neon-green)";
                 quizState.score++;
                 confetti();
             } else {
-                btn.style.background = "rgba(239, 68, 68, 0.3)"; btn.style.borderColor = "var(--neon-red)";
-                opts.forEach(o => { if(o.innerText === correct) { o.style.background="rgba(16, 185, 129, 0.3)"; o.style.borderColor="var(--neon-green)"; } });
+                btn.style.background = "rgba(239, 68, 68, 0.4)"; btn.style.borderColor = "var(--neon-red)";
+                opts.forEach(o => { if(o.innerText === correct) { o.style.background="rgba(16, 185, 129, 0.4)"; o.style.borderColor="var(--neon-green)"; } });
                 if(navigator.vibrate) navigator.vibrate(200);
             }
 
@@ -760,33 +861,40 @@
             document.getElementById('res-xp').innerText = `+${finalXP}`;
         }
 
-        function resetQuiz() { startQuiz(); }
+        window.resetQuiz = function() { window.startQuiz(); }
 
-        function buyItem(type, cost) {
+        window.buyItem = function(type, cost) {
             updateTask('shop', 1);
             if(app.coins >= cost) {
                 if(type === 'freeze') {
-                    if(app.activeItems.freeze) { toast("Already Active!"); return; }
+                    if(app.activeItems.freeze) { toast("Zaten Aktif!"); return; }
                     app.activeItems.freeze = true;
                 }
                 if(type === 'double') {
                     app.activeItems.doubleXP += 20; 
                 }
                 app.coins -= cost;
-                toast("Purchased! 🎉"); confetti();
+                toast("Satın Alındı! 🎉"); confetti();
                 save();
             } else {
-                toast("Need more coins");
+                toast("Yetersiz Bakiye");
             }
         }
 
-        function render() {
+        // --- UI RENDER ---
+        function renderAll() {
+            renderHeader();
+            renderTasks();
+            renderFavs();
+            renderChart();
+        }
+
+        function renderHeader() {
             document.getElementById('streak-display').innerText = app.streak;
             document.getElementById('coin-display').innerText = app.coins;
             
             const totalWords = words.length;
             const learnedWords = app.learned.length;
-            // Fixed counter format
             document.getElementById('learn-progress-text').innerText = `${learnedWords} / ${totalWords}`;
             document.getElementById('stat-words').innerText = learnedWords;
             document.getElementById('stat-xp').innerText = app.xp;
@@ -801,28 +909,30 @@
 
             const lvl = Math.floor(app.xp/100) + 1;
             document.getElementById('xp-bar').style.width = (app.xp%100) + "%";
-            let title = "Novice";
-            if(lvl>2) title = "Beginner"; if(lvl>10) title = "Intermediate"; if(lvl>30) title = "Master";
-            document.getElementById('career-badge').innerText = `Lvl ${lvl} • ${title}`;
+            
+            // Only update title if not logged in (logged in updates in Auth listener)
+            if(user && user.isAnonymous) {
+                let title = "Stajyer";
+                if(lvl>2) title = "Çırak"; if(lvl>10) title = "Uzman"; if(lvl>30) title = "Üstat";
+                document.getElementById('career-badge').innerText = `Lvl ${lvl} • ${title}`;
+            }
 
             const btnFreeze = document.getElementById('btn-freeze');
             if(app.activeItems.freeze) {
-                btnFreeze.innerText = "Active ✅"; btnFreeze.disabled = true; btnFreeze.style.opacity = 0.6;
+                btnFreeze.innerText = "Aktif ✅"; btnFreeze.disabled = true; btnFreeze.style.opacity = 0.6;
             } else {
                 btnFreeze.innerText = "200"; btnFreeze.disabled = false; btnFreeze.style.opacity = 1;
             }
 
             const buffContainer = document.getElementById('active-buffs-container');
             buffContainer.innerHTML = '';
-            if(app.activeItems.freeze) buffContainer.innerHTML += `<div style="background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; font-size:0.8rem; margin-right:5px; display:inline-block;">❄️ Protected</div>`;
-            if(app.activeItems.doubleXP > 0) buffContainer.innerHTML += `<div style="background:rgba(59, 130, 246, 0.2); color:var(--neon-blue); padding:5px 10px; border-radius:20px; font-size:0.8rem; display:inline-block;">⚡ 2x Active (${app.activeItems.doubleXP})</div>`;
+            if(app.activeItems.freeze) buffContainer.innerHTML += `<div style="background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; font-size:0.8rem; margin-right:5px; display:inline-block;">❄️ Korumada</div>`;
+            if(app.activeItems.doubleXP > 0) buffContainer.innerHTML += `<div style="background:rgba(59, 130, 246, 0.2); color:var(--neon-blue); padding:5px 10px; border-radius:20px; font-size:0.8rem; display:inline-block;">⚡ 2x Aktif (${app.activeItems.doubleXP})</div>`;
         }
 
         function renderChart() {
             const container = document.getElementById('weekly-chart');
             container.innerHTML = '';
-            
-            // Generate last 7 days using Local Date Logic
             const days = [];
             for(let i=6; i>=0; i--) {
                 const d = new Date();
@@ -832,27 +942,17 @@
                     label: d.toLocaleDateString('tr-TR', { weekday: 'short' })
                 });
             }
-            
-            // Find max XP for scaling
-            let maxVal = 10; // min scale
+            let maxVal = 10;
             days.forEach(d => {
                 const val = app.history[d.key] || 0;
                 if(val > maxVal) maxVal = val;
             });
-
             days.forEach(d => {
                 const val = app.history[d.key] || 0;
-                // Leave 20% headroom so bars don't hit the very top
                 const heightPct = (val / maxVal) * 80; 
                 const isToday = d.key === getLocalKey(new Date());
                 const barColor = isToday ? 'var(--neon-green)' : 'var(--neon-blue)';
-                
-                container.innerHTML += `
-                    <div class="chart-bar-wrapper">
-                        <div class="chart-bar" style="height:${Math.max(5, heightPct)}%; background:${barColor}"></div>
-                        <div class="chart-label" style="${isToday?'color:white; font-weight:bold':''}">${d.label}</div>
-                    </div>
-                `;
+                container.innerHTML += `<div class="chart-bar-wrapper"><div class="chart-bar" style="height:${Math.max(5, heightPct)}%; background:${barColor}"></div><div class="chart-label" style="${isToday?'color:white; font-weight:bold':''}">${d.label}</div></div>`;
             });
         }
 
@@ -869,57 +969,44 @@
                 const div = document.createElement('div');
                 div.className = 'glass-panel';
                 div.style.padding = '15px'; div.style.marginBottom = '10px'; div.style.display = 'flex'; div.style.justifyContent='space-between'; div.style.alignItems='center';
-                div.innerHTML = `<div><div style="font-weight:700;">${wObj.en}</div><div style="font-size:0.85rem; color:var(--text-muted);">${wObj.tr}</div></div><button class="btn" onclick="removeFav('${wEn}')" style="background:transparent; color:var(--neon-red);">✕</button>`;
+                div.innerHTML = `<div><div style="font-weight:700;">${wObj.en}</div><div style="font-size:0.85rem; color:var(--text-muted);">${wObj.tr}</div></div><button class="btn" onclick="window.removeFav('${wEn}')" style="background:transparent; color:var(--neon-red);">✕</button>`;
                 list.appendChild(div);
             });
         }
         
-        function removeFav(w) { app.favs = app.favs.filter(x => x !== w); save(); renderFavs(); loadCard(); }
+        window.removeFav = function(w) { app.favs = app.favs.filter(x => x !== w); save(); renderFavs(); loadCard(); }
         function renderTasks() {
             const c = document.getElementById('quests-container'); c.innerHTML = '';
             app.tasks.forEach((t, i) => {
                 const isDone = t.progress >= t.target;
                 const pct = (t.progress/t.target)*100;
-                let action = isDone && !t.claimed ? `<button class="btn" style="background:var(--neon-green); color:#000; padding:6px 12px; border-radius:8px; font-size:0.8rem;" onclick="claimReward(${i})">Claim</button>` : (t.claimed ? `<span style="color:var(--neon-green); font-size:0.8rem;">Done</span>` : `<span style="font-size:0.8rem; color:var(--text-muted);">${t.progress}/${t.target}</span>`);
-                c.innerHTML += `<div class="glass-panel quest-card ${isDone?'completed':''}"><div class="quest-row"><span class="quest-title">${t.text}</span><span class="quest-reward">+${t.reward}</span></div><div style="display:flex; align-items:center; gap:15px;"><div style="flex:1; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div style="height:100%; background:var(--neon-green); width:${pct}%"></div></div>${action}</div></div>`;
+                let action = isDone && !t.claimed ? `<button class="btn" style="background:var(--neon-green); color:#064e3b; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:700;" onclick="window.claimReward(${i})">Al</button>` : (t.claimed ? `<span style="color:var(--neon-green); font-size:0.8rem; font-weight:700;">Tamamlandı</span>` : `<span style="font-size:0.8rem; color:var(--text-muted);">${t.progress}/${t.target}</span>`);
+                c.innerHTML += `<div class="glass-panel quest-card ${isDone?'completed':''}"><div class="quest-row"><span class="quest-title">${t.text}</span><span class="quest-reward">+${t.reward}</span></div><div style="display:flex; align-items:center; gap:15px;"><div style="flex:1; height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div style="height:100%; background:var(--neon-green); width:${pct}%"></div></div>${action}</div></div>`;
             });
         }
 
-        function switchTab(id, btn) {
+        window.switchTab = function(id, btn) {
             document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
             document.getElementById('tab-'+id).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            if(id === 'quiz') resetQuiz(); 
+            if(id === 'quiz') window.resetQuiz(); 
             if(id === 'profile') renderChart();
         }
 
-        function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); isFlipped = !isFlipped; }
-        function playTTS() { const t = new SpeechSynthesisUtterance(words[app.wordIndex].en); t.lang = 'en-US'; speechSynthesis.speak(t); }
-        function toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-        function resetData() { if(confirm("Reset all data?")) { localStorage.removeItem('engApp_v51'); location.reload(); } }
-        function confetti() {
+        window.flipCard = function() { document.getElementById('flashcard').classList.toggle('flipped'); isFlipped = !isFlipped; }
+        window.playTTS = function() { const t = new SpeechSynthesisUtterance(words[app.wordIndex].en); t.lang = 'en-US'; speechSynthesis.speak(t); }
+        window.toast = function(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+        window.resetData = function() { if(confirm("Tüm verileri sıfırla?")) { localStorage.removeItem('engApp_v60'); location.reload(); } }
+        window.confetti = function() {
             const c = document.getElementById('confetti-canvas'); const x = c.getContext('2d'); c.width=window.innerWidth; c.height=window.innerHeight;
             const p = Array(40).fill().map(()=>({x:c.width/2, y:c.height/2, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, color:['#3b82f6','#8b5cf6','#10b981'][Math.floor(Math.random()*3)], life:80}));
             function draw(){ x.clearRect(0,0,c.width,c.height); let a=false; p.forEach(i=>{ if(i.life>0){ i.x+=i.vx; i.y+=i.vy; i.vy+=0.5; i.life--; x.fillStyle=i.color; x.fillRect(i.x,i.y,6,6); a=true; }}); if(a) requestAnimationFrame(draw); } draw();
         }
 
-        // Explicitly assign functions to window to ensure they are accessible from HTML
-        window.flipCard = flipCard;
-        window.playTTS = playTTS;
-        window.toggleFav = toggleFav;
-        window.vote = vote;
-        window.startQuiz = startQuiz;
-        window.resetQuiz = resetQuiz;
-        window.buyItem = buyItem;
-        window.resetData = resetData;
-        window.claimReward = claimReward;
-        window.switchTab = switchTab;
-        window.retrySync = () => { console.log("Sync retry not implemented in this version"); };
-        window.loginGoogle = () => { console.log("Google login not implemented in this version"); };
-        window.logoutGoogle = () => { console.log("Google logout not implemented in this version"); };
-
+        // Start App
+        init();
 
     </script>
 </body>
-</html>
+</html>   
