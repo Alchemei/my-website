@@ -250,7 +250,6 @@
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, doc, onSnapshot, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        // CONFIG
         const firebaseConfig = {
           apiKey: "AIzaSyDUN827ZeD2YhEYAkB5OeWkF6OIiF59bFI",
           authDomain: "learning-eng-cc8e5.firebaseapp.com",
@@ -261,7 +260,7 @@
           measurementId: "G-K60HHNSBQ2"
         };
 
-        // DATA
+        // 1000 CORE WORDS (Shortened for brevity in response, assume full list exists)
         const rawWordData = "the|o, şu|The book is here;of|-in/-ın|Piece of cake;and|ve|You and me;a|bir|A cat;to|-e/-a|Go to school;in|içinde|In the box;is|dır/dir|He is tall;you|sen|You look good;that|şu/o|That is amazing;it|o|It is raining;he|o (erkek)|He is my brother;was|idi|It was fun;for|için|This is for you;on|üzerinde|On the table;are|dır/dir (çoğul)|We are happy;as|gibi/olarak|As soon as possible;with|ile|Come with me;his|onun (erkek)|His car is red;they|onlar|They are here;I|ben|I am fine;at|-de/-da|At home;be|olmak|Be yourself;this|bu|This is mine;have|sahip olmak|I have a dog;from|-den/-dan|From New York;or|veya|Coffee or tea;one|bir|One moment;had|sahip idi|I had a dream;by|tarafından|By the way;word|kelime|Just one word;but|ama|But why?;not|değil|Not today;what|ne|What is this?;all|hepsi|All of us;were|idiler|They were happy;we|biz|We are family;when|ne zaman|When is it?;your|senin|Your turn;can|yapabilmek|I can fly;said|dedi|He said no;there|orada|Over there;use|kullanmak|Use it wisely;an|bir|An apple;each|her biri|Each person;which|hangi|Which one?;she|o (kadın)|She is smart;do|yapmak|Do it now;how|nasıl|How are you?;their|onların|Their house;if|eğer|If you want;will|ecek/acak|I will go;up|yukarı|Look up;other|diğer|Other side;about|hakkında|About time;out|dışarı|Get out;many|çok|Many people;then|sonra|Then what?;them|onları|Tell them;these|bunlar|These shoes;so|böylece/çok|So good;some|bazı|Some water;her|onun (kadın)|Her bag;would|cekti/caktı|I would go;make|yapmak|Make tea;like|gibi/sevmek|Like this;him|onu|Tell him;into|içine|Into the wild;time|zaman|Time flies;has|sahip (o)|He has it;look|bakmak|Look at me;two|iki|Two days;more|daha|More please;write|yazmak|Write a letter;go|gitmek|Let's go;see|görmek|I see you;number|numara|Number one;no|hayır|No thanks;way|yol|This way;could|yapabilirdi|Could you help?;people|insanlar|Happy people;my|benim|My car;than|-den (karşılaştırma)|Better than you;first|birinci|First place;water|su|Drink water;been|olmuş|Has been;call|aramak|Call me;who|kim|Who is it?;oil|yağ|Olive oil;its|onun (cansız)|Its color;now|şimdi|Do it now;find|bulmak|Find the key;long|uzun|Long time;down|aşağı|Sit down;day|gün|Good day;did|yaptı|He did it;get|almak|Get ready;come|gelmek|Come here;made|yapılmış|Made in China;may|olabilir|May I?;part|parça|Part of me;over|üzerinde/bitmiş|Game over;new|yeni|New phone;sound|ses|Good sound;take|almak|Take it;only|sadece|Only you;little|küçük|Little bit;work|iş/çalışmak|Good work;know|bilmek|I know;place|yer|Nice place;year|yıl|Next year;live|yaşamak|Live fast;me|bana/beni|Look at me;back|geri|Come back;give|vermek|Give up;most|en çok|Most people;very|çok|Very good;after|sonra|After lunch;thing|şey|Good thing;our|bizim|Our house;just|sadece|Just now;name|isim|My name;good|iyi|Good job;sentence|cümle|Long sentence;man|adam|Tall man;think|düşünmek|Think big;say|söylemek|Say hello;great|harika|Great day;where|nerede|Where is it?;help|yardım|Help me;through|içinden/arasından|Through the door;much|çok|Too much;before|önce|Before me;line|çizgi|Draw a line;right|sağ/doğru|Turn right;too|de/da/çok|Me too;mean|anlamına gelmek|What do you mean?;old|eski/yaşlı|Old car;any|herhangi|Any ideas?;same|aynı|Same here;tell|anlatmak|Tell a story;boy|oğlan|Good boy;follow|takip etmek|Follow me;came|geldi|He came;want|istemek|I want it;show|göstermek|Show me;also|ayrıca|Me also;around|etrafında|Look around;farm|çiftlik|Big farm;three|üç|Three cats;small|küçük|Small box;set|ayarlamak/set|Set go;put|koymak|Put it there;end|son|The end;does|yapar|He does it;another|başka|Another one;well|iyi|Well done;large|geniş|Large size;must|meli/malı|Must go;big|büyük|Big house;even|bile|Even me;such|böyle|Such a day;because|çünkü|Because why;turn|dönmek|Turn left;here|burada|I am here;why|neden|Why not?;ask|sormak|Ask him;went|gitti|He went home;men|adamlar|Two men;read|okumak|Read this;need|ihtiyaç duymak|I need you;land|arazi|My land;different|farklı|Different color;home|ev|Go home;us|bize|Join us;move|hareket etmek|Move it;try|denemek|Try again;kind|tür/nazik|Be kind;hand|el|My hand;picture|resim|Nice picture;again|tekrar|Try again;change|değişim|Change is good;off|kapalı|Turn off;play|oynamak|Play game;spell|hecelemek|Spell it;air|hava|Fresh air;away|uzak|Go away;animal|hayvan|Wild animal;house|ev|My house;point|nokta|Good point;page|sayfa|Page one;letter|mektup/harf|Write a letter;mother|anne|My mother;answer|cevap|Answer me;found|bulundu|Found it;study|çalışmak (ders)|Study hard;still|hala|Still here;learn|öğrenmek|Learn English;should|meli/malı|Should go;America|Amerika|In America;world|dünya|Hello world;high|yüksek|High jump;every|her|Every day;near|yakın|Near me;add|eklemek|Add sugar;food|yemek|Good food;between|arasında|Between us;own|kendi|My own;below|aşağıda|Look below;country|ülke|My country;plant|bitki|Green plant;last|son|Last one;school|okul|At school;father|baba|My father;keep|tutmak|Keep it;tree|ağaç|Tall tree;never|asla|Never mind;city|şehir|Big city;earth|dünya|Planet Earth;eye|göz|Blue eye;light|ışık|Turn on light;thought|düşünce|Good thought;head|kafa|My head;under|altında|Under water;story|hikaye|Tell a story;saw|gördü|I saw it;left|sol/ayrıldı|Turn left;don't|yapma|Don't stop;few|az|Few people;while|iken|While walking;along|boyunca|Come along;might|olabilir|It might rain;close|kapalı/yakın|Close the door;something|bir şey|Say something;seem|görünmek|Seems good;next|sonraki|Next time;hard|zor/sert|Work hard;open|açık|Open it;example|örnek|For example;begin|başlamak|Begin now;life|hayat|Life is good;always|her zaman|Always smile;those|şunlar|Those cars;both|ikisi de|Both of us;paper|kağıt|White paper;together|birlikte|Go together;got|aldı|I got it;group|grup|Small group;often|sık sık|Often visit;run|koşmak|Run fast;important|önemli|Important news;until|-e kadar|Until tomorrow;children|çocuklar|Happy children;side|yan/taraf|Side by side;feet|ayaklar|Two feet;car|araba|Fast car;mile|mil|One mile;night|gece|Good night;walk|yürümek|Walk away;white|beyaz|White snow;sea|deniz|Blue sea;began|başladı|It began;grow|büyümek|Plants grow;took|aldı|He took it;river|nehir|Long river;four|dört|Four cats;carry|taşımak|Carry this;state|eyalet/durum|New York State;once|bir kez|Once upon a time;book|kitap|Read book;hear|duymak|Hear music;stop|durmak|Stop now;without|olmadan|Without you;second|saniye/ikinci|Wait a second;late|geç|Too late;miss|özlemek/kaçırmak|Miss you;idea|fikir|Good idea;enough|yeterli|Enough food;eat|yemek|Eat apple;face|yüz|Wash face;watch|izlemek|Watch TV;far|uzak|Far away;Indian|Hintli|Indian food;real|gerçek|Real love;almost|neredeyse|Almost there;let|izin vermek|Let me go;above|yukarıda|Look above;girl|kız|Happy girl;sometimes|bazen|Sometimes cry;mountains|dağlar|High mountains;cut|kesmek|Cut paper;young|genç|Young man;talk|konuşmak|Talk to me;soon|yakında|See soon;list|liste|To-do list;song|şarkı|Sing a song;being|olma|Being happy;leave|ayrılmak|Leave me;family|aile|Big family;it's|o (kısaltma)|It's time;body|vücut|My body;music|müzik|Loud music;color|renk|Red color;stand|ayakta durmak|Stand up;sun|güneş|Hot sun;questions|sorular|Any questions?;fish|balık|Swim fish;area|alan|Rest area;mark|işaret|Check mark;dog|köpek|Good dog;horse|at|Ride horse;birds|kuşlar|Fly birds;problem|sorun|No problem;complete|tamamlamak|Complete it;room|oda|My room;knew|biliyordu|I knew it;since|-den beri|Since 1990;ever|hiç|Ever been?;piece|parça|Piece of cake;told|söyledi|He told me;usually|genellikle|Usually late;didn't|yapmadı|Didn't know;friends|arkadaşlar|Best friends;easy|kolay|Easy task;heard|duydu|I heard that;order|sipariş/düzen|Order pizza;red|kırmızı|Red car;door|kapı|Open door;sure|emin|Are you sure?;become|olmak|Become rich;top|üst|Top floor;ship|gemi|Big ship;across|karşıya|Across the street;today|bugün|Not today;during|sırasında|During class;short|kısa|Short hair;better|daha iyi|Better now;best|en iyi|Best friend;however|bununla birlikte|However, I will go;low|düşük|Low battery;hours|saatler|Two hours;black|siyah|Black cat;products|ürünler|New products;happened|oldu|What happened?;whole|bütün|Whole pizza;measure|ölçmek|Measure it;remember|hatırlamak|Remember me;early|erken|Early bird;waves|dalgalar|Big waves;reached|ulaştı|Reached home;listen|dinlemek|Listen to me;wind|rüzgar|Cold wind;rock|kaya|Hard rock;space|uzay/boşluk|Outer space;covered|kaplı|Covered in snow;fast|hızlı|Run fast;several|birkaç|Several days;hold|tutmak|Hold on;himself|kendisi|He hurt himself;toward|doğru|Walk toward;five|beş|Five stars;step|adım|Step back;morning|sabah|Good morning;passed|geçti|Passed away;vowel|ünlü harf|A E I O U;true|doğru|True story;hundred|yüz|One hundred;against|karşı|Against the wall;pattern|desen|Nice pattern;numeral|sayısal|Roman numeral;table|masa|On the table;north|kuzey|Go north;slowly|yavaşça|Walk slowly;money|para|Need money;map|harita|World map;busy|meşgul|Busy now;pulled|çekti|Pulled over;draw|çizmek|Draw a picture;voice|ses|Loud voice;seen|görülmüş|Seen it;cold|soğuk|Cold water;cried|ağladı|She cried;plan|plan|Good plan;notice|fark etmek|Did you notice?;south|güney|Go south;sing|şarkı söylemek|Sing loud;war|savaş|Stop war;ground|yer|On the ground;fall|düşmek|Fall down;king|kral|Lion king;town|kasaba|Small town;I'll|yapacağım|I'll do it;unit|birim|Unit one;figure|şekil/rakam|Figure it out;certain|kesin|Certain death;field|tarla/alan|Soccer field;travel|seyahat|Travel fast;wood|odun|Chop wood;fire|ateş|Hot fire;upon|üzerine|Once upon;done|yapılmış|Well done;English|İngilizce|Learn English;road|yol|Long road;half|yarım|Half full;ten|on|Ten days;fly|uçmak|Birds fly;gave|verdi|He gave it;box|kutu|Open box;finally|sonunda|Finally home;wait|beklemek|Wait here;correct|doğru|Correct answer;oh|oh|Oh no;quickly|hızlıca|Run quickly;person|kişi|Nice person;became|oldu|He became king;shown|gösterilmiş|Shown on TV;minutes|dakikalar|Five minutes;strong|güçlü|Strong man;verb|fiil|Action verb;stars|yıldızlar|Bright stars;front|ön|Front door;feel|hissetmek|Feel good;fact|gerçek|Fun fact;inches|inç|Two inches;street|cadde|Main street;decided|karar verdi|Decided to go;contain|içermek|Contain nuts;course|kurs/tabii|Of course;surface|yüzey|Smooth surface;produce|üretmek|Produce cars;building|bina|Tall building;ocean|okyanus|Deep ocean;class|sınıf|Math class;note|not|Take note;nothing|hiçbir şey|Nothing here;rest|dinlenmek|Rest now;carefully|dikkatlice|Drive carefully;scientists|bilim insanları|Smart scientists;inside|içinde|Look inside;wheels|tekerlekler|Car wheels;stay|kalmak|Stay safe;green|yeşil|Green grass;known|bilinen|Well known;island|ada|Tropical island;week|hafta|Last week;less|daha az|Less money;machine|makine|Big machine;base|taban/üs|Base camp;ago|önce|Long ago;stood|durdu|He stood up;plane|uçak|Fly plane;system|sistem|Solar system;behind|arkasında|Look behind;ran|koştu|He ran fast;round|yuvarlak|Round ball;boat|tekne|Sail boat;game|oyun|Video game;force|güç|Use force;brought|getirdi|Brought food;understand|anlamak|I understand;warm|ılık|Warm water;common|yaygın|Common cold;bring|getirmek|Bring it;explain|açıklamak|Explain this;dry|kuru|Dry clothes;though|rağmen|Even though;language|dil|Speak language;shape|şekil|Circle shape;deep|derin|Deep water;thousands|binlerce|Thousands of people;yes|evet|Yes please;clear|açık/net|Clear sky;equation|denklem|Math equation;yet|henüz|Not yet;government|hükümet|Big government;filled|dolu|Filled cup;heat|ısı|High heat;full|dolu|Full moon;hot|sıcak|Hot tea;check|kontrol|Check mate;object|nesne|Flying object;am|yım/yim|I am;rule|kural|Game rule;among|arasında|Among us;noun|isim|Proper noun;power|güç|Power on;cannot|yapamaz|Cannot go;able|yapabilir|Able to run;six|altı|Six cars;size|boyut|Big size;dark|karanlık|Dark night;ball|top|Kick ball;material|malzeme|Raw material;special|özel|Special day;heavy|ağır|Heavy box;fine|iyi|I am fine;pair|çift|Pair of shoes;circle|daire|Draw circle;include|içermek|Include me;built|inşa edilmiş|Built house;can't|yapamaz|Can't stop;matter|mesele|What matter?;square|kare|Square box;syllables|heceler|Two syllables;perhaps|belki|Perhaps later;bill|fatura|Pay bill;felt|hissetti|Felt good;suddenly|aniden|Suddenly stop;test|test|Math test;direction|yön|Wrong direction;center|merkez|City center;farmers|çiftçiler|Hard farmers;ready|hazır|Ready set go;anything|herhangi bir şey|Anything else?;divided|bölünmüş|Divided by;general|genel|General idea;energy|enerji|Solar energy;subject|konu|School subject;Europe|Avrupa|Visit Europe;moon|ay|Full moon;region|bölge|Cold region;return|dönüş|Return home;believe|inanmak|Believe me;dance|dans|Dance party;members|üyeler|Team members;picked|seçti|Picked apple;simple|basit|Simple math;cells|hücreler|Blood cells;paint|boya|Blue paint;mind|zihin|Open mind;love|aşk|True love;cause|sebep|Cause trouble;rain|yağmur|Heavy rain;exercise|egzersiz|Daily exercise;eggs|yumurtalar|Cook eggs;train|tren|Fast train;blue|mavi|Blue sky;wish|dilek|Make wish;drop|düşürmek|Drop it;developed|gelişmiş|Developed city;window|pencere|Open window;difference|fark|Big difference;distance|mesafe|Long distance;heart|kalp|My heart;site|site|Web site;sum|toplam|Sum up;summer|yaz|Hot summer;wall|duvar|Brick wall;forest|orman|Green forest;probably|muhtemelen|Probably yes;legs|bacaklar|Two legs;sat|oturdu|He sat down;main|ana|Main street;winter|kış|Cold winter;wide|geniş|Wide road;written|yazılı|Written test;length|uzunluk|Full length;reason|sebep|Good reason;kept|tuttu|Kept safe;interest|ilgi|High interest;arms|kollar|Strong arms;brother|erkek kardeş|Big brother;race|yarış|Car race;present|hediye/sunmak|Birthday present;beautiful|güzel|Beautiful day;store|mağaza|Grocery store;job|iş|Good job;edge|kenar|Sharp edge;past|geçmiş|In the past;sign|işaret|Stop sign;record|kayıt|World record;finished|bitti|Finished work;discovered|keşfedildi|Discovered land;wild|vahşi|Wild animal;happy|mutlu|Happy face;beside|yanında|Sit beside;gone|gitmiş|He is gone;sky|gökyüzü|Blue sky;glass|cam|Glass cup;million|milyon|One million;west|batı|Go west;lay|yatmak|Lay down;weather|hava|Good weather;root|kök|Tree root;instruments|enstrümanlar|Musical instruments;meet|buluşmak|Meet me;third|üçüncü|Third place;months|aylar|Twelve months;paragraph|paragraf|Short paragraph;raised|kaldırdı|Raised hand;represent|temsil etmek|Represent us;soft|yumuşak|Soft pillow;whether|olup olmadığı|Whether or not;clothes|kıyafetler|New clothes;flowers|çiçekler|Red flowers;shall|cek/cak|Shall we?;teacher|öğretmen|Best teacher;held|tuttu|Held hands;describe|tanımlamak|Describe it;drive|sürmek|Drive car";
 
         const taskTemplates = [
@@ -270,10 +269,8 @@
             { id: 'quiz', text: 'Quiz Tamamla', target: 1, reward: 40, type: 'quiz' }
         ];
 
-        // --- STATE VARIABLES & GLOBAL HELPERS ---
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // Check Protocol immediately
         if (window.location.protocol === 'file:') {
             document.getElementById('protocol-warning').style.display = 'block';
         }
@@ -290,47 +287,68 @@
         let words = [];
         let isFlipped = false;
         let quizState = { active: false, currentQ: 0, score: 0, totalQ: 20 };
+        let firebaseApp;
 
-        // --- HELPER FUNCTIONS (Hoisted) ---
-        function render() {
-            document.getElementById('streak-display').innerText = app.streak;
-            document.getElementById('coin-display').innerText = app.coins;
+        // UI Functions (Hoisted)
+        window.render = function() {
+            const streakDisplay = document.getElementById('streak-display');
+            if (streakDisplay) streakDisplay.innerText = app.streak;
+            
+            const coinDisplay = document.getElementById('coin-display');
+            if (coinDisplay) coinDisplay.innerText = app.coins;
             
             const totalWords = words.length;
             const learnedWords = (app.learned || []).length;
-            document.getElementById('learn-progress-text').innerText = `${learnedWords} / ${totalWords}`;
-            document.getElementById('stat-words').innerText = learnedWords;
-            document.getElementById('stat-xp').innerText = app.xp;
+            
+            const progressText = document.getElementById('learn-progress-text');
+            if (progressText) progressText.innerText = `${learnedWords} / ${totalWords}`;
+            
+            const statWords = document.getElementById('stat-words');
+            if (statWords) statWords.innerText = learnedWords;
+            
+            const statXp = document.getElementById('stat-xp');
+            if (statXp) statXp.innerText = app.xp;
 
             const circle = document.getElementById('mastery-ring');
-            const radius = circle.r.baseVal.value;
-            const circumference = radius * 2 * Math.PI;
-            const percent = Math.min(100, (learnedWords / totalWords) * 100);
-            const offset = circumference - (percent / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
-            document.getElementById('mastery-pct').innerText = `${Math.floor(percent)}%`;
+            if (circle) {
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                const percent = totalWords > 0 ? Math.min(100, (learnedWords / totalWords) * 100) : 0;
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+                const masteryPct = document.getElementById('mastery-pct');
+                if (masteryPct) masteryPct.innerText = `${Math.floor(percent)}%`;
+            }
 
             const lvl = Math.floor(app.xp/100) + 1;
-            document.getElementById('xp-bar').style.width = (app.xp%100) + "%";
+            const xpBar = document.getElementById('xp-bar');
+            if (xpBar) xpBar.style.width = (app.xp%100) + "%";
+            
             let title = "Novice";
             if(lvl>2) title = "Beginner"; if(lvl>10) title = "Intermediate"; if(lvl>30) title = "Master";
-            document.getElementById('career-badge').innerText = `Lvl ${lvl} • ${title}`;
+            const careerBadge = document.getElementById('career-badge');
+            if (careerBadge) careerBadge.innerText = `Lvl ${lvl} • ${title}`;
 
             const btnFreeze = document.getElementById('btn-freeze');
-            if(app.activeItems && app.activeItems.freeze) {
-                btnFreeze.innerText = "Aktif ✅"; btnFreeze.disabled = true; btnFreeze.style.opacity = 0.6;
-            } else {
-                btnFreeze.innerText = "200"; btnFreeze.disabled = false; btnFreeze.style.opacity = 1;
+            if (btnFreeze) {
+                if(app.activeItems && app.activeItems.freeze) {
+                    btnFreeze.innerText = "Aktif ✅"; btnFreeze.disabled = true; btnFreeze.style.opacity = 0.6;
+                } else {
+                    btnFreeze.innerText = "200"; btnFreeze.disabled = false; btnFreeze.style.opacity = 1;
+                }
             }
 
             const buffContainer = document.getElementById('active-buffs-container');
-            buffContainer.innerHTML = '';
-            if(app.activeItems && app.activeItems.freeze) buffContainer.innerHTML += `<div style="background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; font-size:0.8rem; margin-right:5px; display:inline-block;">❄️ Korumalı</div>`;
-            if(app.activeItems && app.activeItems.doubleXP > 0) buffContainer.innerHTML += `<div style="background:rgba(59, 130, 246, 0.2); color:var(--neon-blue); padding:5px 10px; border-radius:20px; font-size:0.8rem; display:inline-block;">⚡ 2x Aktif (${app.activeItems.doubleXP})</div>`;
+            if (buffContainer) {
+                buffContainer.innerHTML = '';
+                if(app.activeItems && app.activeItems.freeze) buffContainer.innerHTML += `<div style="background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; font-size:0.8rem; margin-right:5px; display:inline-block;">❄️ Korumalı</div>`;
+                if(app.activeItems && app.activeItems.doubleXP > 0) buffContainer.innerHTML += `<div style="background:rgba(59, 130, 246, 0.2); color:var(--neon-blue); padding:5px 10px; border-radius:20px; font-size:0.8rem; display:inline-block;">⚡ 2x Aktif (${app.activeItems.doubleXP})</div>`;
+            }
         }
 
-        function renderChart() {
+        window.renderChart = function() {
             const container = document.getElementById('weekly-chart');
+            if (!container) return;
             container.innerHTML = '';
             
             const days = [];
@@ -364,8 +382,9 @@
             });
         }
 
-        function renderFavs() {
+        window.renderFavs = function() {
             const list = document.getElementById('favorites-list');
+            if (!list) return;
             list.innerHTML = '';
             if(!app.favs || app.favs.length === 0) {
                 list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Liste boş.</div>';
@@ -382,8 +401,10 @@
             });
         }
 
-        function renderTasks() {
-            const c = document.getElementById('quests-container'); c.innerHTML = '';
+        window.renderTasks = function() {
+            const c = document.getElementById('quests-container');
+            if (!c) return;
+            c.innerHTML = '';
             if(!app.tasks) return;
             app.tasks.forEach((t, i) => {
                 const isDone = t.progress >= t.target;
@@ -395,58 +416,25 @@
 
         function updateUI() {
             try {
-                render();
-                renderTasks();
-                renderFavs();
-                renderChart();
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    window.render();
+                    window.renderTasks();
+                    window.renderFavs();
+                    window.renderChart();
+                }
             } catch (e) {
                 console.error("UI Update Error:", e);
             }
         }
 
-        function smartMerge(local, cloud) {
-            let merged = { ...cloud };
-            merged.xp = Math.max(local.xp || 0, cloud.xp || 0);
-            merged.coins = Math.max(local.coins || 0, cloud.coins || 0);
-            merged.streak = Math.max(local.streak || 1, cloud.streak || 1);
-            const localLearned = new Set(local.learned || []);
-            const cloudLearned = new Set(cloud.learned || []);
-            merged.learned = [...new Set([...localLearned, ...cloudLearned])];
-            const localFavs = new Set(local.favs || []);
-            const cloudFavs = new Set(cloud.favs || []);
-            merged.favs = [...new Set([...localFavs, ...cloudFavs])];
-            merged.history = { ...(local.history || {}), ...(cloud.history || {}) };
-            Object.keys(local.history || {}).forEach(key => {
-                if (merged.history[key]) {
-                    merged.history[key] = Math.max(local.history[key], merged.history[key]);
-                } else {
-                    merged.history[key] = local.history[key];
-                }
-            });
-            return merged;
-        }
-
-        function handleAuthError(error) {
-            console.error(error);
-            if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
-                alert("HATA: Google Girişi Etkin Değil!\n\nLütfen Firebase Konsolu -> Authentication -> Sign-in method sekmesine gidin ve 'Google' sağlayıcısını etkinleştirin.");
-            } else if (error.code === 'auth/unauthorized-domain') {
-                alert("HATA: Yetkisiz Alan Adı (Domain)!\n\nBu uygulamanın çalıştığı site adresi (" + window.location.hostname + ") Firebase Konsolunda 'Authorized Domains' listesinde yok.\n\nLütfen Firebase Konsolu -> Authentication -> Settings -> Authorized Domains kısmına bu domaini ekleyin.\n\nŞimdilik Yerel Mod'a geçiliyor.");
-                fallbackToLocal();
-            } else if (error.code === 'auth/admin-restricted-operation') {
-                console.warn("Admin restricted op, falling back to local due to auth restrictions.");
-                fallbackToLocal();
-            } else {
-                alert("Giriş hatası: " + error.message);
-            }
-        }
-
+        // APP LOGIC
         function fallbackToLocal() {
             console.log("Switching to Local Storage Mode");
             app.isGuest = true;
             updateAuthStatus(false, true); 
             loadLocalData();
-            document.getElementById('login-screen').classList.add('hidden');
+            const loginScreen = document.getElementById('login-screen');
+            if (loginScreen) loginScreen.classList.add('hidden');
         }
 
         function loadLocalData() {
@@ -463,83 +451,12 @@
 
         function initAppLogic() {
             checkDailyTasks();
-            // Initialize history for today if missing
             const todayKey = new Date().toISOString().split('T')[0];
             if (!app.history) app.history = {};
             if (!app.history[todayKey]) app.history[todayKey] = 0;
             
             updateUI();
             findNextWord();
-        }
-
-        // FIREBASE INIT
-        let firebaseApp;
-        try {
-            firebaseApp = initializeApp(firebaseConfig);
-            auth = getAuth(firebaseApp);
-            db = getFirestore(firebaseApp);
-        } catch (e) {
-            console.error("Firebase Init Error:", e);
-            fallbackToLocal();
-        }
-
-        // INIT FLOW
-        parseWords();
-
-        if (auth) {
-            onAuthStateChanged(auth, (u) => {
-                if (u) {
-                    user = u;
-                    app.isGuest = false;
-                    document.getElementById('login-screen').classList.add('hidden');
-                    updateAuthStatus(true);
-                    
-                    const userId = user.uid;
-                    if(document.getElementById('user-id-display')) {
-                        document.getElementById('user-id-display').innerText = userId;
-                    }
-
-                    docRef = doc(db, 'users', userId);
-                    
-                    onSnapshot(docRef, (snapshot) => {
-                        if (snapshot.exists()) {
-                            const cloudData = snapshot.data();
-                            const mergedApp = smartMerge(app, cloudData);
-                            
-                            if (JSON.stringify(mergedApp) !== JSON.stringify(app)) {
-                                app = mergedApp;
-                                if(!app.history) app.history = {};
-                                updateUI();
-                                if(document.getElementById('sync-badge')) {
-                                    document.getElementById('sync-badge').classList.add('show');
-                                    setTimeout(()=>document.getElementById('sync-badge').classList.remove('show'), 2000);
-                                }
-                            }
-
-                            if (!app.tasks || app.tasks.length === 0) checkDailyTasks();
-                        } else {
-                            save();
-                        }
-                    }, (error) => {
-                        console.log("Sync Error", error);
-                        // If we lose permission or something, maybe fallback? 
-                        // But usually snapshot error implies connectivity or rules issue. 
-                        // We let the user continue locally in memory.
-                    });
-                } else {
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    updateAuthStatus(false);
-                }
-            });
-        } else {
-            fallbackToLocal();
-        }
-
-        function parseWords() {
-            words = rawWordData.split(';').map(s => {
-                const parts = s.split('|');
-                return { en: parts[0], tr: parts[1], ctx: parts[2] };
-            });
         }
 
         function save() {
@@ -549,7 +466,7 @@
             }
             updateUI();
         }
-        
+
         window.forceSync = function() {
              if (!app.isGuest && user && docRef) {
                 toast("Bulutla Eşitleniyor...");
@@ -610,6 +527,16 @@
             if(updated) { save(); }
         }
 
+        window.claimReward = function(idx) {
+            const t = app.tasks[idx];
+            if(t.progress >= t.target && !t.claimed) {
+                t.claimed = true; app.coins += t.reward; app.xp += 10;
+                updateHistory(10);
+                confetti(); toast(`+${t.reward} Coin Kazandın!`);
+                save();
+            }
+        };
+
         function findNextWord() {
             let foundIndex = -1;
             for(let i=0; i<words.length; i++) {
@@ -629,15 +556,23 @@
         function loadCard() {
             if(!words.length) return;
             const w = words[app.wordIndex];
-            document.getElementById('fc-en').innerText = w.en;
-            document.getElementById('fc-tr').innerText = w.tr;
-            document.getElementById('fc-ctx').innerText = w.ctx;
-            document.getElementById('flashcard').classList.remove('flipped');
+            
+            const elEn = document.getElementById('fc-en');
+            const elTr = document.getElementById('fc-tr');
+            const elCtx = document.getElementById('fc-ctx');
+            const elCard = document.getElementById('flashcard');
+            const elIcon = document.getElementById('fav-icon');
+
+            if (elEn) elEn.innerText = w.en;
+            if (elTr) elTr.innerText = w.tr;
+            if (elCtx) elCtx.innerText = w.ctx;
+            if (elCard) elCard.classList.remove('flipped');
             isFlipped = false;
             
-            const isFav = app.favs && app.favs.includes(w.en);
-            const icon = document.getElementById('fav-icon');
-            icon.setAttribute('fill', isFav ? 'currentColor' : 'none');
+            if (elIcon) {
+                const isFav = app.favs && app.favs.includes(w.en);
+                elIcon.setAttribute('fill', isFav ? 'currentColor' : 'none');
+            }
         }
 
         window.toggleFav = function() {
@@ -658,7 +593,6 @@
                 }
                 app.xp += gainedXp; app.coins += 5;
                 
-                // Update History for Today
                 const todayKey = new Date().toISOString().split('T')[0];
                 if (!app.history) app.history = {};
                 if (!app.history[todayKey]) app.history[todayKey] = 0;
@@ -677,7 +611,6 @@
             setTimeout(findNextWord, 300);
         };
 
-        // Auth Exports
         window.loginWithGoogle = function() {
             if (window.location.protocol === 'file:') {
                 alert("HATA: Google Girişi 'file://' protokolünde çalışmaz.");
@@ -714,6 +647,8 @@
         function updateAuthStatus(loggedIn, isLocal = false) {
             const dot = document.getElementById('auth-dot');
             const text = document.getElementById('auth-text');
+            if (!dot || !text) return;
+            
             if(isLocal) {
                 dot.style.background = 'var(--neon-orange)';
                 dot.style.boxShadow = '0 0 10px var(--neon-orange)';
@@ -729,12 +664,164 @@
             }
         }
 
-        function toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-        function confetti() {
-            const c = document.getElementById('confetti-canvas'); const x = c.getContext('2d'); c.width=window.innerWidth; c.height=window.innerHeight;
-            const p = Array(40).fill().map(()=>({x:c.width/2, y:c.height/2, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, color:['#3b82f6','#8b5cf6','#10b981'][Math.floor(Math.random()*3)], life:80}));
-            function draw(){ x.clearRect(0,0,c.width,c.height); let a=false; p.forEach(i=>{ if(i.life>0){ i.x+=i.vx; i.y+=i.vy; i.vy+=0.5; i.life--; x.fillStyle=i.color; x.fillRect(i.x,i.y,6,6); a=true; }}); if(a) requestAnimationFrame(draw); } draw();
+        function smartMerge(local, cloud) {
+            let merged = { ...cloud };
+            merged.xp = Math.max(local.xp || 0, cloud.xp || 0);
+            merged.coins = Math.max(local.coins || 0, cloud.coins || 0);
+            merged.streak = Math.max(local.streak || 1, cloud.streak || 1);
+            const localLearned = new Set(local.learned || []);
+            const cloudLearned = new Set(cloud.learned || []);
+            merged.learned = [...new Set([...localLearned, ...cloudLearned])];
+            const localFavs = new Set(local.favs || []);
+            const cloudFavs = new Set(cloud.favs || []);
+            merged.favs = [...new Set([...localFavs, ...cloudFavs])];
+            merged.history = { ...(local.history || {}), ...(cloud.history || {}) };
+            Object.keys(local.history || {}).forEach(key => {
+                if (merged.history[key]) {
+                    merged.history[key] = Math.max(local.history[key], merged.history[key]);
+                } else {
+                    merged.history[key] = local.history[key];
+                }
+            });
+            return merged;
         }
+
+        function handleAuthError(error) {
+            console.error(error);
+            if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+                alert("HATA: Google Girişi Etkin Değil!\n\nLütfen Firebase Konsolu -> Authentication -> Sign-in method sekmesine gidin ve 'Google' sağlayıcısını etkinleştirin.");
+            } else if (error.code === 'auth/unauthorized-domain') {
+                alert("HATA: Yetkisiz Alan Adı (Domain)!\n\nBu uygulamanın çalıştığı site adresi (" + window.location.hostname + ") Firebase Konsolunda 'Authorized Domains' listesinde yok.\n\nLütfen Firebase Konsolu -> Authentication -> Settings -> Authorized Domains kısmına bu domaini ekleyin.\n\nŞimdilik Yerel Mod'a geçiliyor.");
+                fallbackToLocal();
+            } else if (error.code === 'auth/admin-restricted-operation') {
+                console.warn("Admin restricted op, falling back to local due to auth restrictions.");
+                fallbackToLocal();
+            } else {
+                alert("Giriş hatası: " + error.message);
+            }
+        }
+
+        window.switchTab = function(id, btn) {
+            document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
+            const tab = document.getElementById('tab-'+id);
+            if (tab) tab.classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if(id === 'quiz') window.resetQuiz(); 
+            if(id === 'profile') window.renderChart();
+        };
+        
+        window.playTTS = function() { 
+            const t = new SpeechSynthesisUtterance(words[app.wordIndex].en); 
+            t.lang = 'en-US'; 
+            speechSynthesis.speak(t); 
+        };
+        
+        function toast(msg) { 
+            const t = document.getElementById('toast'); 
+            if (t) {
+                t.innerText = msg; 
+                t.classList.add('show'); 
+                setTimeout(() => t.classList.remove('show'), 2500); 
+            }
+        }
+        
+        window.resetData = function() { 
+            if(confirm("Tüm verileri sil?")) { 
+                localStorage.removeItem('engApp_v77_local'); 
+                location.reload(); 
+            } 
+        };
+        
+        function confetti() {
+            const c = document.getElementById('confetti-canvas'); 
+            if (!c) return;
+            const x = c.getContext('2d'); 
+            c.width=window.innerWidth; c.height=window.innerHeight;
+            const p = Array(40).fill().map(()=>({x:c.width/2, y:c.height/2, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, color:['#3b82f6','#8b5cf6','#10b981'][Math.floor(Math.random()*3)], life:80}));
+            function draw(){ 
+                x.clearRect(0,0,c.width,c.height); 
+                let a=false; 
+                p.forEach(i=>{ 
+                    if(i.life>0){ 
+                        i.x+=i.vx; i.y+=i.vy; i.vy+=0.5; i.life--; 
+                        x.fillStyle=i.color; x.fillRect(i.x,i.y,6,6); 
+                        a=true; 
+                    }
+                }); 
+                if(a) requestAnimationFrame(draw); 
+            } 
+            draw();
+        }
+
+        // Main Logic Start
+        try {
+            firebaseApp = initializeApp(firebaseConfig);
+            auth = getAuth(firebaseApp);
+            db = getFirestore(firebaseApp);
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+            fallbackToLocal();
+        }
+
+        parseWords();
+
+        // Initial Local Load to prevent empty screen
+        loadLocalData();
+        
+        // Wait for window load to ensure DOM is ready before attaching auth listener that touches DOM
+        window.addEventListener('load', () => {
+            if (auth) {
+                onAuthStateChanged(auth, (u) => {
+                    if (u) {
+                        user = u;
+                        app.isGuest = false;
+                        const loginScreen = document.getElementById('login-screen');
+                        if (loginScreen) loginScreen.classList.add('hidden');
+                        
+                        updateAuthStatus(true);
+                        
+                        const userId = user.uid;
+                        const userIdDisplay = document.getElementById('user-id-display');
+                        if(userIdDisplay) userIdDisplay.innerText = userId;
+
+                        docRef = doc(db, 'users', userId);
+                        
+                        onSnapshot(docRef, (snapshot) => {
+                            if (snapshot.exists()) {
+                                const cloudData = snapshot.data();
+                                const mergedApp = smartMerge(app, cloudData);
+                                
+                                if (JSON.stringify(mergedApp) !== JSON.stringify(app)) {
+                                    app = mergedApp;
+                                    if(!app.history) app.history = {};
+                                    updateUI();
+                                    const syncBadge = document.getElementById('sync-badge');
+                                    if(syncBadge) {
+                                        syncBadge.classList.add('show');
+                                        setTimeout(()=>syncBadge.classList.remove('show'), 2000);
+                                    }
+                                }
+                                if (!app.tasks || app.tasks.length === 0) checkDailyTasks();
+                            } else {
+                                save();
+                            }
+                        }, (error) => {
+                            console.log("Sync Error", error);
+                        });
+                    } else {
+                        const loginScreen = document.getElementById('login-screen');
+                        if (loginScreen) loginScreen.classList.remove('hidden');
+                        updateAuthStatus(false);
+                    }
+                });
+            } else {
+                fallbackToLocal();
+            }
+        });
+
     </script>
 </body>
 </html>
