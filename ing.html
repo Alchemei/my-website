@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <title>English Master v7.5 Sync Master</title>
+    <title>English Master v7.6 Sync Fix</title>
     
     <!-- Font: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -233,7 +233,7 @@
     <div id="login-screen">
         <div class="login-logo">⚡</div>
         <h1 style="margin-bottom:5px;">English Master</h1>
-        <p style="color:var(--text-muted); margin-bottom:40px;">v7.5 Sync Master</p>
+        <p style="color:var(--text-muted); margin-bottom:40px;">v7.6 Sync Fix</p>
         
         <div id="protocol-warning" style="display:none; background:rgba(239,68,68,0.2); border:1px solid var(--neon-red); padding:15px; border-radius:12px; margin-bottom:20px; font-size:0.85rem;">
             ⚠️ <b>Uyarı:</b> Dosya protokolü (file://) tespit edildi. Bulut senkronizasyonu için lütfen bir web sunucusu kullanın.
@@ -375,7 +375,9 @@
 
             <h3 style="font-weight:300; margin-bottom:15px;">Haftalık Aktivite</h3>
             <div class="glass-panel" style="padding:15px; margin-bottom:30px;">
-                <div id="weekly-chart" class="chart-container"></div>
+                <div id="weekly-chart" class="chart-container">
+                    <!-- Bars injected by JS -->
+                </div>
             </div>
 
             <div style="display:flex; gap:10px; margin-bottom:20px;">
@@ -437,6 +439,13 @@
         let quizState = { active: false, currentQ: 0, score: 0, totalQ: 20 };
 
         let firebaseApp;
+        // Re-introduce isMobile definition
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        // PROTOCOL CHECK
+        if (window.location.protocol === 'file:') {
+            document.getElementById('protocol-warning').style.display = 'block';
+        }
 
         try {
             firebaseApp = initializeApp(firebaseConfig);
@@ -447,15 +456,17 @@
             fallbackToLocal();
         }
 
+        // HELPER: Fallback to Local Storage if Cloud fails
         function fallbackToLocal() {
+            console.log("Switching to Local Storage Mode");
             app.isGuest = true;
-            updateAuthStatus(false, true);
+            updateAuthStatus(false, true); // Logged in as Local Guest
             loadLocalData();
             document.getElementById('login-screen').classList.add('hidden');
         }
 
         function loadLocalData() {
-            const saved = localStorage.getItem('engApp_v75_local');
+            const saved = localStorage.getItem('engApp_v76_local');
             if(saved) {
                 try {
                     let parsed = JSON.parse(saved);
@@ -473,39 +484,6 @@
             findNextWord();
         }
 
-        // SMART MERGE LOGIC
-        function smartMerge(local, cloud) {
-            let merged = { ...cloud };
-            
-            // Maximize progress stats
-            merged.xp = Math.max(local.xp || 0, cloud.xp || 0);
-            merged.coins = Math.max(local.coins || 0, cloud.coins || 0);
-            merged.streak = Math.max(local.streak || 1, cloud.streak || 1);
-            
-            // Union learned words and favorites
-            const localLearned = new Set(local.learned || []);
-            const cloudLearned = new Set(cloud.learned || []);
-            merged.learned = [...new Set([...localLearned, ...cloudLearned])];
-            
-            const localFavs = new Set(local.favs || []);
-            const cloudFavs = new Set(cloud.favs || []);
-            merged.favs = [...new Set([...localFavs, ...cloudFavs])];
-            
-            // Merge history (additive if keys exist, else take max)
-            merged.history = { ...(local.history || {}), ...(cloud.history || {}) };
-            // If collision in history, ideally take max, but overwrite is simpler for now
-            // or implement specific day merge
-             Object.keys(local.history || {}).forEach(key => {
-                if (merged.history[key]) {
-                    merged.history[key] = Math.max(local.history[key], merged.history[key]);
-                } else {
-                    merged.history[key] = local.history[key];
-                }
-            });
-
-            return merged;
-        }
-
         // INIT
         parseWords();
 
@@ -518,41 +496,23 @@
                     updateAuthStatus(true);
                     
                     const userId = user.uid;
-                    // Display User ID (truncated)
-                    document.getElementById('user-id-display').innerText = userId;
-
                     docRef = doc(db, 'users', userId);
                     
                     onSnapshot(docRef, (snapshot) => {
                         if (snapshot.exists()) {
                             const cloudData = snapshot.data();
-                            
-                            // Perform Smart Merge with current local state
-                            // But wait, 'app' might already have local data loaded from init?
-                            // If this is first load, app has local data.
-                            // If this is subsequent update, app has current running state.
-                            
-                            const mergedApp = smartMerge(app, cloudData);
-                            
-                            // Only update if different to prevent loops, or just update
-                            if (JSON.stringify(mergedApp) !== JSON.stringify(app)) {
-                                app = mergedApp;
-                                if(!app.history) app.history = {};
-                                updateUI();
-                                toast("Veri Güncellendi ☁️");
-                                document.getElementById('sync-badge').classList.add('show');
-                                setTimeout(()=>document.getElementById('sync-badge').classList.remove('show'), 2000);
-                            }
-
+                            app = { ...app, ...cloudData };
+                            if(!app.history) app.history = {};
+                            updateUI();
                             if (!app.tasks || app.tasks.length === 0) checkDailyTasks();
                         } else {
-                            // No cloud data, save local to cloud
                             save();
                         }
                     }, (error) => {
-                        console.log("Sync Error", error);
+                        console.log("Sync Error, falling back to local", error);
                     });
                 } else {
+                    // No user, show login screen
                     document.getElementById('login-screen').classList.remove('hidden');
                     updateAuthStatus(false);
                 }
@@ -569,32 +529,14 @@
         }
 
         function save() {
-            localStorage.setItem('engApp_v75_local', JSON.stringify(app));
+            // Always save local backup
+            localStorage.setItem('engApp_v76_local', JSON.stringify(app));
+            
+            // Try Cloud Sync if connected
             if (!app.isGuest && user && docRef) {
                 setDoc(docRef, app, { merge: true }).catch(e => console.log("Cloud Save err", e));
             }
             updateUI();
-        }
-        
-        window.forceSync = function() {
-             if (!app.isGuest && user && docRef) {
-                toast("Bulutla Eşitleniyor...");
-                // Read from cloud manually to trigger merge if snapshot didn't catch it
-                getDoc(docRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const cloudData = snapshot.data();
-                        const mergedApp = smartMerge(app, cloudData);
-                        app = mergedApp;
-                        save(); // Push merged back to ensure cloud is up to date
-                        toast("Eşitleme Tamamlandı ✅");
-                    } else {
-                        save(); // Push local to cloud
-                         toast("Buluta Gönderildi ⬆️");
-                    }
-                });
-            } else {
-                toast("Önce Giriş Yapmalısın!");
-            }
         }
 
         function updateUI() {
@@ -603,8 +545,7 @@
             renderFavs();
             renderChart();
         }
-        
-        // ... (rest of the logic functions like updateHistory, checkDailyTasks etc remain same as v7.4) ...
+
         function updateHistory(amount) {
             const todayKey = new Date().toISOString().split('T')[0]; 
             if(!app.history) app.history = {};
@@ -612,6 +553,7 @@
             app.history[todayKey] += amount;
         }
 
+        // LOGIC
         function checkDailyTasks() {
             const today = new Date().toDateString();
             if(app.lastLogin !== today) {
@@ -724,8 +666,8 @@
             setTimeout(findNextWord, 300);
         };
 
-        // ... (rest of quiz, shop, render functions same as v7.4) ...
-         window.resetQuiz = function() {
+        // --- QUIZ ---
+        window.resetQuiz = function() {
             document.getElementById('quiz-play-area').classList.remove('hidden');
             document.getElementById('quiz-result-area').classList.add('hidden');
             quizState = { active: true, currentQ: 1, score: 0, totalQ: 20 };
@@ -848,8 +790,7 @@
             if(app.activeItems.freeze) buffContainer.innerHTML += `<div style="background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; font-size:0.8rem; margin-right:5px; display:inline-block;">❄️ Korumalı</div>`;
             if(app.activeItems.doubleXP > 0) buffContainer.innerHTML += `<div style="background:rgba(59, 130, 246, 0.2); color:var(--neon-blue); padding:5px 10px; border-radius:20px; font-size:0.8rem; display:inline-block;">⚡ 2x Aktif (${app.activeItems.doubleXP})</div>`;
         }
-        
-        // ... Render Chart & Favs ...
+
         function renderChart() {
             const container = document.getElementById('weekly-chart');
             container.innerHTML = '';
@@ -930,8 +871,15 @@
         };
         
         function handleAuthError(error) {
-             // ... Error handling logic ...
-             alert("Giriş hatası: " + error.message);
+            console.error(error);
+            if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+                alert("HATA: Google Girişi Etkin Değil!\n\nLütfen Firebase Konsolu -> Authentication -> Sign-in method sekmesine gidin ve 'Google' sağlayıcısını etkinleştirin.");
+            } else if (error.code === 'auth/unauthorized-domain') {
+                alert("HATA: Yetkisiz Alan Adı (Domain)!\n\nBu uygulamanın çalıştığı site adresi (" + window.location.hostname + ") Firebase Konsolunda 'Authorized Domains' listesinde yok.\n\nLütfen Firebase Konsolu -> Authentication -> Settings -> Authorized Domains kısmına bu domaini ekleyin.\n\nŞimdilik Yerel Mod'a geçiliyor.");
+                fallbackToLocal();
+            } else {
+                alert("Giriş hatası: " + error.message);
+            }
         }
 
         window.logout = function() {
