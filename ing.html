@@ -621,11 +621,13 @@
         async function saveCloud() {
             if(!user) return;
             try {
-                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'profile'), app);
+                await setDoc(doc(db, 'artifacts', APP_ID_KEY, 'users', user.uid, 'data', 'profile'), app);
                 updateSyncStatus('done');
             } catch(e) {
                 console.error(e);
                 updateSyncStatus('error');
+                if(e.code === 'permission-denied') toast("Kaydetme Hatası: İzin Yok");
+                else toast("Kayıt Hatası: " + e.code);
             }
         }
 
