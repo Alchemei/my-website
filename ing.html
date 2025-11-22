@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <title>English Master v8.2 Fixed</title>
+    <title>English Master v8.3 Fixed</title>
     
     <!-- Font: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -384,16 +384,7 @@
         let db, auth, user, docRef;
         let firebaseApp;
 
-        // --- INIT ---
-        window.onload = async () => {
-            parseWords();
-            initFirebase();
-            loadLocalData();
-            render();
-            renderTasks();
-            renderFavs();
-            renderChart();
-        };
+        // --- DEFINED FUNCTIONS (Must be before calls) ---
 
         function parseWords() {
             words = rawData.split(';').map(item => {
@@ -402,50 +393,90 @@
             });
         }
 
-        function initFirebase() {
-            try {
-                firebaseApp = initializeApp(firebaseConfig);
-                auth = getAuth(firebaseApp);
-                db = getFirestore(firebaseApp);
+        function render() {
+            document.getElementById('streak-display').innerText = app.streak;
+            document.getElementById('coin-display').innerText = app.coins;
+            document.getElementById('learn-progress-text').innerText = `${app.learned.length} / ${words.length}`;
+            
+            const pct = (app.xp % 100);
+            document.getElementById('xp-bar').style.width = pct + '%';
+        }
 
-                onAuthStateChanged(auth, (u) => {
-                    if (u) {
-                        user = u;
-                        app.isGuest = false;
-                        document.getElementById('login-screen').classList.add('hidden');
-                        updateAuthUI(true, u.uid);
-                        
-                        // Sync Setup
-                        const uid = user.uid;
-                        docRef = doc(db, 'users', uid);
-                        
-                        onSnapshot(docRef, (snap) => {
-                            if (snap.exists()) {
-                                const cloudData = snap.data();
-                                app = smartMerge(app, cloudData);
-                                saveLocal(); // Save merged data locally
-                                render();
-                                renderTasks();
-                                renderFavs();
-                                renderChart();
-                                toast("Veriler Güncellendi ☁️");
-                            } else {
-                                saveCloud(); // First time setup in cloud
-                            }
-                        }, (err) => {
-                            // Silent error for unauthorized domain etc.
-                            console.log("Offline/Local Mode Active");
-                        });
-
-                    } else {
-                        document.getElementById('login-screen').classList.remove('hidden');
-                        updateAuthUI(false);
-                    }
-                });
-            } catch (e) {
-                console.log("Firebase not available, local mode only.");
-                // Fail silently and use local
+        function renderProfile() {
+            document.getElementById('stat-xp').innerText = app.xp;
+            document.getElementById('stat-words').innerText = app.learned.length;
+            
+            const circle = document.getElementById('mastery-ring');
+            if (circle) {
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                const percent = Math.min(100, (app.learned.length / words.length) * 100);
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+                document.getElementById('mastery-pct').innerText = `${Math.floor(percent)}%`;
             }
+
+            const chartContainer = document.getElementById('weekly-chart');
+            chartContainer.innerHTML = '';
+            const days = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
+            days.forEach((day, i) => {
+                let h = Math.random() * 100; 
+                chartContainer.innerHTML += `
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" style="height:${h}%;"></div>
+                        <div class="chart-label">${day}</div>
+                    </div>
+                `;
+            });
+            
+            window.renderFavs();
+        }
+
+        window.renderFavs = function() {
+            const list = document.getElementById('favorites-list');
+            list.innerHTML = '';
+            if(app.favs.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:var(--text-muted);">Favori kelime yok.</div>';
+                return;
+            }
+            
+            app.favs.forEach(f => {
+                const w = words.find(i => i.en === f);
+                if(w) {
+                    list.innerHTML += `
+                        <div class="glass-panel" style="padding:15px; display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <span>${w.en}</span>
+                            <span style="color:var(--text-muted)">${w.tr}</span>
+                            <button class="btn" onclick="removeFav('${f}')" style="background:transparent; color:var(--neon-red);">✕</button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('quests-container');
+            container.innerHTML = '';
+            const tasks = [
+                {text: "5 Yeni Kelime Öğren", reward: 50, done: false},
+                {text: "100 XP Kazan", reward: 30, done: false},
+                {text: "Quiz Tamamla", reward: 40, done: false}
+            ];
+
+            tasks.forEach(t => {
+                container.innerHTML += `
+                    <div class="glass-panel quest-card">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">📜</div>
+                            <div>
+                                <div style="font-weight:600;">${t.text}</div>
+                                <div style="font-size:0.8rem; color:var(--neon-orange);">+${t.reward} Coin</div>
+                            </div>
+                        </div>
+                        <button class="btn" style="font-size:0.8rem; padding:5px 10px; border:1px solid var(--glass-border); border-radius:10px;">Başla</button>
+                    </div>
+                `;
+            });
         }
 
         function updateAuthUI(loggedIn, uid) {
@@ -466,28 +497,18 @@
 
         function smartMerge(local, cloud) {
             let merged = { ...local };
-            
             if (cloud.xp > local.xp) merged.xp = cloud.xp;
             if (cloud.coins > local.coins) merged.coins = cloud.coins;
             merged.streak = Math.max(local.streak || 1, cloud.streak || 1);
-            
-            // Merge Learned
             const combinedLearned = new Set([...(local.learned || []), ...(cloud.learned || [])]);
             merged.learned = Array.from(combinedLearned);
-
-            // Merge Favs
             const combinedFavs = new Set([...(local.favs || []), ...(cloud.favs || [])]);
             merged.favs = Array.from(combinedFavs);
-            
-            // History Merge
             merged.history = { ...(local.history || {}), ...(cloud.history || {}) };
-
-            // Items
             if(cloud.items) {
                 if(cloud.items.doubleXP > (local.items?.doubleXP || 0)) merged.items.doubleXP = cloud.items.doubleXP;
                 if(cloud.items.freeze) merged.items.freeze = true;
             }
-
             return merged;
         }
 
@@ -500,21 +521,17 @@
             loadCard();
         }
 
-        function saveLocal() {
-            localStorage.setItem('engMaster_v8', JSON.stringify(app));
-        }
+        function saveLocal() { localStorage.setItem('engMaster_v8', JSON.stringify(app)); }
 
         function saveCloud() {
-            if(user && docRef) {
-                setDoc(docRef, app, { merge: true }).catch(() => {});
-            }
+            if(user && docRef) { setDoc(docRef, app, { merge: true }).catch(() => {}); }
         }
 
         function save() {
             saveLocal();
             saveCloud();
             render();
-            renderFavs(); // Update favorites list if changed
+            renderFavs();
         }
         
         function updateHistory(amount) {
@@ -524,7 +541,57 @@
             app.history[todayKey] += amount;
         }
 
-        // --- CORE LOGIC ---
+        function loadCard() {
+            if(!words.length) return;
+            const w = words[app.wordIndex];
+            document.getElementById('fc-en').innerText = w.en;
+            document.getElementById('fc-ctx').innerText = w.ctx;
+            document.getElementById('fc-tr').innerText = w.tr;
+        }
+
+        function initFirebase() {
+            try {
+                firebaseApp = initializeApp(firebaseConfig);
+                auth = getAuth(firebaseApp);
+                db = getFirestore(firebaseApp);
+
+                onAuthStateChanged(auth, (u) => {
+                    if (u) {
+                        user = u;
+                        app.isGuest = false;
+                        document.getElementById('login-screen').classList.add('hidden');
+                        updateAuthUI(true, u.uid);
+                        const uid = user.uid;
+                        docRef = doc(db, 'users', uid);
+                        
+                        onSnapshot(docRef, (snap) => {
+                            if (snap.exists()) {
+                                const cloudData = snap.data();
+                                app = smartMerge(app, cloudData);
+                                saveLocal();
+                                render();
+                                renderTasks();
+                                renderFavs();
+                                renderProfile(); // Refresh charts
+                                toast("Veriler Güncellendi ☁️");
+                            } else {
+                                saveCloud();
+                            }
+                        }, (err) => {
+                            console.log("Offline/Local Mode Active");
+                        });
+
+                    } else {
+                        document.getElementById('login-screen').classList.remove('hidden');
+                        updateAuthUI(false);
+                    }
+                });
+            } catch (e) {
+                console.log("Firebase unavailable, local mode.");
+            }
+        }
+
+        // --- WINDOW FUNCTIONS (Buttons) ---
         window.flipCard = function() {
             const card = document.getElementById('flashcard');
             card.classList.toggle('flipped');
@@ -534,36 +601,22 @@
         window.vote = function(known) {
             const w = words[app.wordIndex];
             let gain = 10;
-            
             if(known) {
                 if(app.items.doubleXP > 0) { gain *= 2; app.items.doubleXP--; }
                 app.xp += gain;
                 app.coins += 5;
                 updateHistory(gain);
-                
                 if(!app.learned.includes(w.en)) app.learned.push(w.en);
-                
                 toast(`+${gain} XP Kazandın!`);
                 confetti();
             }
-            
-            // Next word
             app.wordIndex = (app.wordIndex + 1) % words.length;
-            
             save();
             setTimeout(() => {
                 document.getElementById('flashcard').classList.remove('flipped');
                 isFlipped = false;
                 setTimeout(loadCard, 300);
             }, 200);
-        }
-
-        function loadCard() {
-            if(!words.length) return;
-            const w = words[app.wordIndex];
-            document.getElementById('fc-en').innerText = w.en;
-            document.getElementById('fc-ctx').innerText = w.ctx;
-            document.getElementById('fc-tr').innerText = w.tr;
         }
 
         window.playTTS = function() {
@@ -601,187 +654,32 @@
                 toast("Yetersiz Coin 😔");
             }
         }
-        
-        // --- QUIZ ---
-        window.resetQuiz = function() {
-            document.getElementById('quiz-play-area').classList.remove('hidden');
-            document.getElementById('quiz-result-area').classList.add('hidden');
-            quizState = { active: true, currentQ: 1, score: 0, totalQ: 20 };
-            renderQuizQ();
-        };
 
-        function renderQuizQ() {
-            document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
-            const target = words[Math.floor(Math.random()*words.length)];
-            document.getElementById('q-word').innerText = target.en;
-            
-            let opts = words.filter(w => w.en !== target.en).sort(()=>0.5-Math.random()).slice(0,3).map(w=>w.tr);
-            opts.push(target.tr); opts.sort(()=>0.5-Math.random());
-            
-            const div = document.getElementById('q-options'); div.innerHTML = '';
-            opts.forEach(o => {
-                const b = document.createElement('button'); b.className = 'quiz-opt'; b.innerText = o;
-                b.onclick = () => handleQuizAns(b, o, target.tr);
-                div.appendChild(b);
-            });
-        }
-
-        function handleQuizAns(btn, selected, correct) {
-            const opts = document.querySelectorAll('.quiz-opt');
-            opts.forEach(o => o.onclick = null);
-
-            let isCorrect = (selected === correct);
-            if(isCorrect) {
-                btn.style.background = "rgba(16, 185, 129, 0.3)"; btn.style.borderColor = "var(--neon-green)";
-                quizState.score++;
-                confetti();
-            } else {
-                btn.style.background = "rgba(239, 68, 68, 0.3)"; btn.style.borderColor = "var(--neon-red)";
-                opts.forEach(o => { if(o.innerText === correct) { o.style.background="rgba(16, 185, 129, 0.3)"; o.style.borderColor="var(--neon-green)"; } });
-                if(navigator.vibrate) navigator.vibrate(200);
-            }
-
-            setTimeout(() => {
-                if(quizState.currentQ < quizState.totalQ) {
-                    quizState.currentQ++;
-                    renderQuizQ();
-                } else {
-                    finishQuiz();
-                }
-            }, 1200);
-        }
-
-        function finishQuiz() {
-            document.getElementById('quiz-play-area').classList.add('hidden');
-            document.getElementById('quiz-result-area').classList.remove('hidden');
-            
-            let baseXP = quizState.score * 5;
-            let finalXP = baseXP;
-            if(app.items.doubleXP > 0) {
-                finalXP = baseXP * 2;
-                app.items.doubleXP = Math.max(0, app.items.doubleXP - 20); 
-            }
-
-            app.xp += finalXP;
-            updateHistory(finalXP);
-            save();
-
-            document.getElementById('res-score').innerText = `${quizState.score} / 20`;
-            document.getElementById('res-xp').innerText = `+${finalXP}`;
-        }
-
-        // --- UI & NAVIGATION ---
         window.switchTab = function(id, btn) {
             document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             btn.classList.add('active');
-            
             if(id === 'profile') renderProfile();
             if(id === 'quiz') window.resetQuiz();
             if(id === 'quests') renderTasks();
         }
 
-        function render() {
-            document.getElementById('streak-display').innerText = app.streak;
-            document.getElementById('coin-display').innerText = app.coins;
-            document.getElementById('learn-progress-text').innerText = `${app.learned.length} / ${words.length}`;
-            
-            // XP Bar
-            const pct = (app.xp % 100);
-            document.getElementById('xp-bar').style.width = pct + '%';
-        }
-        
-        function renderTasks() {
-            const container = document.getElementById('quests-container');
-            container.innerHTML = '';
-            
-            // Dynamic Tasks based on daily progress
-            // For MVP simplicity, we show static tasks, but check status
-            const dailyGoal = 5; // Learn 5 words
-            const learnedToday = 0; // This needs tracking, simplifying for now to just show layout
-            
-            const tasks = [
-                {text: "5 Yeni Kelime Öğren", reward: 50, done: false},
-                {text: "100 XP Kazan", reward: 30, done: false},
-                {text: "Quiz Tamamla", reward: 40, done: false}
-            ];
-
-            tasks.forEach(t => {
-                container.innerHTML += `
-                    <div class="glass-panel quest-card">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">📜</div>
-                            <div>
-                                <div style="font-weight:600;">${t.text}</div>
-                                <div style="font-size:0.8rem; color:var(--neon-orange);">+${t.reward} Coin</div>
-                            </div>
-                        </div>
-                        <button class="btn" style="font-size:0.8rem; padding:5px 10px; border:1px solid var(--glass-border); border-radius:10px;">Başla</button>
-                    </div>
-                `;
-            });
+        window.loginWithGoogle = function() {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(err => {});
         }
 
-        window.renderFavs = function() {
-            const list = document.getElementById('favorites-list');
-            list.innerHTML = '';
-            if(app.favs.length === 0) {
-                list.innerHTML = '<div style="text-align:center; color:var(--text-muted);">Favori kelime yok.</div>';
-                return;
-            }
-            
-            app.favs.forEach(f => {
-                const w = words.find(i => i.en === f);
-                if(w) {
-                    list.innerHTML += `
-                        <div class="glass-panel" style="padding:15px; display:flex; justify-content:space-between; margin-bottom:10px;">
-                            <span>${w.en}</span>
-                            <span style="color:var(--text-muted)">${w.tr}</span>
-                            <button class="btn" onclick="removeFav('${f}')" style="background:transparent; color:var(--neon-red);">✕</button>
-                        </div>
-                    `;
-                }
-            });
+        window.loginGuest = function() {
+            app.isGuest = true;
+            document.getElementById('login-screen').classList.add('hidden');
+            loadLocalData();
         }
 
-        window.removeFav = function(f) {
-             app.favs = app.favs.filter(i => i !== f);
-             save();
-        }
-
-        function renderProfile() {
-            document.getElementById('stat-xp').innerText = app.xp;
-            document.getElementById('stat-words').innerText = app.learned.length;
-            
-            // Progress Ring
-            const circle = document.getElementById('mastery-ring');
-            const radius = circle.r.baseVal.value;
-            const circumference = radius * 2 * Math.PI;
-            const percent = Math.min(100, (app.learned.length / words.length) * 100);
-            const offset = circumference - (percent / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
-            document.getElementById('mastery-pct').innerText = `${Math.floor(percent)}%`;
-
-            // Chart Render
-            const chartContainer = document.getElementById('weekly-chart');
-            chartContainer.innerHTML = '';
-            const days = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
-            // Mock data for visual if history empty, else use history
-            // For this MVP fix, we use simple bars
-            days.forEach((day, i) => {
-                // Logic to map actual history dates would go here
-                let h = Math.random() * 100; // Placeholder
-                chartContainer.innerHTML += `
-                    <div class="chart-bar-wrapper">
-                        <div class="chart-bar" style="height:${h}%;"></div>
-                        <div class="chart-label">${day}</div>
-                    </div>
-                `;
-            });
-            
-            window.renderFavs();
+        window.logout = function() {
+            if(user) signOut(auth);
+            localStorage.removeItem('engMaster_v8');
+            location.reload();
         }
         
         window.forceSync = function() {
@@ -798,31 +696,6 @@
              }
         }
 
-        // --- AUTH & UTILS ---
-        window.loginWithGoogle = function() {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch(err => {
-                // Fallback for browsers blocking popup
-                if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-                     // Ignore or try redirect
-                } else {
-                    console.error(err); // Log but don't alert blocking errors
-                }
-            });
-        }
-
-        window.loginGuest = function() {
-            app.isGuest = true;
-            document.getElementById('login-screen').classList.add('hidden');
-            loadLocalData();
-        }
-
-        window.logout = function() {
-            if(user) signOut(auth);
-            localStorage.removeItem('engMaster_v8');
-            location.reload();
-        }
-
         window.resetData = function() {
             if(confirm("Tüm ilerlemen silinecek?")) {
                 localStorage.removeItem('engMaster_v8');
@@ -831,6 +704,73 @@
             }
         }
 
+        window.removeFav = function(f) {
+             app.favs = app.favs.filter(i => i !== f);
+             save();
+        }
+        
+        // Quiz Logic
+        window.resetQuiz = function() {
+            document.getElementById('quiz-play-area').classList.remove('hidden');
+            document.getElementById('quiz-result-area').classList.add('hidden');
+            quizState = { active: true, currentQ: 1, score: 0, totalQ: 20 };
+            renderQuizQ();
+        };
+
+        function renderQuizQ() {
+            document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
+            const target = words[Math.floor(Math.random()*words.length)];
+            document.getElementById('q-word').innerText = target.en;
+            let opts = words.filter(w => w.en !== target.en).sort(()=>0.5-Math.random()).slice(0,3).map(w=>w.tr);
+            opts.push(target.tr); opts.sort(()=>0.5-Math.random());
+            const div = document.getElementById('q-options'); div.innerHTML = '';
+            opts.forEach(o => {
+                const b = document.createElement('button'); b.className = 'quiz-opt'; b.innerText = o;
+                b.onclick = () => handleQuizAns(b, o, target.tr);
+                div.appendChild(b);
+            });
+        }
+
+        function handleQuizAns(btn, selected, correct) {
+            const opts = document.querySelectorAll('.quiz-opt');
+            opts.forEach(o => o.onclick = null);
+            let isCorrect = (selected === correct);
+            if(isCorrect) {
+                btn.style.background = "rgba(16, 185, 129, 0.3)"; btn.style.borderColor = "var(--neon-green)";
+                quizState.score++;
+                confetti();
+            } else {
+                btn.style.background = "rgba(239, 68, 68, 0.3)"; btn.style.borderColor = "var(--neon-red)";
+                opts.forEach(o => { if(o.innerText === correct) { o.style.background="rgba(16, 185, 129, 0.3)"; o.style.borderColor="var(--neon-green)"; } });
+                if(navigator.vibrate) navigator.vibrate(200);
+            }
+            setTimeout(() => {
+                if(quizState.currentQ < quizState.totalQ) {
+                    quizState.currentQ++;
+                    renderQuizQ();
+                } else {
+                    finishQuiz();
+                }
+            }, 1200);
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-play-area').classList.add('hidden');
+            document.getElementById('quiz-result-area').classList.remove('hidden');
+            let baseXP = quizState.score * 5;
+            let finalXP = baseXP;
+            if(app.items.doubleXP > 0) {
+                finalXP = baseXP * 2;
+                app.items.doubleXP = Math.max(0, app.items.doubleXP - 20); 
+            }
+            app.xp += finalXP;
+            updateHistory(finalXP);
+            save();
+            document.getElementById('res-score').innerText = `${quizState.score} / 20`;
+            document.getElementById('res-xp').innerText = `+${finalXP}`;
+        }
+
+        // Helpers
         function toast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg;
@@ -842,7 +782,6 @@
             const c = document.getElementById('confetti-canvas');
             const ctx = c.getContext('2d');
             c.width = window.innerWidth; c.height = window.innerHeight;
-            
             let particles = [];
             for(let i=0; i<50; i++) {
                 particles.push({
@@ -851,7 +790,6 @@
                     color: `hsl(${Math.random()*360}, 100%, 50%)`, life: 100
                 });
             }
-            
             function anim() {
                 ctx.clearRect(0,0,c.width,c.height);
                 particles.forEach((p, i) => {
@@ -863,6 +801,17 @@
             }
             anim();
         }
+        
+        // Start
+        window.onload = async () => {
+            parseWords();
+            initFirebase();
+            loadLocalData();
+            render();
+            renderTasks();
+            renderFavs();
+            renderChart();
+        };
 
     </script>
 </body>
