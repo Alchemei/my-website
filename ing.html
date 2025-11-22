@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Favicon hatasını engellemek için boş ikon -->
     <link rel="icon" href="data:,"> 
-    <title>English Master v6.1 Final</title>
+    <title>English Master v6.1 Final (Fixed)</title>
     
     <!-- Font: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,7 +38,6 @@
         /* --- RESET & BASE --- */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
-        /* Sayfa yüklenmeden içerik görünmesin (FOUC önleme) */
         /* GÖRÜNÜRLÜK DÜZELTMESİ: Sayfa her zaman görünür olsun */
         html { visibility: visible; opacity: 1; }
 
@@ -89,22 +88,25 @@
             display: flex; flex-direction: column; gap: 15px;
         }
         .hud-top { display: flex; justify-content: space-between; align-items: center; }
-        .hud-group { display: flex; gap: 10px; }
+        .hud-group { display: flex; gap: 10px; align-items: center; }
         
         .hud-badge {
             background: rgba(15, 23, 42, 0.8);
             border: 1px solid var(--glass-border);
-            padding: 8px 14px; border-radius: 100px;
+            padding: 0 14px; /* Yükseklik sabitlemesi için padding ayarlandı */
+            border-radius: 100px;
             font-size: 0.85rem; font-weight: 700;
             display: flex; align-items: center; gap: 6px;
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            height: 34px; /* Sabit yükseklik */
         }
         .streak-badge { color: var(--neon-orange); }
         .currency-badge { color: var(--neon-green); }
         
         .sync-status {
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 34px; height: 34px; /* Boyut eşitlendi */
+            border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border);
             color: var(--text-muted); transition: color 0.3s;
@@ -154,22 +156,31 @@
         .flashcard.flipped { transform: rotateY(180deg); }
         
         .card-face {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            position: absolute; width: 100%; height: 100%; 
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
             border-radius: var(--radius-xl);
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+            /* DÜZELTME: Tam opak arka plan */
+            background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 1px solid var(--glass-border);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             padding: 30px; text-align: center;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
             overflow: hidden;
+            z-index: 2; /* Ön yüz üstte */
         }
-        .card-back { transform: rotateY(180deg); background: linear-gradient(145deg, rgba(76, 29, 149, 0.3), rgba(15, 23, 42, 0.95)); border-color: var(--neon-purple); }
+        .card-back { 
+            transform: rotateY(180deg); 
+            /* DÜZELTME: Tam opak arka plan */
+            background: linear-gradient(145deg, #4c1d95, #0f172a); 
+            border-color: var(--neon-purple); 
+            z-index: 1;
+        }
 
         .word-lg { font-size: 3rem; font-weight: 800; margin-bottom: 15px; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .word-context { font-size: 1.1rem; color: #cbd5e1; font-style: italic; margin-bottom: 30px; max-width: 90%; line-height: 1.6; }
-        .word-meaning { font-size: 2.4rem; font-weight: 700; color: var(--neon-purple); text-shadow: 0 0 25px rgba(139, 92, 246, 0.4); }
+        .word-meaning { font-size: 2.4rem; font-weight: 700; color: white; text-shadow: 0 0 25px rgba(139, 92, 246, 0.4); }
 
-        .card-actions { display: flex; gap: 20px; z-index: 2; margin-top: 20px; }
+        .card-actions { display: flex; gap: 20px; z-index: 5; margin-top: 20px; }
         .action-btn {
             width: 50px; height: 50px; border-radius: 50%;
             background: rgba(255,255,255,0.1); color: white;
@@ -290,17 +301,19 @@
         <div class="hud-top">
             <div class="hud-group">
                 <div class="hud-badge streak-badge">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+                    <!-- Zap (Lightning) Icon -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                     <span id="streak-display">0</span>
                 </div>
                 <div class="hud-badge currency-badge">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><path d="M16 12h.01"></path><path d="M12 16h.01"></path><path d="M8 12h.01"></path><path d="M12 8h.01"></path></svg>
+                    <!-- Gem (Diamond) Icon -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9l4-6z"></path></svg>
                     <span id="coin-display">0</span>
                 </div>
             </div>
-            <!-- Sync Indicator -->
+            <!-- Sync Indicator: Cloud Upload -->
             <div id="sync-status" class="sync-status" title="Bulut Senkronizasyonu" onclick="window.retrySync()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19c0-1.7-1.3-3-3-3h-1.1c-.3-2.3-2.2-4-4.4-4-2.4 0-4.4 1.7-4.8 4H3c-1.7 0-3 1.3-3 3 0 1.7 1.3 3 3 3h14.5c1.7 0 3-1.3 3-3z"></path></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
             </div>
         </div>
         <div class="xp-track"><div id="xp-bar" class="xp-fill"></div></div>
@@ -320,8 +333,8 @@
                         <div class="word-lg" id="fc-en">...</div>
                         <div class="word-context" id="fc-ctx">...</div>
                         <div class="card-actions" onclick="event.stopPropagation()">
-                            <button class="btn action-btn" onclick="window.playTTS()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
-                            <button class="btn action-btn" onclick="window.toggleFav()"><svg id="fav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></button>
+                            <button class="btn action-btn" onclick="window.playTTS()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 10.93a10 10 0 0 1 0 2.14"></path></svg></button>
+                            <button class="btn action-btn" onclick="window.toggleFav()"><svg id="fav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button>
                         </div>
                         <div style="margin-top:auto; font-size:0.75rem; letter-spacing:2px; font-weight:600; text-transform:uppercase; opacity:0.6;">Tap to reveal</div>
                     </div>
@@ -434,10 +447,19 @@
 
     <div class="nav-dock-container">
         <nav class="nav-dock">
-            <button class="nav-item active" onclick="window.switchTab('learn', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></button>
-            <button class="nav-item" onclick="window.switchTab('quests', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></button>
-            <button class="nav-item" onclick="window.switchTab('quiz', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg></button>
+            <!-- Learn: Brain Icon -->
+            <button class="nav-item active" onclick="window.switchTab('learn', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg></button>
+            
+            <!-- Quests: Target Icon -->
+            <button class="nav-item" onclick="window.switchTab('quests', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></button>
+            
+            <!-- Quiz: Gamepad Icon -->
+            <button class="nav-item" onclick="window.switchTab('quiz', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="15" x2="15.01" y1="13" y2="13"></line><line x1="18" x2="18.01" y1="11" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg></button>
+            
+            <!-- Shop: Shopping Bag Icon -->
             <button class="nav-item" onclick="window.switchTab('shop', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg></button>
+            
+            <!-- Profile: User Icon -->
             <button class="nav-item" onclick="window.switchTab('profile', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></button>
         </nav>
     </div>
@@ -519,50 +541,42 @@
             if(app.tasks.length === 0) generateNewTasks();
             renderAll();
             findNextWord();
-            
-            // Remove loading class
-            document.documentElement.classList.add('loaded');
         }
 
         async function initAuth() {
             updateSyncStatus('active');
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                // Fallback for anonymous if not Google
+                // But we wait for onAuthStateChanged to decide
+            }
             
-            // Try existing session first
             onAuthStateChanged(auth, async (u) => {
                 if(u) {
                     user = u;
-                    handleUserLogin(u);
-                } else {
-                    // No user, try anonymous sign-in automatically
-                    try {
-                        await signInAnonymously(auth);
-                    } catch(error) {
-                        console.error("Anonymous auth failed:", error);
-                        if(error.code === 'auth/admin-restricted-operation') {
-                            toast("Lütfen Firebase Konsol'dan 'Anonymous' girişini açın!");
-                        }
-                        updateSyncStatus('error');
+                    // UI Update for Logged In User
+                    if(!u.isAnonymous) {
+                        document.getElementById('google-login-btn').classList.add('hidden');
+                        document.getElementById('logout-btn').classList.remove('hidden');
+                        document.getElementById('career-badge').innerText = `Lvl ${Math.floor(app.xp/100) + 1} • ${u.displayName || 'Kullanıcı'}`;
+                        document.getElementById('user-email').innerText = u.email;
+                        document.getElementById('user-email').style.opacity = 1;
+                        
+                        // IMPORTANT: Load Cloud Data and OVERWRITE local if exists
+                        // This fulfills "Same data everywhere" requirement
+                        await loadFromCloud(true);
+                    } else {
+                        // Anonymous user
+                        document.getElementById('google-login-btn').classList.remove('hidden');
+                        document.getElementById('logout-btn').classList.add('hidden');
                     }
+                    checkDailyTasks();
+                } else {
+                    // No user, sign in anonymously to allow usage
+                    await signInAnonymously(auth);
                 }
             });
-        }
-
-        async function handleUserLogin(u) {
-            if(!u.isAnonymous) {
-                document.getElementById('google-login-btn').classList.add('hidden');
-                document.getElementById('logout-btn').classList.remove('hidden');
-                document.getElementById('career-badge').innerText = `Lvl ${Math.floor(app.xp/100) + 1} • ${u.displayName || 'Kullanıcı'}`;
-                document.getElementById('user-email').innerText = u.email;
-                document.getElementById('user-email').style.opacity = 1;
-                
-                // IMPORTANT: Load Cloud Data and OVERWRITE local if exists
-                await loadFromCloud(true);
-            } else {
-                // Anonymous user
-                document.getElementById('google-login-btn').classList.remove('hidden');
-                document.getElementById('logout-btn').classList.add('hidden');
-            }
-            checkDailyTasks();
         }
 
         // EXPORTED FUNCTIONS
@@ -586,20 +600,10 @@
             }
         }
 
-        window.retrySync = function() {
-            if(document.getElementById('sync-status').classList.contains('sync-error')) {
-                toast("Tekrar deneniyor...");
-                save();
-            } else {
-                toast("Senkronizasyon durumu: " + (document.getElementById('sync-status').classList.contains('sync-done') ? "Tamamlandı" : "İşleniyor"));
-            }
-        }
-
         async function loadFromCloud(forceOverwrite = false) {
             if(!user) return;
             try {
-                // Use STABLE APP ID for consistency
-                const docRef = doc(db, 'artifacts', APP_ID_KEY, 'users', user.uid, 'data', 'profile');
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'profile');
                 const docSnap = await getDoc(docRef);
                 
                 if (docSnap.exists()) {
@@ -623,9 +627,6 @@
             } catch(e) {
                 console.error("Sync error:", e);
                 updateSyncStatus('error');
-                if(e.code === 'permission-denied') toast("Hata: Yetki Yok (Rules)");
-                else if(e.code === 'unavailable') toast("Hata: Bağlantı Yok");
-                else toast("Hata: " + e.code);
             }
         }
 
@@ -652,13 +653,11 @@
         async function saveCloud() {
             if(!user) return;
             try {
-                await setDoc(doc(db, 'artifacts', APP_ID_KEY, 'users', user.uid, 'data', 'profile'), app);
+                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'profile'), app);
                 updateSyncStatus('done');
             } catch(e) {
                 console.error(e);
                 updateSyncStatus('error');
-                if(e.code === 'permission-denied') toast("Kaydetme Hatası: İzin Yok");
-                else toast("Kayıt Hatası: " + e.code);
             }
         }
 
