@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>English Master v6.0 (Cloud)</title>
+    <title>English Master v6.1 Final</title>
     
     <!-- Font: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,26 +14,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* --- CSS VARIABLES (AURORA THEME v2 - High Contrast) --- */
+        /* --- CSS VARIABLES (AURORA THEME v3) --- */
         :root {
-            --bg-dark: #020617; /* Daha koyu arka plan */
+            --bg-dark: #020617;
             --glass-border: rgba(255, 255, 255, 0.1);
-            /* Arka planı koyulaştırarak yazı okunabilirliğini artırdık */
-            --glass-surface: rgba(15, 23, 42, 0.75); 
-            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --glass-surface: rgba(15, 23, 42, 0.85); 
             
-            --neon-blue: #60a5fa; /* Daha parlak mavi */
+            --neon-blue: #60a5fa;
             --neon-purple: #a78bfa;
             --neon-green: #34d399;
             --neon-orange: #fbbf24;
             --neon-red: #f87171;
             
             --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.7); /* Daha okunaklı gri metinler */
+            --text-muted: rgba(255, 255, 255, 0.7);
             
             --radius-xl: 28px;
             --radius-lg: 18px;
-            --nav-height: 70px;
         }
 
         /* --- RESET --- */
@@ -108,6 +105,7 @@
         }
         .sync-active { color: var(--neon-blue); animation: pulseSync 2s infinite; }
         .sync-done { color: var(--neon-green); }
+        .sync-error { color: var(--neon-red); }
         @keyframes pulseSync { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
         .xp-track {
@@ -132,7 +130,7 @@
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            color: white; /* Ensure text is white inside panels */
+            color: white;
         }
 
         /* --- LEARN --- */
@@ -255,6 +253,23 @@
             filter: drop-shadow(0 0 4px var(--neon-green));
         }
         .progress-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        
+        /* Google Button */
+        .google-btn {
+            width: 100%; padding: 15px; 
+            background: white; color: #333; 
+            border-radius: 16px; font-weight: 700; 
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+        }
+        .google-btn:active { transform: scale(0.98); }
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1); color: var(--neon-red); 
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -371,8 +386,20 @@
                 </div>
                 <h2 style="margin:0; font-size:1.5rem;">Profilim</h2>
                 <div id="career-badge" style="color:var(--neon-blue); font-family:monospace; margin-top:5px; font-size:1.1rem;">Lvl 1 • Stajyer</div>
+                <div id="user-email" style="font-size:0.8rem; color:var(--text-muted); margin-top:5px; opacity:0;"></div>
             </div>
             
+            <!-- GOOGLE LOGIN BUTTON -->
+            <div id="auth-container">
+                <button id="google-login-btn" class="google-btn" onclick="window.loginGoogle()">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z"/><path fill="#EA4335" d="M12 4.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.09 14.97 0 12 0 7.7 0 3.99 2.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Google ile Giriş Yap
+                </button>
+                <button id="logout-btn" class="google-btn logout-btn hidden" onclick="window.logoutGoogle()">
+                    Çıkış Yap
+                </button>
+            </div>
+
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:30px;">
                 <div class="glass-panel" style="padding:20px; text-align:center;">
                     <div id="stat-xp" style="font-size:1.8rem; font-weight:800; color:var(--neon-blue);">0</div>
@@ -409,12 +436,12 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
-        // --- FIREBASE SETUP ---
-        // Sizin sağladığınız yapılandırma (Lokal/Kendi sunucunuzda çalışırken kullanılır)
+        // --- FIREBASE CONFIG ---
+        // Kullanıcının sağladığı yapılandırma (Lokal/Kendi sunucunuzda çalışırken kullanılır)
         const userConfig = {
             apiKey: "AIzaSyDUN827ZeD2YhEYAkB5OeWkF6OIiF59bFI",
             authDomain: "learning-eng-cc8e5.firebaseapp.com",
@@ -432,11 +459,11 @@
         const auth = getAuth(fbApp);
         const db = getFirestore(fbApp);
         
-        // Analytics'i güvenli bir şekilde başlat
         let analytics;
-        try { analytics = getAnalytics(fbApp); } catch(e) { console.log("Analytics başlatılamadı (Lokal ortamda normaldir)"); }
+        try { analytics = getAnalytics(fbApp); } catch(e) {}
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
         let user = null;
         let syncTimeout = null;
 
@@ -464,7 +491,7 @@
         function init() {
             parseWords();
             
-            // 1. Load Local First (Instant UI)
+            // 1. Load Local First
             const saved = localStorage.getItem('engApp_v60');
             if(saved) {
                 try {
@@ -474,14 +501,14 @@
                 } catch(e) {}
             }
             
-            render();
-            renderTasks();
-            renderFavs();
-            renderChart();
-            findNextWord();
-
-            // 2. Authenticate & Sync
+            // 2. Start Auth
             initAuth();
+            
+            // 3. Render UI (Wait for tasks generation in initAuth -> checkDailyTasks)
+            // If no tasks yet, generate them now to prevent empty screen
+            if(app.tasks.length === 0) generateNewTasks();
+            renderAll();
+            findNextWord();
         }
 
         async function initAuth() {
@@ -489,19 +516,59 @@
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
             } else {
-                await signInAnonymously(auth);
+                // Fallback for anonymous if not Google
+                // But we wait for onAuthStateChanged to decide
             }
             
             onAuthStateChanged(auth, async (u) => {
                 if(u) {
                     user = u;
-                    await loadFromCloud();
+                    // UI Update for Logged In User
+                    if(!u.isAnonymous) {
+                        document.getElementById('google-login-btn').classList.add('hidden');
+                        document.getElementById('logout-btn').classList.remove('hidden');
+                        document.getElementById('career-badge').innerText = `Lvl ${Math.floor(app.xp/100) + 1} • ${u.displayName || 'Kullanıcı'}`;
+                        document.getElementById('user-email').innerText = u.email;
+                        document.getElementById('user-email').style.opacity = 1;
+                        
+                        // IMPORTANT: Load Cloud Data and OVERWRITE local if exists
+                        // This fulfills "Same data everywhere" requirement
+                        await loadFromCloud(true);
+                    } else {
+                        // Anonymous user
+                        document.getElementById('google-login-btn').classList.remove('hidden');
+                        document.getElementById('logout-btn').classList.add('hidden');
+                    }
                     checkDailyTasks();
+                } else {
+                    // No user, sign in anonymously to allow usage
+                    await signInAnonymously(auth);
                 }
             });
         }
 
-        async function loadFromCloud() {
+        // EXPORTED FUNCTIONS
+        window.loginGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                // onAuthStateChanged will handle the rest
+            } catch (error) {
+                console.error(error);
+                toast("Giriş Hatası: " + error.message);
+            }
+        }
+
+        window.logoutGoogle = async () => {
+            try {
+                await signOut(auth);
+                location.reload(); // Reload to reset state to anonymous/fresh
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function loadFromCloud(forceOverwrite = false) {
             if(!user) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'profile');
@@ -509,21 +576,19 @@
                 
                 if (docSnap.exists()) {
                     const cloudData = docSnap.data();
-                    // Simple merge logic: If cloud has more XP, trust cloud. Else trust local.
-                    if(cloudData.xp > app.xp) {
+                    // If forceOverwrite is true (Google Login), we trust Cloud.
+                    // OR if cloud has more progress.
+                    if(forceOverwrite || cloudData.xp > app.xp) {
                         app = { ...app, ...cloudData };
                         saveLocal();
-                        render();
-                        renderTasks(); 
-                        renderFavs();
-                        renderChart();
-                        toast("Bulut verisi yüklendi");
+                        renderAll();
+                        toast("Bulut verileri yüklendi ✅");
                     } else if (app.xp > cloudData.xp) {
-                        // Local is ahead, push to cloud
+                        // Local ahead (played offline), push to cloud
                         saveCloud();
                     }
                 } else {
-                    // First time on cloud, save local data
+                    // First time on cloud, save current local data
                     saveCloud();
                 }
                 updateSyncStatus('done');
@@ -538,11 +603,11 @@
             icon.className = 'sync-status';
             if(state === 'active') icon.classList.add('sync-active');
             if(state === 'done') icon.classList.add('sync-done');
+            if(state === 'error') icon.classList.add('sync-error');
         }
 
         function save() {
             saveLocal();
-            // Debounce Cloud Save
             clearTimeout(syncTimeout);
             updateSyncStatus('active');
             syncTimeout = setTimeout(saveCloud, 2000);
@@ -550,7 +615,7 @@
 
         function saveLocal() {
             localStorage.setItem('engApp_v60', JSON.stringify(app));
-            render();
+            renderAll();
         }
 
         async function saveCloud() {
@@ -581,7 +646,6 @@
             if(!app.history[todayKey]) app.history[todayKey] = 0;
             app.history[todayKey] += amount;
             save();
-            renderChart();
         }
 
         function checkDailyTasks() {
@@ -600,15 +664,15 @@
                 }
                 app.lastLogin = today;
                 generateNewTasks();
-                save();
             } else if (app.tasks.length === 0) {
                 generateNewTasks();
             }
+            renderAll();
         }
 
         function generateNewTasks() {
             app.tasks = [...taskTemplates].sort(()=>0.5-Math.random()).map(t=>({...t, progress:0, claimed:false}));
-            save();
+            saveLocal(); // Save immediately so render works
         }
 
         function updateTask(type, amt) {
@@ -620,17 +684,17 @@
                     updated = true;
                 }
             });
-            if(updated) { save(); renderTasks(); }
+            if(updated) save();
         }
 
-        // --- GLOBAL EXPORTS (Needed for HTML onclicks) ---
+        // --- GLOBAL ACTIONS ---
         window.claimReward = function(idx) {
             const t = app.tasks[idx];
             if(t.progress >= t.target && !t.claimed) {
                 t.claimed = true; app.coins += t.reward; app.xp += 10;
                 updateHistory(10);
                 confetti(); toast(`+${t.reward} Altın!`);
-                save(); renderTasks();
+                save();
             }
         };
 
@@ -646,7 +710,6 @@
             }
             if(foundIndex === -1) {
                 foundIndex = Math.floor(Math.random() * words.length);
-                toast("Tekrar Modu: Tüm kelimeler bitti!");
             }
             app.wordIndex = foundIndex;
             loadCard();
@@ -670,7 +733,7 @@
             const w = words[app.wordIndex].en;
             if(app.favs.includes(w)) app.favs = app.favs.filter(x => x!==w);
             else { app.favs.push(w); toast("Favorilere eklendi"); }
-            save(); loadCard(); renderFavs();
+            save(); loadCard();
         }
 
         window.vote = function(known) {
@@ -786,7 +849,15 @@
             }
         }
 
-        function render() {
+        // --- UI RENDER ---
+        function renderAll() {
+            renderHeader();
+            renderTasks();
+            renderFavs();
+            renderChart();
+        }
+
+        function renderHeader() {
             document.getElementById('streak-display').innerText = app.streak;
             document.getElementById('coin-display').innerText = app.coins;
             
@@ -806,9 +877,13 @@
 
             const lvl = Math.floor(app.xp/100) + 1;
             document.getElementById('xp-bar').style.width = (app.xp%100) + "%";
-            let title = "Stajyer";
-            if(lvl>2) title = "Çırak"; if(lvl>10) title = "Uzman"; if(lvl>30) title = "Üstat";
-            document.getElementById('career-badge').innerText = `Lvl ${lvl} • ${title}`;
+            
+            // Only update title if not logged in (logged in updates in Auth listener)
+            if(user && user.isAnonymous) {
+                let title = "Stajyer";
+                if(lvl>2) title = "Çırak"; if(lvl>10) title = "Uzman"; if(lvl>30) title = "Üstat";
+                document.getElementById('career-badge').innerText = `Lvl ${lvl} • ${title}`;
+            }
 
             const btnFreeze = document.getElementById('btn-freeze');
             if(app.activeItems.freeze) {
