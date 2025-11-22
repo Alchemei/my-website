@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Alchemei — PDF ⇄ PNG & Çok İşlevli Araçlar</title>
+    <meta
+      name="description"
+      content="PDF to PNG/JPG, PDF split/merge, extract image/text, ZIP extract, image convert, compress, watermark, resize, crop, OCR."
+    />
+    <!-- Kütüphaneler -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@zip.js/zip.js/dist/zip.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
+    <style>
+      :root {
+        --bg: #0f1724;
+        --card: #0b1220;
+        --muted: #9aa4b2;
+        --accent1: #6ee7b7;
+        --accent2: #60a5fa;
+        --glass: rgba(255, 255, 255, 0.04);
+        --radius: 12px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: linear-gradient(180deg, #071428 0%, #071b2a 55%);
+        color: #e6eef6;
+        font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      }
+      .app {
+        max-width: 1200px;
+        margin: 32px auto;
+        padding: 24px;
+        border-radius: 16px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+        box-shadow: 0 8px 40px rgba(2, 6, 23, 0.6);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent1), var(--accent2));
+        display: grid;
+        place-items: center;
+        color: #022;
+        font-weight: 700;
+      }
+      h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      p.lead {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 20px;
+        margin-top: 18px;
+      }
+      .panel {
+        background: var(--card);
+        padding: 16px;
+        border-radius: 12px;
+      }
+      .dropzone {
+        height: 220px;
+        border-radius: 12px;
+        border: 2px dashed rgba(255, 255, 255, 0.04);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 18px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.01),
+          transparent
+        );
+      }
+      .dropzone.drag {
+        border-color: rgba(96, 165, 250, 0.7);
+        box-shadow: 0 6px 30px rgba(96, 165, 250, 0.06);
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .btn {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 0;
+        background: linear-gradient(90deg, var(--accent2), var(--accent1));
+        color: #012;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .feature {
+        padding: 10px;
+        border-radius: 10px;
+        background: var(--glass);
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .side {
+        position: sticky;
+        top: 36px;
+      }
+      .card {
+        padding: 14px;
+        border-radius: 12px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+      }
+      .tools {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .tool {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
+      }
+      .tool.active {
+        outline: 2px solid rgba(96, 165, 250, 0.14);
+      }
+      .results {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .thumb {
+        background: #05101a;
+        border-radius: 10px;
+        padding: 8px;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .thumb img {
+        max-width: 100%;
+        border-radius: 6px;
+      }
+      footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .side {
+          position: relative;
+          top: unset;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" role="application">
+      <header>
+        <div class="brand">
+          <div class="logo">ALCH</div>
+          <div>
+            <h1>Alchemei — Çok İşlevli Dosya Araçları</h1>
+            <p class="lead">
+              PDF, resim, ZIP, OCR ve dosya işlemleri. Bol özellikli!
+            </p>
+          </div>
+        </div>
+        <div class="meta">
+          <div style="text-align: right">
+            <div style="font-weight: 700">Hazır Prototip</div>
+            <div style="font-size: 12px; color: var(--muted)">
+              HTML • CSS • Vanilya JS
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="grid">
+        <section class="panel">
+          <div class="dropzone" id="dropzone">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3v9"
+                stroke="url(#g)"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                stroke="url(#g)"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <defs>
+                <linearGradient id="g" x1="0" x2="1">
+                  <stop offset="0" stop-color="#60A5FA" />
+                  <stop offset="1" stop-color="#6EE7B7" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div style="font-weight: 600">Dosyaları sürükle veya gözat</div>
+            <div class="hint">
+              PDF, PNG, JPG, WEBP, ZIP — en fazla 200MB (demo)
+            </div>
+            <div class="actions">
+              <label class="btn"
+                >Gözat<input
+                  id="fileInput"
+                  type="file"
+                  multiple
+                  style="display: none"
+              /></label>
+              <button class="btn ghost" id="clearBtn">Temizle</button>
+            </div>
+          </div>
+          <div class="features" aria-hidden>
+            <div class="feature">
+              📄 PDF → PNG / JPG / Sayfa Ayır / Metin Çıkart
+            </div>
+            <div class="feature">
+              🖼 Görüntü Dönüştür / Sıkıştır / Filigran / OCR
+            </div>
+            <div class="feature">🧩 PDF Birleştir / ZIP Görsel Çıkart</div>
+            <div class="feature">✂️ PDF Sayfa Sırası Değiştir</div>
+          </div>
+          <div style="margin-top: 12px">
+            <div style="font-weight: 700; margin-bottom: 8px">
+              Yüklü Dosyalar
+            </div>
+            <div id="fileList" style="display: grid; gap: 8px"></div>
+          </div>
+        </section>
+        <aside class="side">
+          <div class="card">
+            <div style="font-weight: 700">Araçlar</div>
+            <div class="tools" id="tools">
+              <div class="tool active" data-tool="pdf2png">PDF → PNG</div>
+              <div class="tool" data-tool="pdf2jpg">PDF → JPG</div>
+              <div class="tool" data-tool="extract">PDF Metin Çıkart</div>
+              <div class="tool" data-tool="pdfsplit">PDF Sayfa Ayır</div>
+              <div class="tool" data-tool="pdfmerge">PDF Birleştir</div>
+              <div class="tool" data-tool="pdfwatermark">
+                PDF Filigran/Numara
+              </div>
+              <div class="tool" data-tool="pdfreorder">PDF Sıra Değiştir</div>
+              <div class="tool" data-tool="imgconvert">Görüntü Dönüştür</div>
+              <div class="tool" data-tool="compress">Sıkıştır</div>
+              <div class="tool" data-tool="merge">Görüntüleri Birleştir</div>
+              <div class="tool" data-tool="removebg">Arka Plan Sil</div>
+              <div class="tool" data-tool="rotate">Döndür</div>
+              <div class="tool" data-tool="watermark">Filigran</div>
+              <div class="tool" data-tool="resize">Yeniden Boyutlandır</div>
+              <div class="tool" data-tool="zipextract">ZIP Görsel Çıkart</div>
+              <div class="tool" data-tool="imageocr">Görselden Metin OCR</div>
+            </div>
+            <div id="toolPanel" style="margin-top: 12px"></div>
+          </div>
+          <div class="card" style="margin-top: 12px">
+            <div style="font-weight: 700">Sonuçlar</div>
+            <div class="results" id="results"></div>
+          </div>
+        </aside>
+      </main>
+      <footer>
+        <div>
+          Alchemei demo — prototip arayüz. Üretim için sunucu entegrasyonu
+          önerilir.
+        </div>
+        <div>© Alchemei</div>
+      </footer>
+    </div>
+    <script>
+      const REMOVE_BG_KEY = "9FfEarGHfsgeqbrD82pznUSn";
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+      const drop = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const fileList = document.getElementById("fileList");
+      const results = document.getElementById("results");
+      const tools = document.getElementById("tools");
+      const toolPanel = document.getElementById("toolPanel");
+      const clearBtn = document.getElementById("clearBtn");
+      let files = [];
+      let activeTool = "pdf2png";
+
+      /* Dosya ve UI İşlevleri */
+      function renderFiles() {
+        fileList.innerHTML = "";
+        files.forEach((f, i) => {
+          const el = document.createElement("div");
+          el.style.padding = "8px";
+          el.style.borderRadius = "8px";
+          el.style.background = "rgba(255,255,255,0.02)";
+          el.style.display = "flex";
+          el.style.justifyContent = "space-between";
+          el.style.alignItems = "center";
+          el.innerHTML = `<div style="font-size:13px">${
+            f.name
+          } <span style="color:var(--muted);font-size:12px">· ${
+            (f.size / 1024) | 0
+          } KB</span></div><div><button data-i="${i}" class="btn ghost small">Seç</button></div>`;
+          fileList.appendChild(el);
+        });
+      }
+      function addFiles(list) {
+        const arr = Array.from(list);
+        arr.forEach((f) => files.push(f));
+        renderFiles();
+      }
+      drop.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        drop.classList.add("drag");
+      });
+      drop.addEventListener("dragleave", function () {
+        drop.classList.remove("drag");
+      });
+      drop.addEventListener("drop", function (e) {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        addFiles(e.dataTransfer.files);
+      });
+      fileInput.addEventListener("change", function (e) {
+        addFiles(e.target.files);
+      });
+      clearBtn.addEventListener("click", function () {
+        files = [];
+        renderFiles();
+        results.innerHTML = "";
+      });
+      tools.addEventListener("click", function (e) {
+        const t = e.target.closest(".tool");
+        if (!t) return;
+        Array.from(tools.children).forEach(function (c) {
+          c.classList.remove("active");
+        });
+        t.classList.add("active");
+        activeTool = t.dataset.tool;
+        renderToolPanel();
+      });
+      function pushResult(name, blob) {
+        const url = URL.createObjectURL(blob);
+        const el = document.createElement("div");
+        el.className = "thumb";
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.textContent = "İndir";
+        a.style.fontSize = "13px";
+        a.style.alignSelf = "flex-end";
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = name;
+        img.onload = function () {};
+        img.onerror = function () {
+          img.style.display = "none";
+        };
+        el.appendChild(img);
+        el.appendChild(a);
+        results.prepend(el);
+      }
+      function fileToImage(file) {
+        return new Promise(function (resolve, reject) {
+          const url = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = function () {
+            URL.revokeObjectURL(url);
+            resolve(img);
+          };
+          img.onerror = reject;
+          img.src = url;
+        });
+      }
+
+      /* PDF → PNG */
+      async function runPdfToPng() {
+        const pdfFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (!pdfFile) {
+          alert("PDF yok");
+          return;
+        }
+        const buf = await pdfFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const c = document.createElement("canvas");
+          const ctx = c.getContext("2d");
+          c.width = viewport.width;
+          c.height = viewport.height;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+          pushResult(
+            pdfFile.name.replace(/\.[^/.]+$/, "") + `_page${i}.png`,
+            blob
+          );
+        }
+      }
+      /* PDF → JPG */
+      async function runPdfToJpg() {
+        const pdfFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (!pdfFile) {
+          alert("PDF yok");
+          return;
+        }
+        const buf = await pdfFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const c = document.createElement("canvas");
+          const ctx = c.getContext("2d");
+          c.width = viewport.width;
+          c.height = viewport.height;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const blob = await new Promise((res) =>
+            c.toBlob(res, "image/jpeg", 0.92)
+          );
+          pushResult(
+            pdfFile.name.replace(/\.[^/.]+$/, "") + `_page${i}.jpg`,
+            blob
+          );
+        }
+      }
+      /* PDF Metni Çıkart */
+      async function runPdfExtractText() {
+        const pdfFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (!pdfFile) {
+          alert("PDF yok");
+          return;
+        }
+        const buf = await pdfFile.arrayBuffer();
+        let pdf;
+        try {
+          pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        } catch (e) {
+          alert("PDF okunamadı veya bozuk.");
+          return;
+        }
+        let full = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          try {
+            const page = await pdf.getPage(i);
+            const txt = await page.getTextContent();
+            let pageText = "";
+            let lastY;
+            for (const item of txt.items) {
+              if (typeof item.str !== "string" || !item.str.trim()) continue;
+              if (lastY == item.transform[5] || !lastY) {
+                pageText += item.str + " ";
+              } else {
+                pageText += "\n" + item.str + " ";
+              }
+              lastY = item.transform[5];
+            }
+            if (!pageText.trim())
+              pageText = "[Bu sayfada metin tespit edilemedi]";
+            full += pageText.trim() + "\n\n";
+          } catch (e) {
+            full += "[Sayfa okunamadı]\n\n";
+          }
+        }
+        if (!full.trim()) full = "[PDF içerisinde metin tespit edilemedi]";
+        const blob = new Blob([full], { type: "text/plain" });
+        pushResult(pdfFile.name.replace(/\.[^/.]+$/, "") + "_text.txt", blob);
+      }
+      /* PDF Birleştir */
+      async function runPdfMerge() {
+        const pdfFiles = files.filter((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (pdfFiles.length < 2) {
+          alert("En az 2 PDF yükleyin");
+          return;
+        }
+        const mergedPdf = await PDFLib.PDFDocument.create();
+        for (const pdfFile of pdfFiles) {
+          const buf = await pdfFile.arrayBuffer();
+          const currPdf = await PDFLib.PDFDocument.load(buf);
+          const copiedPages = await mergedPdf.copyPages(
+            currPdf,
+            currPdf.getPageIndices()
+          );
+          copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
+        const mergedBuf = await mergedPdf.save();
+        const blob = new Blob([mergedBuf], { type: "application/pdf" });
+        pushResult("merged.pdf", blob);
+      }
+      /* PDF Filigran/Numara */
+      async function runPdfAddWatermark() {
+        const pdfFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (!pdfFile) {
+          alert("PDF yok");
+          return;
+        }
+        const mark = prompt("Filigran/metin giriniz:", "Alchemei");
+        if (!mark) return;
+        const buf = await pdfFile.arrayBuffer();
+        const pdfDoc = await PDFLib.PDFDocument.load(buf);
+        const pages = pdfDoc.getPages();
+        pages.forEach((page, i) => {
+          page.drawText(`${mark} • Sayfa ${i + 1}`, {
+            x: 20,
+            y: 20,
+            color: PDFLib.rgb(0.7, 0.7, 0.7),
+            size: 14,
+            opacity: 0.5,
+          });
+        });
+        const outBuf = await pdfDoc.save();
+        const blob = new Blob([outBuf], { type: "application/pdf" });
+        pushResult(
+          pdfFile.name.replace(/\.[^/.]+$/, "") + "_watermark.pdf",
+          blob
+        );
+      }
+      /* PDF Sıra Değiştir */
+      async function runPdfReorder() {
+        const pdfFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (!pdfFile) {
+          alert("PDF yok");
+          return;
+        }
+        const order = prompt(
+          "Yeni sayfa sırası: ör: 3,2,1 (ilk sayfa numarası 1!)"
+        );
+        if (!order) return;
+        const indices = order
+          .split(",")
+          .map((n) => parseInt(n.trim(), 10) - 1)
+          .filter((n) => n >= 0);
+        const buf = await pdfFile.arrayBuffer();
+        const pdfDoc = await PDFLib.PDFDocument.load(buf);
+        const newDoc = await PDFLib.PDFDocument.create();
+        for (const idx of indices) {
+          const [page] = await newDoc.copyPages(pdfDoc, [idx]);
+          newDoc.addPage(page);
+        }
+        const outBuf = await newDoc.save();
+        const blob = new Blob([outBuf], { type: "application/pdf" });
+        pushResult(
+          pdfFile.name.replace(/\.[^/.]+$/, "") + "_reordered.pdf",
+          blob
+        );
+      }
+      /* PDF Sayfa Ayır (PDF) */
+      async function runPdfSplitToPdf() {
+        const pdfFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".pdf")
+        );
+        if (!pdfFile) {
+          alert("PDF yok");
+          return;
+        }
+        const pagesRaw = document.getElementById("pageNums").value.trim();
+        if (!pagesRaw) {
+          alert("Sayfa numarası girin");
+          return;
+        }
+        const arr = pagesRaw.split(",").map((s) => s.trim());
+        let pageNumbers = [];
+        arr.forEach((item) => {
+          if (/^\d+$/.test(item)) {
+            pageNumbers.push(parseInt(item, 10));
+          } else if (/^(\d+)-(\d+)$/.test(item)) {
+            const [start, end] = item.split("-").map(Number);
+            for (let i = start; i <= end; i++) pageNumbers.push(i);
+          }
+        });
+        const buf = await pdfFile.arrayBuffer();
+        const srcPdf = await PDFLib.PDFDocument.load(buf);
+        const totalPages = srcPdf.getPageCount();
+        pageNumbers = pageNumbers.filter((n) => n >= 1 && n <= totalPages);
+        if (pageNumbers.length === 0) {
+          alert("Geçerli sayfa yok!");
+          return;
+        }
+        const newPdf = await PDFLib.PDFDocument.create();
+        const copiedPages = await newPdf.copyPages(
+          srcPdf,
+          pageNumbers.map((n) => n - 1)
+        );
+        copiedPages.forEach((page) => newPdf.addPage(page));
+        const outBuf = await newPdf.save();
+        const blob = new Blob([outBuf], { type: "application/pdf" });
+        pushResult(
+          pdfFile.name.replace(/\.pdf$/, "") +
+            `_split_${pageNumbers.join("_")}.pdf`,
+          blob
+        );
+      }
+      /* Görüntü Dönüştür */
+      async function runImageConvert() {
+        if (files.length === 0) {
+          alert("Önce dosya yükleyin");
+          return;
+        }
+        const formatEl = document.getElementById("formatSel");
+        const fmt = formatEl ? formatEl.value : "image/png";
+        for (const f of files) {
+          if (!f.type.startsWith("image/")) continue;
+          const img = await fileToImage(f);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const quality = fmt === "image/jpeg" ? 0.9 : undefined;
+          const blob = await new Promise((res) =>
+            canvas.toBlob(res, fmt, quality)
+          );
+          const ext =
+            fmt === "image/png"
+              ? ".png"
+              : fmt === "image/jpeg"
+              ? ".jpg"
+              : ".webp";
+          pushResult(f.name.replace(/\.[^/.]+$/, "") + ext, blob);
+        }
+      }
+      /* Sıkıştır (JPEG) */
+      async function runCompress() {
+        if (files.length === 0) {
+          alert("Önce dosya yükleyin");
+          return;
+        }
+        const qEl = document.getElementById("quality");
+        const q = qEl ? qEl.value / 100 : 0.8;
+        for (const f of files) {
+          if (!f.type.startsWith("image/")) continue;
+          const img = await fileToImage(f);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const blob = await new Promise((res) =>
+            canvas.toBlob(res, "image/jpeg", q)
+          );
+          pushResult(f.name.replace(/\.[^/.]+$/, "") + "_compressed.jpg", blob);
+        }
+      }
+      /* Görüntüleri Birleştir (Dikey) */
+      async function runMergeImages() {
+        const imgs = [];
+        for (const f of files) {
+          if (!f.type.startsWith("image/")) continue;
+          imgs.push(await fileToImage(f));
+        }
+        if (imgs.length < 2) {
+          alert("En az iki görüntü gerekli");
+          return;
+        }
+        const width = Math.max(...imgs.map((i) => i.width));
+        const height = imgs.reduce((s, i) => s + i.height, 0);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        let y = 0;
+        for (const i of imgs) {
+          ctx.drawImage(i, 0, y);
+          y += i.height;
+        }
+        const blob = await new Promise((res) =>
+          canvas.toBlob(res, "image/png")
+        );
+        pushResult("merged_long.png", blob);
+      }
+      /* ZIP Görsel Çıkart */
+      async function runZipExtractImages() {
+        const zipFile = files.find((f) =>
+          f.name.toLowerCase().endsWith(".zip")
+        );
+        if (!zipFile) {
+          alert("ZIP dosyası yok");
+          return;
+        }
+        const reader = new zip.ZipReader(new zip.BlobReader(zipFile));
+        const entries = await reader.getEntries();
+        for (const entry of entries) {
+          if (/.(png|jpg|jpeg|webp)$/i.test(entry.filename)) {
+            const blob = await entry.getData(new zip.BlobWriter());
+            pushResult(entry.filename, blob);
+          }
+        }
+        await reader.close();
+      }
+      /* Görselden Türkçe OCR */
+      async function runImageOCR() {
+        const imgFile = files.find((f) => f.type.startsWith("image/"));
+        if (!imgFile) {
+          alert("Görsel yok");
+          return;
+        }
+        const {
+          data: { text },
+        } = await Tesseract.recognize(imgFile, "tur");
+        const blob = new Blob([text], { type: "text/plain" });
+        pushResult(imgFile.name.replace(/\.[^/.]+$/, "") + "_ocr.txt", blob);
+      }
+      /* Döndür (90°) */
+      async function runRotate() {
+        const imgFile = files.find((f) => f.type.startsWith("image/"));
+        if (!imgFile) {
+          alert("Görsel yok");
+          return;
+        }
+        const img = await fileToImage(imgFile);
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        c.width = img.height;
+        c.height = img.width;
+        ctx.translate(c.width / 2, c.height / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+        pushResult(
+          imgFile.name.replace(/\.[^/.]+$/, "") + "_rotated.png",
+          blob
+        );
+      }
+      /* Filigran Ekle (Görsele) */
+      async function runWatermark() {
+        const imgFile = files.find((f) => f.type.startsWith("image/"));
+        if (!imgFile) {
+          alert("Görsel yok");
+          return;
+        }
+        const img = await fileToImage(imgFile);
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        c.width = img.width;
+        c.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        ctx.font = "48px sans-serif";
+        ctx.fillText("Alchemei", 20, 60);
+        const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+        pushResult(imgFile.name.replace(/\.[^/.]+$/, "") + "_wm.png", blob);
+      }
+      /* Arka Plan Sil (remove.bg) */
+      async function runRemoveBg() {
+        const imgFile = files.find((f) => f.type.startsWith("image/"));
+        if (!imgFile) {
+          alert("Görsel yok");
+          return;
+        }
+        try {
+          const fd = new FormData();
+          fd.append("image_file", imgFile);
+          fd.append("size", "auto");
+          const r = await fetch("https://api.remove.bg/v1.0/removebg", {
+            method: "POST",
+            headers: { "X-Api-Key": REMOVE_BG_KEY },
+            body: fd,
+          });
+          if (!r.ok) {
+            const txt = await r.text();
+            throw new Error("remove.bg error: " + r.status + " " + txt);
+          }
+          const b = await r.blob();
+          pushResult(imgFile.name.replace(/\.[^/.]+$/, "") + "_nobg.png", b);
+        } catch (err) {
+          console.error(err);
+          alert(
+            "Arka plan silme sırasında hata: " +
+              (err && err.message ? err.message : err)
+          );
+        }
+      }
+      /* Yeniden Boyutlandır */
+      async function runResize() {
+        const imgFile = files.find((f) => f.type.startsWith("image/"));
+        if (!imgFile) {
+          alert("Görsel yok");
+          return;
+        }
+        const w = prompt("Hedef genişlik (px):", "800");
+        if (!w) return;
+        const img = await fileToImage(imgFile);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = parseInt(w, 10);
+        canvas.height = Math.round(img.height * (canvas.width / img.width));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((res) =>
+          canvas.toBlob(res, "image/png")
+        );
+        pushResult(
+          imgFile.name.replace(/\.[^/.]+$/, "") +
+            `_resized_${canvas.width}x${canvas.height}.png`,
+          blob
+        );
+      }
+
+      /* Paneli Araçlara Göre Güncelle */
+      function renderToolPanel() {
+        toolPanel.innerHTML = "";
+        if (activeTool === "pdf2png") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">PDF sayfalarını PNG olarak dışa aktarır.</div><div style="margin-top:8px;display:flex;gap:8px"><button class="btn" id="runPdf">PDF → PNG</button></div>';
+          const btn = document.getElementById("runPdf");
+          if (btn) btn.addEventListener("click", runPdfToPng);
+        }
+        if (activeTool === "pdf2jpg") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">PDF sayfalarını JPG olarak dışa aktarır.</div><div style="margin-top:8px"><button class="btn" id="runPdfJpg">PDF → JPG</button></div>';
+          const btn2 = document.getElementById("runPdfJpg");
+          if (btn2) btn2.addEventListener("click", runPdfToJpg);
+        }
+        if (activeTool === "extract") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">PDF içerisindeki metni çıkarır ve .txt olarak indirir.</div><div style="margin-top:8px"><button class="btn" id="extTxt">Metin Çıkart</button></div>';
+          const btn3 = document.getElementById("extTxt");
+          if (btn3) btn3.addEventListener("click", runPdfExtractText);
+        }
+        if (activeTool === "pdfsplit") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">PDF içerisinden bir veya birden fazla sayfayı ayrı PDF olarak çıkarır.</div><div style="margin-top:8px"><input type="text" id="pageNums" placeholder="Sayfa numarası veya aralık (ör: 2 veya 2,4,6 veya 5-8)"><button class="btn" id="splitBtn">Ayır (PDF)</button></div>';
+          const splitBtn = document.getElementById("splitBtn");
+          if (splitBtn) splitBtn.addEventListener("click", runPdfSplitToPdf);
+        }
+        if (activeTool === "pdfmerge") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Birden fazla PDF’i birleştirir.</div><div style="margin-top:8px"><button class="btn" id="mergePdfBtn">Birleştir</button></div>';
+          const btn = document.getElementById("mergePdfBtn");
+          if (btn) btn.addEventListener("click", runPdfMerge);
+        }
+        if (activeTool === "pdfwatermark") {
+          toolPanel.innerHTML = `<div style="font-size:13px;color:var(--muted)">PDF'e filigran/sayfa numarası ekler.</div><div style="margin-top:8px"><button class="btn" id="wmAddBtn">Filigran Ekle</button></div>`;
+          const btn = document.getElementById("wmAddBtn");
+          if (btn) btn.addEventListener("click", runPdfAddWatermark);
+        }
+        if (activeTool === "pdfreorder") {
+          toolPanel.innerHTML = `<div style="font-size:13px;color:var(--muted)">PDF sayfa sırasını değiştirir.</div><div style="margin-top:8px"><button class="btn" id="reorderBtn">Sayfa Sırası Değiştir</button></div>`;
+          const btn = document.getElementById("reorderBtn");
+          if (btn) btn.addEventListener("click", runPdfReorder);
+        }
+        if (activeTool === "imgconvert") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Görsel formatını dönüştürür.</div><div style="margin-top:8px;display:flex;gap:8px"><select id="formatSel"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select><button class="btn" id="convBtn">Dönüştür</button></div>';
+          const convBtn = document.getElementById("convBtn");
+          if (convBtn) convBtn.addEventListener("click", runImageConvert);
+        }
+        if (activeTool === "compress") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Görüntüleri kalite ile sıkıştırır.</div><div style="display:flex;gap:8px;margin-top:8px;align-items:center"><input id="quality" type="range" min="10" max="100" value="80"><span id="qv">80</span>%</div><div style="margin-top:8px"><button class="btn" id="compressBtn">Sıkıştır</button></div>';
+          const q = document.getElementById("quality");
+          const qv = document.getElementById("qv");
+          if (q)
+            q.addEventListener("input", () => {
+              qv.textContent = q.value;
+            });
+          const compressBtn = document.getElementById("compressBtn");
+          if (compressBtn) compressBtn.addEventListener("click", runCompress);
+        }
+        if (activeTool === "merge") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Görüntüleri dikey olarak birleştirir.</div><div style="margin-top:8px"><button class="btn" id="mergeBtn">Birleştir</button></div>';
+          const mergeBtn = document.getElementById("mergeBtn");
+          if (mergeBtn) mergeBtn.addEventListener("click", runMergeImages);
+        }
+        if (activeTool === "removebg") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">remove.bg API ile arka planı kaldırır.</div><div style="margin-top:8px"><button class="btn" id="bgBtn">Arka Planı Sil</button></div>';
+          const bgBtn = document.getElementById("bgBtn");
+          if (bgBtn) bgBtn.addEventListener("click", runRemoveBg);
+        }
+        if (activeTool === "rotate") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Seçili görseli döndürür (90°).</div><div style="margin-top:8px"><button class="btn" id="rotBtn">Döndür</button></div>';
+          const rb = document.getElementById("rotBtn");
+          if (rb) rb.addEventListener("click", runRotate);
+        }
+        if (activeTool === "watermark") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Seçili görsele filigran ekler.</div><div style="margin-top:8px"><button class="btn" id="wmBtn">Filigran Ekle</button></div>';
+          const wb = document.getElementById("wmBtn");
+          if (wb) wb.addEventListener("click", runWatermark);
+        }
+        if (activeTool === "resize") {
+          toolPanel.innerHTML =
+            '<div style="font-size:13px;color:var(--muted)">Görseli yeniden boyutlandır.</div><div style="margin-top:8px"><button class="btn" id="resBtn">Yeniden Boyutlandır</button></div>';
+          const rb2 = document.getElementById("resBtn");
+          if (rb2) rb2.addEventListener("click", runResize);
+        }
+        if (activeTool === "zipextract") {
+          toolPanel.innerHTML = `<div style="font-size:13px;color:var(--muted)">ZIP içindeki tüm görselleri çıkarır.</div><div style="margin-top:8px"><button class="btn" id="zipExtBtn">Extract</button></div>`;
+          const btn = document.getElementById("zipExtBtn");
+          if (btn) btn.addEventListener("click", runZipExtractImages);
+        }
+        if (activeTool === "imageocr") {
+          toolPanel.innerHTML = `<div style="font-size:13px;color:var(--muted)">Görselden Türkçe metin OCR ile çıkarır.</div><div style="margin-top:8px"><button class="btn" id="ocrBtn">OCR Yap</button></div>`;
+          const btn = document.getElementById("ocrBtn");
+          if (btn) btn.addEventListener("click", runImageOCR);
+        }
+      }
+      renderToolPanel();
+      fileList.addEventListener("click", function (e) {
+        const b = e.target.closest("button");
+        if (!b) return;
+        const i = Number(b.dataset.i);
+        files = [files[i]];
+        renderFiles();
+        results.innerHTML = "";
+        const info = document.createElement("div");
+        info.className = "thumb";
+        info.style.minHeight = "80px";
+        info.innerHTML =
+          '<div style="font-weight:700">Seçili: ' +
+          files[0].name +
+          '</div><div style="color:var(--muted);font-size:13px">Sağ panelden araç seçin ve çalıştırın</div>';
+        results.prepend(info);
+      });
+      window.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.key === "1") {
+          const el = document.querySelector('[data-tool="pdf2png"]');
+          if (el) el.click();
+        }
+        if (e.ctrlKey && e.key === "2") {
+          const el2 = document.querySelector('[data-tool="imgconvert"]');
+          if (el2) el2.click();
+        }
+      });
+      drop.addEventListener("click", function () {
+        fileInput.click();
+      });
+      (function initDemo() {
+        const c = document.createElement("canvas");
+        c.width = 800;
+        c.height = 450;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#07192a";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.fillStyle = "#60A5FA";
+        ctx.font = "36px serif";
+        ctx.fillText("Alchemei Demo", 40, 120);
+        ctx.font = "16px serif";
+        ctx.fillStyle = "#9aa4b2";
+        ctx.fillText(
+          "Bu alan sonuçlarınızda görünecek önizlemeyi temsil eder",
+          40,
+          160
+        );
+        c.toBlob(function (b) {
+          pushResult("welcome.png", b);
+        });
+      })();
+    </script>
+  </body>
+</html>
