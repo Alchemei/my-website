@@ -302,9 +302,13 @@
             btn = document.createElement('button');
             btn.id = 'btn-rematch';
             btn.className = 'btn';
-            btn.style.background = 'var(--neon-purple)';
-            btn.style.marginTop = '10px';
+            btn.style.background = 'linear-gradient(135deg, var(--neon-purple), var(--primary))';
+            btn.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.4)';
+            btn.style.marginTop = '15px';
             btn.style.width = '100%';
+            btn.style.padding = '15px';
+            btn.style.borderRadius = '16px';
+            btn.style.fontSize = '1rem';
             btn.innerText = '🔄 Rövanş İste';
             btn.onclick = () => window.multiplayer.requestRematch();
             // Append to the end of result area
