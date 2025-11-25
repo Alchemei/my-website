@@ -249,11 +249,17 @@
         if (quizState.mode !== 'duel') return;
 
         const myId = window.store.state.userId;
-        const opponentId = window.multiplayer.opponent.id;
-        const opponentName = window.multiplayer.opponent.name;
+        const opponentId = window.multiplayer.opponent ? window.multiplayer.opponent.id : null;
+        const opponentName = window.multiplayer.opponent ? window.multiplayer.opponent.name : 'Rakip';
 
-        const myData = progress[myId];
-        const oppData = progress[opponentId];
+        if (!progress || !myId || !opponentId) {
+            console.error("Duel finish error: Missing data", { progress, myId, opponentId });
+            finishGame(0, "Hata Oluştu");
+            return;
+        }
+
+        const myData = progress[myId] || { score: 0, total: 10 };
+        const oppData = progress[opponentId] || { score: 0, total: 10 };
 
         const isMe = winnerId === myId;
         const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
@@ -263,7 +269,9 @@
         finishGame(xp, title);
 
         // Hide Duel Bars
-        document.getElementById('duel-bars').classList.add('hidden');
+        const duelBars = document.getElementById('duel-bars');
+        if (duelBars) duelBars.classList.add('hidden');
+
         document.getElementById('quiz-play-area').classList.add('hidden');
 
         // Custom Result Message for Duel
@@ -284,11 +292,11 @@
         table.innerHTML = `
             <div style="${rowStyle} border: 1px solid ${isMe ? 'var(--neon-green)' : 'transparent'};">
                 <span style="font-weight:bold;">Sen</span>
-                <span>${myData.score} / ${myData.total} Doğru</span>
+                <span>${myData.score || 0} / ${myData.total || 10} Doğru</span>
             </div>
             <div style="${rowStyle} border: 1px solid ${!isMe ? 'var(--neon-red)' : 'transparent'};">
                 <span style="font-weight:bold;">${opponentName}</span>
-                <span>${oppData.score} / ${oppData.total} Doğru</span>
+                <span>${oppData.score || 0} / ${oppData.total || 10} Doğru</span>
             </div>
         `;
 

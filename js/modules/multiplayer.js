@@ -157,8 +157,11 @@
 
             // Switch to quiz tab
             window.switchTab('quiz');
-            if (window.startDuelMode) {
+            if (window.startDuelMode && this.opponent) {
                 window.startDuelMode(this.opponent);
+            } else {
+                console.error("Cannot start duel: Missing opponent or startDuelMode");
+                return;
             }
 
             // Listen for game progress
@@ -170,9 +173,11 @@
                 if (!data) return;
 
                 // Check for opponent progress
-                const oppProgress = data.progress[this.opponent.id];
-                if (oppProgress) {
-                    updateOpponentProgress(oppProgress.score, oppProgress.total);
+                if (this.opponent && data.progress) {
+                    const oppProgress = data.progress[this.opponent.id];
+                    if (oppProgress) {
+                        updateOpponentProgress(oppProgress.score, oppProgress.total);
+                    }
                 }
 
                 // Check if winner is decided
@@ -183,13 +188,15 @@
                 }
 
                 // Check if both finished (Client-side check to trigger winner calculation)
-                const myP = data.progress[myId];
-                const oppP = data.progress[this.opponent.id];
+                if (this.opponent && data.progress) {
+                    const myP = data.progress[myId];
+                    const oppP = data.progress[this.opponent.id];
 
-                if (myP?.finished && oppP?.finished && !data.winner) {
-                    // Both finished, calculate winner.
-                    // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                    this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
+                    if (myP?.finished && oppP?.finished && !data.winner) {
+                        // Both finished, calculate winner.
+                        // We allow ANY client to calculate this to prevent hanging if Host disconnects.
+                        this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
+                    }
                 }
             });
         },
@@ -324,6 +331,9 @@
         if (bar) {
             const pct = (score / total) * 100;
             bar.style.width = `${pct}%`;
+        } else {
+            // Try to find it again or log warning
+            // console.warn("Opponent bar not found");
         }
     }
 
