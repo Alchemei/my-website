@@ -93,6 +93,9 @@
             
             window.toast(`+${gainedXp} XP ${window.store.state.activeItems.doubleXP > 0 ? '⚡' : ''}`);
             window.confetti();
+            window.playSound('success');
+        } else {
+            window.playSound('error');
         }
         
         window.store.update('wordIndex', window.store.state.wordIndex + 1);

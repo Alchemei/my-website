@@ -7,6 +7,7 @@
         window.initQuiz();
         window.initShop();
         window.initProfile();
+        window.initLeaderboard();
         
         // Initial Render
         // If no tasks yet, generate them now to prevent empty screen

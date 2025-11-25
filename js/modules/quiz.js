@@ -48,6 +48,7 @@
             btn.style.borderColor = "var(--neon-green)";
             quizState.score++;
             window.confetti();
+            window.playSound('success');
         } else {
             btn.style.background = "rgba(239, 68, 68, 0.4)";
             btn.style.borderColor = "var(--neon-red)";
@@ -58,6 +59,7 @@
                 }
             });
             if (navigator.vibrate) navigator.vibrate(200);
+            window.playSound('error');
         }
 
         setTimeout(() => {
