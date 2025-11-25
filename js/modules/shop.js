@@ -1,4 +1,4 @@
-(function() {
+(function () {
     const shopCatalog = {
         frames: [
             { id: 'frame_gold', name: 'Altın Çerçeve', price: 500, icon: '🟡', css: 'border: 3px solid gold; box-shadow: 0 0 15px gold;' },
@@ -12,11 +12,11 @@
         ]
     };
 
-    window.initShop = function() {
+    window.initShop = function () {
         renderShop();
         window.buyItem = buyItem;
         window.equipItem = equipItem;
-        
+
         // Re-render shop when state changes (e.g. coins update)
         window.addEventListener('state-updated', renderShop);
     }
@@ -32,21 +32,21 @@
                 if (id === 'double') {
                     window.store.update('activeItems', { ...window.store.state.activeItems, doubleXP: window.store.state.activeItems.doubleXP + 20 });
                 }
-            } 
+            }
             // Handle Cosmetics
             else {
                 const inventory = window.store.state.inventory || { frames: [], themes: [] };
                 if (!inventory[type]) inventory[type] = [];
-                
+
                 if (inventory[type].includes(id)) { window.toast("Zaten Sahipsin!"); return; }
-                
+
                 inventory[type].push(id);
                 window.store.update('inventory', inventory);
             }
-            
+
             window.store.update('coins', window.store.state.coins - cost);
             window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'shop', amount: 1 } }));
-            
+
             window.toast("Satın Alındı! 🎉");
             window.confetti();
             renderShop(); // Force re-render to show Equip button
@@ -64,10 +64,9 @@
             if (type === 'frame') style.frame = id;
             if (type === 'theme') style.theme = id;
         }
-        
+
         window.store.update('profileStyle', style);
         window.toast("Kuşanıldı! ✨");
-        window.dispatchEvent(new CustomEvent('state-updated')); // Trigger profile update to show frame
         renderShop();
     }
 
@@ -75,7 +74,7 @@
         const buffContainer = document.getElementById('active-buffs-container');
         const framesContainer = document.getElementById('shop-frames');
         const themesContainer = document.getElementById('shop-themes');
-        
+
         // Render Buffs Status
         if (buffContainer) {
             buffContainer.innerHTML = '';
@@ -93,7 +92,7 @@
             shopCatalog.frames.forEach(item => {
                 const owned = (window.store.state.inventory?.frames || []).includes(item.id);
                 const equipped = window.store.state.profileStyle?.frame === item.id;
-                
+
                 let btnHtml = '';
                 if (owned) {
                     btnHtml = `<button class="btn" onclick="window.equipItem('frame', '${item.id}')" style="background:${equipped ? 'var(--neon-green)' : 'rgba(255,255,255,0.1)'}; padding:8px 15px; border-radius:8px;">${equipped ? 'Çıkar' : 'Kuşan'}</button>`;
@@ -122,7 +121,7 @@
                 // Default theme is always owned
                 const owned = item.price === 0 || (window.store.state.inventory?.themes || []).includes(item.id);
                 const equipped = (window.store.state.profileStyle?.theme || 'default') === item.id || (item.id === 'theme_dark' && (!window.store.state.profileStyle?.theme || window.store.state.profileStyle.theme === 'default'));
-                
+
                 let btnHtml = '';
                 if (owned) {
                     btnHtml = `<button class="btn" onclick="window.equipItem('theme', '${item.id}')" style="background:${equipped ? 'var(--neon-green)' : 'rgba(255,255,255,0.1)'}; padding:8px 15px; border-radius:8px;">${equipped ? 'Seçili' : 'Seç'}</button>`;
@@ -143,11 +142,11 @@
                     </div>`;
             });
         }
-        
+
         // Update Buff Buttons (Legacy ID support)
         const btnFreeze = document.getElementById('btn-freeze');
         if (btnFreeze) {
-             if (window.store.state.activeItems.freeze) {
+            if (window.store.state.activeItems.freeze) {
                 btnFreeze.innerText = "Aktif ✅";
                 btnFreeze.disabled = true;
                 btnFreeze.style.opacity = 0.6;
@@ -159,10 +158,10 @@
             // Update onclick to use new signature
             btnFreeze.onclick = () => window.buyItem('buff', 'freeze', 200);
         }
-        
+
         const btnDouble = document.getElementById('btn-double');
         if (btnDouble) {
-             btnDouble.onclick = () => window.buyItem('buff', 'double', 350);
+            btnDouble.onclick = () => window.buyItem('buff', 'double', 350);
         }
     }
 })();

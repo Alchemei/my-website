@@ -1,4 +1,4 @@
-(function() {
+(function () {
     // Global App ID for sync
     const APP_ID_KEY = 'english-master-global';
     const appId = window.__app_id || APP_ID_KEY;
@@ -6,18 +6,18 @@
     let currentUser = null;
     let syncTimeout = null;
 
-    window.initProfile = function() {
+    window.initProfile = function () {
         renderProfile();
         waitForFirebase();
-        
+
         window.loginGoogle = loginGoogle;
         window.logoutGoogle = logoutGoogle;
         window.resetData = resetData;
         window.retrySync = () => saveCloud();
         window.removeFav = removeFav;
-        
+
         window.addEventListener('state-updated', renderProfile);
-        
+
         window.addEventListener('level-up', (e) => {
             const modal = document.getElementById('level-up-modal');
             const lvlDisplay = document.getElementById('new-level-display');
@@ -61,7 +61,7 @@
                         emailEl.innerText = u.email;
                         emailEl.style.opacity = 1;
                     }
-                    
+
                     await loadFromCloud(true);
                 } else {
                     const btnLogin = document.getElementById('google-login-btn');
@@ -102,12 +102,12 @@
             // Compat API: db.collection(...).doc(...)
             const docRef = db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('data').doc('profile');
             const docSnap = await docRef.get();
-            
+
             if (docSnap.exists) {
                 const cloudData = docSnap.data();
                 if (forceOverwrite || (cloudData.xp || 0) > window.store.state.xp) {
                     window.store.state = { ...window.store.state, ...cloudData };
-                    window.store.save(); 
+                    window.store.save();
                     window.toast("Bulut verileri yüklendi ✅");
                 } else if (window.store.state.xp > (cloudData.xp || 0)) {
                     saveCloud();
@@ -141,7 +141,7 @@
                 const lbRef = db.collection('artifacts').doc(appId).collection('leaderboard').doc(currentUser.uid);
                 // Ensure we have the namespace before calling
                 const timestamp = window.Firebase.firestore ? window.Firebase.firestore.FieldValue.serverTimestamp() : new Date();
-                
+
                 await lbRef.set({
                     xp: Number(window.store.state.xp),
                     name: currentUser.displayName || 'Anonim',
@@ -192,7 +192,7 @@
         const coinEl = document.getElementById('coin-display');
         const levelEl = document.getElementById('level-display');
         const xpBar = document.getElementById('xp-bar');
-        
+
         if (streakEl) streakEl.innerText = window.store.state.streak;
         if (coinEl) coinEl.innerText = window.store.state.coins;
         if (levelEl) levelEl.innerText = window.store.state.level || 1;
@@ -200,13 +200,13 @@
 
         const totalWords = window.words.length;
         const learnedWords = window.store.state.learned.length;
-        
+
         const learnProgText = document.getElementById('learn-progress-text');
         if (learnProgText) learnProgText.innerText = `${learnedWords} / ${totalWords}`;
-        
+
         const statWords = document.getElementById('stat-words');
         if (statWords) statWords.innerText = learnedWords;
-        
+
         const statXp = document.getElementById('stat-xp');
         if (statXp) statXp.innerText = window.store.state.xp;
 
@@ -226,51 +226,93 @@
             const badge = document.getElementById('career-badge');
             if (badge) badge.innerText = `Lvl ${window.store.state.level || 1} • ${league} Lig`;
         } else {
-             const lvl = Math.floor(window.store.state.xp / 100) + 1;
-             let title = "Stajyer";
-             if (lvl > 2) title = "Çırak";
-             if (lvl > 10) title = "Uzman";
-             if (lvl > 30) title = "Üstat";
-             const badge = document.getElementById('career-badge');
-             if (badge) badge.innerText = `Lvl ${lvl} • ${title}`;
+            const lvl = Math.floor(window.store.state.xp / 100) + 1;
+            let title = "Stajyer";
+            if (lvl > 2) title = "Çırak";
+            if (lvl > 10) title = "Uzman";
+            if (lvl > 30) title = "Üstat";
+            const badge = document.getElementById('career-badge');
+            if (badge) badge.innerText = `Lvl ${lvl} • ${title}`;
         }
 
         // Apply Profile Styles
         const style = window.store.state.profileStyle || { frame: null, theme: 'default' };
-        
-        // Apply Theme (Background)
+
+        // Apply Theme (Global Variables & Background)
+        const root = document.documentElement;
         const appBg = document.querySelector('.aurora-bg');
-        if (appBg) {
-            if (style.theme === 'theme_ocean') appBg.style.background = 'radial-gradient(circle at 50% 0%, #1e3a8a, #0f172a)';
-            else if (style.theme === 'theme_sunset') appBg.style.background = 'radial-gradient(circle at 50% 0%, #7c2d12, #1e1b4b)';
-            else appBg.style.background = 'radial-gradient(circle at 50% 0%, #172554, #020617)'; // Default
+
+        if (style.theme === 'theme_ocean') {
+            // Ocean Theme
+            root.style.setProperty('--bg-dark', '#0f172a'); // Slate 900
+            root.style.setProperty('--glass-surface', 'rgba(30, 58, 138, 0.6)'); // Blue 900
+            root.style.setProperty('--neon-blue', '#38bdf8'); // Sky 400
+            root.style.setProperty('--neon-purple', '#818cf8'); // Indigo 400
+
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #0369a1, #0f172a)';
+        }
+        else if (style.theme === 'theme_sunset') {
+            // Sunset Theme
+            root.style.setProperty('--bg-dark', '#2a0a18'); // Dark Rose
+            root.style.setProperty('--glass-surface', 'rgba(88, 28, 135, 0.6)'); // Purple 900
+            root.style.setProperty('--neon-blue', '#fb7185'); // Rose 400 (Replaces Blue accent)
+            root.style.setProperty('--neon-purple', '#c084fc'); // Purple 400
+
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #be123c, #2a0a18)';
+        }
+        else {
+            // Default Theme (Reset)
+            root.style.setProperty('--bg-dark', '#020617');
+            root.style.setProperty('--glass-surface', 'rgba(15, 23, 42, 0.85)');
+            root.style.setProperty('--neon-blue', '#60a5fa');
+            root.style.setProperty('--neon-purple', '#a78bfa');
+
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #172554, #020617)';
         }
 
         // Apply Frame (to avatar/icon)
         // We need an avatar element. Let's assume the profile icon in the nav or create a big one in profile.
         // For now, let's apply it to the "career-badge" as a border, or add a specific avatar area.
         // Let's add a big avatar display in the profile tab if it doesn't exist, or style the existing elements.
-        
-        // Let's style the "Level Display" badge in the header
-        // The level display is inside a .hud-badge div. We should style that parent.
-        const levelDisplay = document.getElementById('level-display');
-        if (levelDisplay) {
-            const badge = levelDisplay.parentElement; // Get the .hud-badge container
-            if (badge) {
-                // Reset styles
-                badge.style.border = '1px solid var(--glass-border)';
-                badge.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-                
-                if (style.frame === 'frame_gold') {
-                    badge.style.border = '3px solid gold';
-                    badge.style.boxShadow = '0 0 15px gold';
-                } else if (style.frame === 'frame_neon') {
-                    badge.style.border = '3px solid var(--neon-blue)';
-                    badge.style.boxShadow = '0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue)';
-                } else if (style.frame === 'frame_fire') {
-                    badge.style.border = '3px solid #f97316';
-                    badge.style.boxShadow = '0 0 20px #f97316';
-                }
+
+        // Apply Frame (to avatar/icon)
+        // 1. Header Level Badge (The whole badge, not just the text)
+        const levelBadge = document.querySelector('.level-badge');
+        if (levelBadge) {
+            // Reset styles to default CSS
+            levelBadge.style.border = '1px solid var(--glass-border)';
+            levelBadge.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+
+            if (style.frame === 'frame_gold') {
+                levelBadge.style.border = '2px solid gold';
+                levelBadge.style.boxShadow = '0 0 15px gold, inset 0 0 5px gold';
+            } else if (style.frame === 'frame_neon') {
+                levelBadge.style.border = '2px solid var(--neon-blue)';
+                levelBadge.style.boxShadow = '0 0 15px var(--neon-blue), inset 0 0 5px var(--neon-blue)';
+            } else if (style.frame === 'frame_fire') {
+                levelBadge.style.border = '2px solid #f97316';
+                levelBadge.style.boxShadow = '0 0 15px #f97316, inset 0 0 5px #f97316';
+            }
+        }
+
+        // 2. Profile Tab Mastery Ring
+        const profileRing = document.querySelector('.progress-ring-container');
+        if (profileRing) {
+            // Reset
+            profileRing.style.border = 'none';
+            profileRing.style.borderRadius = '50%'; // Ensure circular border
+            profileRing.style.boxShadow = 'none';
+            // profileRing.style.padding = '5px'; // Removed to prevent SVG scaling issues without viewBox
+
+            if (style.frame === 'frame_gold') {
+                profileRing.style.border = '4px solid gold';
+                profileRing.style.boxShadow = '0 0 25px gold';
+            } else if (style.frame === 'frame_neon') {
+                profileRing.style.border = '4px solid var(--neon-blue)';
+                profileRing.style.boxShadow = '0 0 25px var(--neon-blue)';
+            } else if (style.frame === 'frame_fire') {
+                profileRing.style.border = '4px solid #f97316';
+                profileRing.style.boxShadow = '0 0 25px #f97316';
             }
         }
 
@@ -281,7 +323,7 @@
     function renderChart() {
         const container = document.getElementById('weekly-chart');
         if (!container) return;
-        
+
         container.innerHTML = '';
         const days = [];
         for (let i = 6; i >= 0; i--) {
@@ -292,13 +334,13 @@
                 label: d.toLocaleDateString('tr-TR', { weekday: 'short' })
             });
         }
-        
+
         let maxVal = 10;
         days.forEach(d => {
             const val = window.store.state.history[d.key] || 0;
             if (val > maxVal) maxVal = val;
         });
-        
+
         days.forEach(d => {
             const val = window.store.state.history[d.key] || 0;
             const heightPct = (val / maxVal) * 80;
@@ -308,17 +350,17 @@
         });
     }
 
-    window.openFavs = function() {
+    window.openFavs = function () {
         document.getElementById('favs-modal').classList.remove('hidden');
         renderFavs();
     }
 
-    window.openDictionary = function() {
+    window.openDictionary = function () {
         document.getElementById('dict-modal').classList.remove('hidden');
         renderDictionary();
     }
 
-    window.filterDictionary = function() {
+    window.filterDictionary = function () {
         const q = document.getElementById('dict-search').value.toLowerCase();
         renderDictionary(q);
     }
@@ -326,13 +368,13 @@
     function renderFavs() {
         const list = document.getElementById('favorites-list-modal');
         if (!list) return;
-        
+
         list.innerHTML = '';
         if (window.store.state.favs.length === 0) {
             list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; margin-top:50px;">Henüz favori kelimen yok.</div>';
             return;
         }
-        
+
         window.store.state.favs.forEach(wEn => {
             const wObj = window.words.find(x => x.en === wEn);
             if (!wObj) return;
@@ -359,27 +401,27 @@
     function renderDictionary(query = '') {
         const list = document.getElementById('dict-list');
         if (!list) return;
-        
+
         list.innerHTML = '';
         let count = 0;
-        
+
         // Show only first 50 if no query to prevent lag
         const limit = query ? 100 : 50;
-        
+
         for (const w of window.words) {
             if (count >= limit) break;
             if (query && !w.en.toLowerCase().includes(query) && !w.tr.toLowerCase().includes(query)) continue;
-            
+
             const isLearned = window.store.state.learned.includes(w.en);
             const isFav = window.store.state.favs.includes(w.en);
-            
+
             const div = document.createElement('div');
             div.style.padding = '15px';
             div.style.borderBottom = '1px solid var(--glass-border)';
             div.style.display = 'flex';
             div.style.justifyContent = 'space-between';
             div.style.alignItems = 'center';
-            
+
             div.innerHTML = `
                 <div>
                     <div style="font-weight:700; color:${isLearned ? 'var(--neon-green)' : 'white'}">${w.en}</div>
@@ -390,7 +432,7 @@
             list.appendChild(div);
             count++;
         }
-        
+
         if (count === 0) {
             list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">Sonuç bulunamadı.</div>';
         }

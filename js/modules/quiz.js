@@ -1,7 +1,7 @@
-(function() {
+(function () {
     let quizState = { active: false, currentQ: 0, score: 0, totalQ: 20 };
 
-    window.initQuiz = function() {
+    window.initQuiz = function () {
         window.startQuiz = startQuiz;
         window.startChallenge = startChallenge;
         window.startMatch = startMatch;
@@ -34,20 +34,20 @@
         document.getElementById('games-menu').classList.add('hidden');
         document.getElementById('quiz-play-area').classList.remove('hidden');
         document.getElementById('quiz-challenge-area').classList.remove('hidden');
-        
+
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 999, mode: 'challenge', timeLeft: 60 };
         renderQuizQ();
-        
+
         const timerEl = document.getElementById('challenge-timer');
         quizState.timer = setInterval(() => {
             if (!quizState.active || quizState.mode !== 'challenge') {
                 clearInterval(quizState.timer);
                 return;
             }
-            
+
             quizState.timeLeft--;
             timerEl.innerText = quizState.timeLeft;
-            
+
             if (quizState.timeLeft <= 0) {
                 clearInterval(quizState.timer);
                 finishQuiz();
@@ -62,10 +62,10 @@
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
         document.getElementById('match-area').classList.remove('hidden');
-        
+
         matchState = { selected: null, pairs: [], matched: 0, score: 0 };
         document.getElementById('match-score').innerText = 0;
-        
+
         // Pick 6 random words
         const words = [...window.words].sort(() => 0.5 - Math.random()).slice(0, 6);
         let cards = [];
@@ -73,13 +73,13 @@
             cards.push({ id: i, type: 'en', text: w.en, pairId: i });
             cards.push({ id: i, type: 'tr', text: w.tr, pairId: i });
         });
-        
+
         // Shuffle cards
         cards.sort(() => 0.5 - Math.random());
-        
+
         const grid = document.getElementById('match-grid');
         grid.innerHTML = '';
-        
+
         cards.forEach((card, idx) => {
             const btn = document.createElement('button');
             btn.className = 'glass-panel';
@@ -92,7 +92,7 @@
             btn.style.justifyContent = 'center';
             btn.innerText = card.text;
             btn.dataset.idx = idx;
-            
+
             btn.onclick = () => handleMatchClick(btn, card);
             grid.appendChild(btn);
         });
@@ -100,11 +100,11 @@
 
     function handleMatchClick(btn, card) {
         if (btn.classList.contains('matched') || btn.classList.contains('selected')) return;
-        
+
         btn.classList.add('selected');
         btn.style.background = 'rgba(255,255,255,0.2)';
         btn.style.border = '1px solid var(--neon-blue)';
-        
+
         if (!matchState.selected) {
             matchState.selected = { btn, card };
         } else {
@@ -120,13 +120,13 @@
                 first.btn.style.border = '1px solid var(--neon-green)';
                 btn.style.opacity = '0.5';
                 first.btn.style.opacity = '0.5';
-                
+
                 matchState.score += 10;
                 matchState.matched++;
                 matchState.selected = null;
                 document.getElementById('match-score').innerText = matchState.score;
                 window.playSound('success');
-                
+
                 if (matchState.matched === 6) {
                     setTimeout(() => finishGame(matchState.score, 'Eşleştirme Tamamlandı!'), 500);
                 }
@@ -153,13 +153,13 @@
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
         document.getElementById('hangman-area').classList.remove('hidden');
-        
+
         const w = window.words[Math.floor(Math.random() * window.words.length)];
         hangmanState = { word: w, guessed: [], lives: 6 };
-        
+
         document.getElementById('hangman-hint').innerText = `İpucu: ${w.tr}`;
         document.getElementById('hangman-lives').innerText = 6;
-        
+
         renderHangman();
         renderKeyboard();
     }
@@ -169,9 +169,9 @@
             if (char === ' ') return ' ';
             return hangmanState.guessed.includes(char.toLowerCase()) ? char : '_';
         }).join(' ');
-        
+
         document.getElementById('hangman-word').innerText = display;
-        
+
         if (!display.includes('_')) {
             setTimeout(() => finishGame(50, 'Kelime Bulundu!'), 500);
         }
@@ -181,7 +181,7 @@
         const kb = document.getElementById('hangman-keyboard');
         kb.innerHTML = '';
         const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
-        
+
         letters.forEach(l => {
             const btn = document.createElement('button');
             btn.innerText = l;
@@ -191,7 +191,7 @@
             btn.style.margin = '2px';
             btn.style.background = 'rgba(255,255,255,0.1)';
             btn.style.borderRadius = '8px';
-            
+
             if (hangmanState.guessed.includes(l)) {
                 btn.disabled = true;
                 btn.style.opacity = '0.3';
@@ -204,7 +204,7 @@
             } else {
                 btn.onclick = () => handleHangmanGuess(l);
             }
-            
+
             kb.appendChild(btn);
         });
     }
@@ -229,11 +229,11 @@
         document.getElementById('match-area').classList.add('hidden');
         document.getElementById('hangman-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.remove('hidden');
-        
+
         document.getElementById('res-title').innerText = title;
         document.getElementById('res-score').innerText = xp > 0 ? 'Win' : 'Fail';
         document.getElementById('res-xp').innerText = '+' + xp;
-        
+
         if (xp > 0) {
             window.store.update('xp', window.store.state.xp + xp);
             window.store.updateHistory(xp);
@@ -246,15 +246,15 @@
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
         const target = window.words[Math.floor(Math.random() * window.words.length)];
         document.getElementById('q-word').innerText = target.en;
-        
+
         let opts = window.words.filter(w => w.en !== target.en)
             .sort(() => 0.5 - Math.random())
             .slice(0, 3)
             .map(w => w.tr);
-            
+
         opts.push(target.tr);
         opts.sort(() => 0.5 - Math.random());
-        
+
         const div = document.getElementById('q-options');
         div.innerHTML = '';
         opts.forEach(o => {
@@ -304,7 +304,7 @@
         document.getElementById('quiz-play-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.remove('hidden');
         quizState.active = false;
-        
+
         let baseXP = quizState.score * 5;
         if (quizState.mode === 'challenge') {
             baseXP = quizState.score * 10; // Double XP for challenge
@@ -314,18 +314,18 @@
         }
 
         let finalXP = baseXP;
-        
+
         if (window.store.state.activeItems.doubleXP > 0) {
             finalXP = baseXP * 2;
-            window.store.update('activeItems', { 
-                ...window.store.state.activeItems, 
-                doubleXP: Math.max(0, window.store.state.activeItems.doubleXP - 20) 
+            window.store.update('activeItems', {
+                ...window.store.state.activeItems,
+                doubleXP: Math.max(0, window.store.state.activeItems.doubleXP - 20)
             });
         }
 
         window.store.update('xp', window.store.state.xp + finalXP);
         window.store.updateHistory(finalXP);
-        
+
         window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: finalXP } }));
         window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'quiz', amount: 1 } }));
 
