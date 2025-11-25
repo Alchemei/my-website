@@ -11,6 +11,7 @@ window.store = {
         activeItems: { freeze: false, doubleXP: 0 },
         level: 1,
         history: {},
+        hourlyStats: {}, // Stores count of interactions per hour (0-23)
         inventory: { frames: [], themes: [] },
         profileStyle: { frame: null, theme: 'default' }
     },
@@ -60,6 +61,13 @@ window.store = {
         const todayKey = this.getLocalKey(new Date());
         if (!this.state.history[todayKey]) this.state.history[todayKey] = 0;
         this.state.history[todayKey] += amount;
+        
+        // Track Hourly Stats
+        const hour = new Date().getHours();
+        if (!this.state.hourlyStats) this.state.hourlyStats = {};
+        if (!this.state.hourlyStats[hour]) this.state.hourlyStats[hour] = 0;
+        this.state.hourlyStats[hour] += 1; // Count interactions/sessions
+        
         this.save();
     }
 };
