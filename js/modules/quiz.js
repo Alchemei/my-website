@@ -249,7 +249,8 @@
         if (quizState.mode !== 'duel') return;
 
         const myId = window.store.state.userId;
-        const opponentId = window.multiplayer.opponent ? window.multiplayer.opponent.id : null;
+        // Robustly find opponent ID from progress keys
+        const opponentId = Object.keys(progress || {}).find(k => k !== myId);
         const opponentName = window.multiplayer.opponent ? window.multiplayer.opponent.name : 'Rakip';
 
         if (!progress || !myId || !opponentId) {

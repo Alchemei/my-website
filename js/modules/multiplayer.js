@@ -172,9 +172,13 @@
                 const data = doc.data();
                 if (!data) return;
 
+                // Robustly find opponent ID from progress keys
+                const progressKeys = Object.keys(data.progress || {});
+                const otherId = progressKeys.find(k => k !== myId);
+
                 // Check for opponent progress
-                if (this.opponent && data.progress) {
-                    const oppProgress = data.progress[this.opponent.id];
+                if (otherId && data.progress) {
+                    const oppProgress = data.progress[otherId];
                     if (oppProgress) {
                         updateOpponentProgress(oppProgress.score, oppProgress.total);
                     }
@@ -188,14 +192,14 @@
                 }
 
                 // Check if both finished (Client-side check to trigger winner calculation)
-                if (this.opponent && data.progress) {
+                if (otherId && data.progress) {
                     const myP = data.progress[myId];
-                    const oppP = data.progress[this.opponent.id];
+                    const oppP = data.progress[otherId];
 
                     if (myP?.finished && oppP?.finished && !data.winner) {
                         // Both finished, calculate winner.
                         // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                        this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
+                        this.determineWinner(challengeId, myId, myP, otherId, oppP);
                     }
                 }
             });
