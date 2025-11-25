@@ -29,9 +29,9 @@
                 .limit(20)
                 .get();
 
-            if (snapshot.size < 5) {
-                // If leaderboard is empty/sparse, add some bots to make it competitive
-                generateBots();
+            if (snapshot.empty) {
+                list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz veri yok.</div>';
+                return;
             }
 
             let players = [];
@@ -46,6 +46,9 @@
             let rank = 1;
             
             players.forEach(data => {
+                // Filter out bots if any exist in DB
+                if (data.isBot) return;
+
                 const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
                 
                 let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
@@ -66,43 +69,15 @@
                 rank++;
             });
 
-            list.innerHTML = html;
+            if (html === '') {
+                 list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz başka oyuncu yok.</div>';
+            } else {
+                list.innerHTML = html;
+            }
 
         } catch (e) {
             console.error(e);
             list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--neon-red);">Yükleme hatası.</div>';
-        }
-    }
-
-    async function generateBots() {
-        const db = window.Firebase.db;
-        const bots = [
-            { name: 'KelimeAvcısı', xp: 2500 },
-            { name: 'EnglishPro', xp: 1800 },
-            { name: 'Polyglot_TR', xp: 3200 },
-            { name: 'Student2024', xp: 500 },
-            { name: 'MasterMind', xp: 4100 }
-        ];
-
-        // Check if bots already exist to avoid infinite loop or duplicates if logic fails
-        // But here we just write them.
-        
-        try {
-            const batch = db.batch();
-            bots.forEach(bot => {
-                const ref = db.collection('artifacts').doc(appId).collection('leaderboard').doc('bot_' + bot.name);
-                batch.set(ref, {
-                    name: bot.name,
-                    xp: bot.xp,
-                    isBot: true,
-                    updatedAt: new Date()
-                });
-            });
-            await batch.commit();
-            console.log("Bots added");
-            // We don't reload immediately to avoid loop, user will see them next time or on refresh
-        } catch (e) {
-            console.error("Bot gen error", e);
         }
     }
 
