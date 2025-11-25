@@ -24,9 +24,10 @@
         try {
             const db = window.Firebase.db;
             // Query global leaderboard collection
+            // Query top 10 by XP
             const snapshot = await db.collection('artifacts').doc(appId).collection('leaderboard')
                 .orderBy('xp', 'desc')
-                .limit(20)
+                .limit(10)
                 .get();
 
             if (snapshot.empty) {
@@ -39,14 +40,14 @@
                 players.push({ id: doc.id, ...doc.data() });
             });
 
-            // Client-side sort fallback to ensure correct order
+            // Client-side sort fallback (just in case)
             players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
 
             let html = '';
             let rank = 1;
             
             players.forEach(data => {
-                // Filter out bots if any exist in DB
+                // Filter out bots if any exist in DB (legacy)
                 if (data.isBot) return;
 
                 const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
@@ -56,9 +57,22 @@
                 if(rank === 2) rankBadge = '🥈';
                 if(rank === 3) rankBadge = '🥉';
 
+                // Determine league if not saved
+                let league = data.league;
+                if (!league) {
+                    if (data.xp >= 10000) league = '💎';
+                    else if (data.xp >= 5000) league = '🥇';
+                    else if (data.xp >= 1000) league = '🥈';
+                    else league = '🥉';
+                } else {
+                    // Extract icon from league string if saved as "💎 Elmas"
+                    league = league.split(' ')[0];
+                }
+
                 html += `
                     <div style="display:flex; align-items:center; padding:15px 20px; border-bottom:1px solid var(--glass-border); ${isMe ? 'background:rgba(139, 92, 246, 0.1);' : ''}">
                         <div style="font-size:1.2rem; margin-right:15px;">${rankBadge}</div>
+                        <div style="margin-right:10px; font-size:1.2rem;">${league}</div>
                         <div style="flex:1;">
                             <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
                             <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0)/100)+1}</div>

@@ -136,8 +136,8 @@
             const docRef = db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('data').doc('profile');
             await docRef.set(window.store.state);
 
-            // Sync to Leaderboard
-            if (window.store.state.xp > 0) {
+            // Sync to Leaderboard ONLY if not anonymous (Google Login)
+            if (!currentUser.isAnonymous && window.store.state.xp > 0) {
                 const lbRef = db.collection('artifacts').doc(appId).collection('leaderboard').doc(currentUser.uid);
                 // Ensure we have the namespace before calling
                 const timestamp = window.Firebase.firestore ? window.Firebase.firestore.FieldValue.serverTimestamp() : new Date();
@@ -146,7 +146,8 @@
                     xp: Number(window.store.state.xp),
                     name: currentUser.displayName || 'Anonim',
                     photo: currentUser.photoURL || null,
-                    updatedAt: timestamp
+                    updatedAt: timestamp,
+                    league: getLeague(window.store.state.xp) // Save league info
                 });
             }
 
@@ -177,6 +178,13 @@
     function removeFav(w) {
         const newFavs = window.store.state.favs.filter(x => x !== w);
         window.store.update('favs', newFavs);
+    }
+
+    function getLeague(xp) {
+        if (xp >= 10000) return '💎 Elmas';
+        if (xp >= 5000) return '🥇 Altın';
+        if (xp >= 1000) return '🥈 Gümüş';
+        return '🥉 Bronz';
     }
 
     function renderProfile() {
@@ -213,14 +221,18 @@
             masteryPct.innerText = `${Math.floor(percent)}%`;
         }
 
-        if (currentUser && currentUser.isAnonymous) {
-            const lvl = Math.floor(window.store.state.xp / 100) + 1;
-            let title = "Stajyer";
-            if (lvl > 2) title = "Çırak";
-            if (lvl > 10) title = "Uzman";
-            if (lvl > 30) title = "Üstat";
+        if (currentUser && !currentUser.isAnonymous) {
+            const league = getLeague(window.store.state.xp);
             const badge = document.getElementById('career-badge');
-            if (badge) badge.innerText = `Lvl ${lvl} • ${title}`;
+            if (badge) badge.innerText = `Lvl ${window.store.state.level || 1} • ${league} Lig`;
+        } else {
+             const lvl = Math.floor(window.store.state.xp / 100) + 1;
+             let title = "Stajyer";
+             if (lvl > 2) title = "Çırak";
+             if (lvl > 10) title = "Uzman";
+             if (lvl > 30) title = "Üstat";
+             const badge = document.getElementById('career-badge');
+             if (badge) badge.innerText = `Lvl ${lvl} • ${title}`;
         }
 
         renderChart();

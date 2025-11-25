@@ -81,6 +81,18 @@
                 <div><div class="page-title">Daily Session</div><h1 style="margin:0; font-size:1.8rem; font-weight:300;">Learn</h1></div>
                 <div class="progress-text" id="learn-progress-text">0 / 1000</div>
             </div>
+            
+            <div id="word-of-day" class="glass-panel" style="margin-bottom:20px; padding:15px; display:flex; align-items:center; justify-content:space-between; border:1px solid var(--neon-orange); background:rgba(251, 191, 36, 0.05);">
+                <div>
+                    <div style="font-size:0.75rem; color:var(--neon-orange); font-weight:700; text-transform:uppercase; letter-spacing:1px;">Günün Kelimesi</div>
+                    <div id="wod-text" style="font-size:1.1rem; font-weight:700; color:white;">Loading...</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Bonus</div>
+                    <div style="font-weight:800; color:var(--neon-green);">+50 XP</div>
+                </div>
+            </div>
+
             <div class="flashcard-container" onclick="window.flipCard()">
                 <div class="flashcard" id="flashcard">
                     <div class="card-face card-front">
@@ -88,6 +100,7 @@
                         <div class="word-context" id="fc-ctx">...</div>
                         <div class="card-actions" onclick="event.stopPropagation()">
                             <button class="btn action-btn" onclick="window.playTTS()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 10.93a10 10 0 0 1 0 2.14"></path></svg></button>
+                            <button id="btn-mic" class="btn action-btn" onclick="window.toggleSpeaking()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="23"></line><line x1="8" x2="16" y1="23" y2="23"></line></svg></button>
                             <button class="btn action-btn" onclick="window.toggleFav()"><svg id="fav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></button>
                         </div>
                         <div style="margin-top:auto; font-size:0.75rem; letter-spacing:2px; font-weight:600; text-transform:uppercase; opacity:0.6;">Tap to reveal</div>
@@ -109,12 +122,12 @@
         </div>
 
         <div id="tab-quiz" class="hidden fade-in">
-            <div class="page-header"><h1 style="margin:0; font-size:1.8rem; font-weight:300;">Quiz</h1><div class="page-title">Kendini Test Et</div></div>
+            <div class="page-header"><h1 style="margin:0; font-size:1.8rem; font-weight:300;">Oyunlar</h1><div class="page-title">Eğlenerek Öğren</div></div>
             
-            <div id="quiz-start-btn" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+            <div id="games-menu" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
                 <button class="glass-panel btn" onclick="window.startQuiz()" style="padding:20px; text-align:center;">
                     <div style="font-size:2rem;">📝</div>
-                    <div style="font-weight:700;">Normal Mod</div>
+                    <div style="font-weight:700;">Quiz</div>
                     <div style="font-size:0.8rem; color:var(--text-muted);">20 Soru</div>
                 </button>
                 <button class="glass-panel btn" onclick="window.startChallenge()" style="padding:20px; text-align:center; border:1px solid var(--neon-red);">
@@ -122,8 +135,19 @@
                     <div style="font-weight:700; color:var(--neon-red);">Meydan Okuma</div>
                     <div style="font-size:0.8rem; color:var(--text-muted);">60 Saniye</div>
                 </button>
+                <button class="glass-panel btn" onclick="window.startMatch()" style="padding:20px; text-align:center;">
+                    <div style="font-size:2rem;">🧩</div>
+                    <div style="font-weight:700;">Eşleştirme</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Kartları Bul</div>
+                </button>
+                <button class="glass-panel btn" onclick="window.startHangman()" style="padding:20px; text-align:center;">
+                    <div style="font-size:2rem;">🕵️</div>
+                    <div style="font-weight:700;">Kelime Avı</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Harfleri Tahmin Et</div>
+                </button>
             </div>
 
+            <!-- Quiz & Challenge Area -->
             <div id="quiz-play-area" class="glass-panel hidden" style="padding:20px; text-align:center;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:20px; color:var(--text-muted); font-size:0.9rem;">
                     <span id="quiz-counter">1 / 20</span>
@@ -133,14 +157,34 @@
                 <div id="q-options" style="display:grid; gap:10px;"></div>
             </div>
 
-            <div id="quiz-result-area" class="glass-panel hidden" style="padding:40px; text-align:center;">
-                <h2 id="res-title" style="font-size:2rem; margin-bottom:10px;">Quiz Tamamlandı!</h2>
-                <div style="font-size:4rem; font-weight:800; color:var(--neon-green);" id="res-score">18 / 20</div>
-                <div style="color:var(--text-muted); margin-bottom:20px;">Doğru Cevap</div>
-                <div class="glass-panel" style="display:inline-block; padding:10px 20px; margin-bottom:30px;">
-                    <span style="color:var(--neon-yellow);">XP Kazanıldı:</span> <span id="res-xp" style="font-weight:bold;">+90</span>
+            <!-- Match Game Area -->
+            <div id="match-area" class="hidden">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <button class="btn" onclick="window.showGamesMenu()" style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:10px;">🔙 Çık</button>
+                    <div style="font-weight:800; color:var(--neon-yellow);">Skor: <span id="match-score">0</span></div>
                 </div>
-                <button class="btn w-full" style="padding:15px; background:var(--neon-blue); color:white; border-radius:12px;" onclick="window.switchTab('quiz', document.querySelector('button[onclick*=\'quiz\']'))">Tekrar Oyna</button>
+                <div id="match-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"></div>
+            </div>
+
+            <!-- Hangman Area -->
+            <div id="hangman-area" class="glass-panel hidden" style="padding:20px; text-align:center;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <button class="btn" onclick="window.showGamesMenu()" style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:10px;">🔙 Çık</button>
+                    <div style="color:var(--neon-red);">❤️ <span id="hangman-lives">6</span></div>
+                </div>
+                <div id="hangman-word" style="font-size:2rem; letter-spacing:5px; margin:30px 0; font-family:monospace; font-weight:700;">_ _ _ _ _</div>
+                <div id="hangman-hint" style="color:var(--text-muted); margin-bottom:30px; font-style:italic;"></div>
+                <div id="hangman-keyboard" style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;"></div>
+            </div>
+
+            <div id="quiz-result-area" class="glass-panel hidden" style="padding:40px; text-align:center;">
+                <h2 id="res-title" style="font-size:2rem; margin-bottom:10px;">Oyun Bitti!</h2>
+                <div style="font-size:4rem; font-weight:800; color:var(--neon-green);" id="res-score">0</div>
+                <div style="color:var(--text-muted); margin-bottom:20px;">Skor</div>
+                <div class="glass-panel" style="display:inline-block; padding:10px 20px; margin-bottom:30px;">
+                    <span style="color:var(--neon-yellow);">XP Kazanıldı:</span> <span id="res-xp" style="font-weight:bold;">+0</span>
+                </div>
+                <button class="btn w-full" style="padding:15px; background:var(--neon-blue); color:white; border-radius:12px;" onclick="window.showGamesMenu()">Oyunlara Dön</button>
             </div>
         </div>
 
@@ -227,7 +271,7 @@
         <nav class="nav-dock">
             <button class="nav-item active" onclick="window.switchTab('learn', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg></button>
             <button class="nav-item" onclick="window.switchTab('quests', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></button>
-            <button class="nav-item" onclick="window.switchTab('quiz', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="15" x2="15.01" y1="13" y2="13"></line><line x1="18" x2="18.01" y1="11" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg></button>
+            <button class="nav-item" onclick="window.switchTab('quiz', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" style="display:none;"></path><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path><circle cx="17" cy="12" r="1.5"></circle></svg></button>
             <button class="nav-item" onclick="window.switchTab('leaderboard', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg></button>
             <button class="nav-item" onclick="window.switchTab('shop', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg></button>
             <button class="nav-item" onclick="window.switchTab('profile', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></button>

@@ -170,6 +170,8 @@ main {
     backdrop-filter: blur(5px);
 }
 .action-btn:hover { background: rgba(255,255,255,0.2); }
+.mic-active { background: var(--neon-red) !important; animation: pulseMic 1s infinite; border-color: var(--neon-red); }
+@keyframes pulseMic { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(248, 113, 113, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); } }
 
 .vote-container { display: flex; gap: 15px; margin-top: 30px; }
 .vote-btn {
