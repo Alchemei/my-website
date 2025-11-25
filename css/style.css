@@ -273,10 +273,16 @@ main::-webkit-scrollbar { display: none; }
     display: flex; justify-content: center; pointer-events: none; z-index: 50; 
 }
 .nav-dock {
-    pointer-events: auto; background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1); padding: 0 32px; height: 72px;
-    border-radius: 24px; display: flex; gap: 32px; align-items: center;
+    pointer-events: auto;
+    background: rgb(15 23 42 / 22%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0 32px;
+    height: 72px;
+    border-radius: 24px;
+    display: flex;
+    gap: 32px;
+    align-items: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 .nav-item { 

@@ -260,23 +260,16 @@
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
 
-        // Calculate times (approximate if not stored precisely, but we send Date.now())
-        // Note: We sent Date.now() as 'time'. To get duration, we'd need start time.
-        // For now, let's just show score. If we want duration, we need to store startTime in challenge.
-        // Assuming 'time' in progress is the timestamp of completion.
-        // Let's just show Score for now to be safe, or if we have startTime in challenge data (we do), we can diff.
-        // But 'progress' passed here might just be the progress object.
-        // Let's just show Score & Correct/Total.
-
         finishGame(xp, title);
 
-        // Hide Duel Container explicitly
-        document.getElementById('duel-container').classList.add('hidden');
-        document.getElementById('quiz-play-area').classList.add('hidden'); // Ensure this is hidden too
+        // Hide Duel Bars
+        document.getElementById('duel-bars').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.add('hidden');
 
         // Custom Result Message for Duel
         const resScore = document.getElementById('res-score');
         resScore.innerHTML = ''; // Clear previous text
+        resScore.style.fontSize = '1.5rem'; // Smaller font for table
 
         // Create Comparison Table
         const table = document.createElement('div');
@@ -314,15 +307,11 @@
             btn.style.width = '100%';
             btn.innerText = '🔄 Rövanş İste';
             btn.onclick = () => window.multiplayer.requestRematch();
-            const content = resArea.querySelector('.glass-panel') || resArea;
-            content.appendChild(btn);
+            // Append to the end of result area
+            resArea.appendChild(btn);
         } else {
             btn.style.display = 'block';
         }
-
-        // Move question area back to tab-quiz
-        const qArea = document.getElementById('quiz-play-area');
-        document.getElementById('tab-quiz').appendChild(qArea);
     }
 
     function startDuelMode(opponent) {
@@ -331,13 +320,14 @@
 
         const qArea = document.getElementById('quiz-play-area');
         qArea.classList.remove('hidden');
-        document.getElementById('duel-container').classList.remove('hidden');
 
-        // Move question area inside duel container
-        document.getElementById('duel-question-area').appendChild(qArea);
+        // Show integrated duel bars
+        document.getElementById('duel-bars').classList.remove('hidden');
 
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
+        document.getElementById('duel-opponent-bar').style.width = '0%';
+
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
         renderQuizQ();
     }
