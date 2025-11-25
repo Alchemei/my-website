@@ -73,6 +73,7 @@
                     targetName: targetName,
                     status: 'pending',
                     betAmount: BET_AMOUNT,
+                    seed: Math.floor(Math.random() * 1000000), // Random seed for same questions
                     createdAt: window.Firebase.firestore.FieldValue.serverTimestamp(),
                     progress: {
                         [myId]: { score: 0, total: 10, finished: false },
@@ -176,10 +177,10 @@
 
             // Switch to quiz tab
             window.switchTab('quiz');
-            if (window.startDuelMode && this.opponent) {
-                window.startDuelMode(this.opponent);
-            } else {
-                console.error("Cannot start duel: Missing opponent or startDuelMode");
+
+            // Wait for listener to get data and seed before starting
+            if (!this.opponent) {
+                console.error("Cannot start duel: Missing opponent");
                 return;
             }
 
@@ -190,6 +191,11 @@
             progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
                 const data = doc.data();
                 if (!data) return;
+
+                // Initialize duel mode ONCE with seed if not already active
+                if (!window.quizState?.active && window.startDuelMode && this.opponent) {
+                    window.startDuelMode(this.opponent, data.seed);
+                }
 
                 // Robustly find opponent ID from progress keys
                 const progressKeys = Object.keys(data.progress || {});
@@ -215,12 +221,9 @@
                     const myP = data.progress[myId];
                     const oppP = data.progress[otherId];
 
-                    console.log("Duel Check:", { myId, otherId, myFinished: myP?.finished, oppFinished: oppP?.finished, winner: data.winner });
-
                     if (myP?.finished && oppP?.finished && !data.winner) {
                         // Both finished, calculate winner.
                         // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                        console.log("Determining winner...");
                         this.determineWinner(challengeId, myId, myP, otherId, oppP);
                     }
                 }
@@ -340,9 +343,7 @@
 
         document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
 
-        document.getElementById('btn-accept-challenge').onclick = (e) => {
-            e.target.disabled = true;
-            e.target.innerText = "Başlatılıyor...";
+        document.getElementById('btn-accept-challenge').onclick = () => {
             window.multiplayer.acceptChallenge(id, data.senderId, data.senderName, data.betAmount || 50);
             modal.classList.add('hidden');
         };

@@ -267,13 +267,6 @@
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
 
-        // Clear any waiting toasts
-        const toast = document.getElementById('toast');
-        if (toast) {
-            toast.classList.remove('show');
-            toast.style.opacity = '0';
-        }
-
         finishGame(xp, title);
 
         // Hide Duel Bars
@@ -334,7 +327,19 @@
         }
     }
 
-    function startDuelMode(opponent) {
+    // Seeded Random Generator (Mulberry32)
+    function mulberry32(a) {
+        return function () {
+            var t = a += 0x6D2B79F5;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        }
+    }
+
+    let duelRng = null;
+
+    function startDuelMode(opponent, seed) {
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
 
@@ -347,6 +352,10 @@
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
         document.getElementById('duel-opponent-bar').style.width = '0%';
+
+        // Initialize RNG with seed or random fallback
+        const s = seed || Math.floor(Math.random() * 1000000);
+        duelRng = mulberry32(s);
 
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
         renderQuizQ();
@@ -362,7 +371,11 @@
 
     function renderQuizQ() {
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
-        const target = window.words[Math.floor(Math.random() * window.words.length)];
+
+        // Use seeded RNG for duel, Math.random for others
+        const random = (quizState.mode === 'duel' && duelRng) ? duelRng : Math.random;
+
+        const target = window.words[Math.floor(random() * window.words.length)];
 
         const wordEl = document.getElementById('q-word');
 
@@ -374,12 +387,12 @@
         }
 
         let opts = window.words.filter(w => w.en !== target.en)
-            .sort(() => 0.5 - Math.random())
+            .sort(() => 0.5 - random())
             .slice(0, 3)
             .map(w => w.tr);
 
         opts.push(target.tr);
-        opts.sort(() => 0.5 - Math.random());
+        opts.sort(() => 0.5 - random());
 
         const div = document.getElementById('q-options');
         div.innerHTML = '';
