@@ -247,7 +247,16 @@
                         const myP = data.progress[myId];
                         const oppP = data.progress[otherId];
 
+                        console.log("Checking finish status:", {
+                            myFinished: myP?.finished,
+                            oppFinished: oppP?.finished,
+                            hasWinner: !!data.winner,
+                            myP,
+                            oppP
+                        }); // Debug log
+
                         if (myP?.finished && oppP?.finished && !data.winner) {
+                            console.log("Both finished! Calling determineWinner"); // Debug log
                             // Both finished, calculate winner.
                             // We allow ANY client to calculate this to prevent hanging if Host disconnects.
                             this.determineWinner(challengeId, myId, myP, otherId, oppP);
@@ -262,6 +271,8 @@
         },
 
         async determineWinner(challengeId, p1Id, p1Data, p2Id, p2Data) {
+            console.log("Determining winner:", { p1Id, p1Data, p2Id, p2Data }); // Debug log
+
             let winnerId = null;
 
             // Deterministic Winner Logic
@@ -279,11 +290,14 @@
                 else winnerId = p1Id; // Exact tie, p1 wins (Host advantage or random)
             }
 
+            console.log("Winner determined:", winnerId); // Debug log
+
             const db = window.Firebase.db;
             try {
                 await db.collection('challenges').doc(challengeId).update({
                     winner: winnerId
                 });
+                console.log("Winner saved to Firestore"); // Debug log
             } catch (e) {
                 console.log("Winner update race", e);
             }
@@ -329,10 +343,13 @@
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 
+            console.log("Sending game over:", { score, total, time }); // Debug log
+
             // Mark as finished
             await db.collection('challenges').doc(this.activeChallengeId).update({
                 [`progress.${myId}`]: {
                     score,
+                    currentQ: total, // All questions answered
                     total: total,
                     finished: true,
                     time: time
