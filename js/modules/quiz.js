@@ -238,145 +238,148 @@
             window.store.update('xp', window.store.state.xp + xp);
             window.store.updateHistory(xp);
             window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: xp } }));
-            document.getElementById('games-menu').classList.add('hidden');
-            document.getElementById('quiz-play-area').classList.remove('hidden');
-            quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'listening' };
-            renderQuizQ();
+            window.confetti();
+        }
+    }
+
+    window.startDuelMode = startDuelMode;
+    window.handleDuelFinish = handleDuelFinish;
+
+    function startDuelMode(opponent) {
+        showGamesMenu();
+        document.getElementById('games-menu').classList.add('hidden');
+
+        const qArea = document.getElementById('quiz-play-area');
+        qArea.classList.remove('hidden');
+        document.getElementById('duel-container').classList.remove('hidden');
+
+        // Move question area inside duel container
+        document.getElementById('duel-question-area').appendChild(qArea);
+
+        document.getElementById('duel-opponent-name').innerText = opponent.name;
+        document.getElementById('duel-my-bar').style.width = '0%';
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
+        renderQuizQ();
+    }
+
+    function startListeningGame() {
+        showGamesMenu();
+        document.getElementById('games-menu').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.remove('hidden');
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'listening' };
+        renderQuizQ();
+    }
+
+    function renderQuizQ() {
+        document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
+        const target = window.words[Math.floor(Math.random() * window.words.length)];
+
+        const wordEl = document.getElementById('q-word');
+
+        if (quizState.mode === 'listening') {
+            wordEl.innerHTML = `<button class="btn" onclick="window.playTTS('${target.en}')" style="background:var(--neon-blue); width:80px; height:80px; border-radius:50%; font-size:2rem;">🔊</button>`;
+            setTimeout(() => window.playTTS(target.en), 300);
+        } else {
+            wordEl.innerText = target.en;
         }
 
-        function renderQuizQ() {
-            document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
-            const target = window.words[Math.floor(Math.random() * window.words.length)];
+        let opts = window.words.filter(w => w.en !== target.en)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(w => w.tr);
 
-            const wordEl = document.getElementById('q-word');
+        opts.push(target.tr);
+        opts.sort(() => 0.5 - Math.random());
 
-            if (quizState.mode === 'listening') {
-                wordEl.innerHTML = `<button class="btn" onclick="window.playTTS('${target.en}')" style="background:var(--neon-blue); width:80px; height:80px; border-radius:50%; font-size:2rem;">🔊</button>`;
-                setTimeout(() => window.playTTS(target.en), 300);
-            } else {
-                wordEl.innerText = target.en;
-            }
+        const div = document.getElementById('q-options');
+        div.innerHTML = '';
+        opts.forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'quiz-opt';
+            b.innerText = o;
+            b.onclick = () => handleQuizAns(b, o, target.tr);
+            div.appendChild(b);
+        });
+    }
 
-            let opts = window.words.filter(w => w.en !== target.en)
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 3)
-                .map(w => w.tr);
+    function handleQuizAns(btn, selected, correct) {
+        const opts = document.querySelectorAll('.quiz-opt');
+        opts.forEach(o => o.onclick = null);
 
-            opts.push(target.tr);
-            opts.sort(() => 0.5 - Math.random());
-
-            const div = document.getElementById('q-options');
-            div.innerHTML = '';
+        let isCorrect = (selected === correct);
+        if (isCorrect) {
+            btn.style.background = "rgba(16, 185, 129, 0.4)";
+            btn.style.borderColor = "var(--neon-green)";
+            quizState.score++;
+            window.confetti();
+            window.playSound('success');
+        } else {
+            btn.style.background = "rgba(239, 68, 68, 0.4)";
+            btn.style.borderColor = "var(--neon-red)";
             opts.forEach(o => {
-                const b = document.createElement('button');
-                b.className = 'quiz-opt';
-                b.innerText = o;
-                b.onclick = () => handleQuizAns(b, o, target.tr);
-                div.appendChild(b);
+                if (o.innerText === correct) {
+                    o.style.background = "rgba(16, 185, 129, 0.4)";
+                    o.style.borderColor = "var(--neon-green)";
+                }
+            });
+            if (navigator.vibrate) navigator.vibrate(200);
+            window.playSound('error');
+        }
+
+        if (quizState.mode === 'duel') {
+            // Update my bar
+            const pct = (quizState.score / quizState.totalQ) * 100;
+            document.getElementById('duel-my-bar').style.width = `${pct}%`;
+            // Send to opponent
+            window.multiplayer.sendProgress(quizState.score, quizState.totalQ);
+        }
+
+        setTimeout(() => {
+            if (quizState.currentQ < quizState.totalQ) {
+                quizState.currentQ++;
+                renderQuizQ();
+            } else {
+                finishQuiz();
+            }
+        }, 1200);
+    }
+
+    function finishQuiz() {
+        if (quizState.mode === 'duel') {
+            window.multiplayer.sendGameOver(quizState.score, Date.now());
+            // handleDuelFinish is called by multiplayer when winner is decided
+            return;
+        }
+
+        document.getElementById('quiz-play-area').classList.add('hidden');
+        document.getElementById('quiz-result-area').classList.remove('hidden');
+        quizState.active = false;
+
+        let baseXP = quizState.score * 5;
+        if (quizState.mode === 'challenge') {
+            baseXP = quizState.score * 10; // Double XP for challenge
+            document.getElementById('res-title').innerText = "Meydan Okuma Bitti!";
+        } else {
+            document.getElementById('res-title').innerText = "Quiz Tamamlandı!";
+        }
+
+        let finalXP = baseXP;
+
+        if (window.store.state.activeItems.doubleXP > 0) {
+            finalXP = baseXP * 2;
+            window.store.update('activeItems', {
+                ...window.store.state.activeItems,
+                doubleXP: Math.max(0, window.store.state.activeItems.doubleXP - 20)
             });
         }
 
-        function handleQuizAns(btn, selected, correct) {
-            const opts = document.querySelectorAll('.quiz-opt');
-            opts.forEach(o => o.onclick = null);
+        window.store.update('xp', window.store.state.xp + finalXP);
+        window.store.updateHistory(finalXP);
 
-            let isCorrect = (selected === correct);
-            if (isCorrect) {
-                btn.style.background = "rgba(16, 185, 129, 0.4)";
-                btn.style.borderColor = "var(--neon-green)";
-                quizState.score++;
-                window.confetti();
-                window.playSound('success');
-            } else {
-                btn.style.background = "rgba(239, 68, 68, 0.4)";
-                btn.style.borderColor = "var(--neon-red)";
-                opts.forEach(o => {
-                    if (o.innerText === correct) {
-                        o.style.background = "rgba(16, 185, 129, 0.4)";
-                        o.style.borderColor = "var(--neon-green)";
-                    }
-                });
-                if (navigator.vibrate) navigator.vibrate(200);
-                window.playSound('error');
-            }
+        window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: finalXP } }));
+        window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'quiz', amount: 1 } }));
 
-            if (quizState.mode === 'duel') {
-                // Update my bar
-                const pct = (quizState.score / quizState.totalQ) * 100;
-                document.getElementById('duel-my-bar').style.width = `${pct}%`;
-                // Send to opponent
-                window.multiplayer.sendProgress(quizState.score, quizState.totalQ);
-            }
-
-            setTimeout(() => {
-                if (quizState.currentQ < quizState.totalQ) {
-                    quizState.currentQ++;
-                    renderQuizQ();
-                } else {
-                    finishQuiz();
-                }
-            }, 1200);
-        }
-
-        function finishQuiz() {
-            if (quizState.mode === 'duel') {
-                window.multiplayer.sendGameOver(quizState.score, Date.now());
-                // Show waiting overlay
-                let overlay = document.getElementById('duel-wait-overlay');
-                if (!overlay) {
-                    overlay = document.createElement('div');
-                    overlay.id = 'duel-wait-overlay';
-                    overlay.style.position = 'absolute';
-                    overlay.style.top = '0';
-                    overlay.style.left = '0';
-                    overlay.style.width = '100%';
-                    overlay.style.height = '100%';
-                    overlay.style.background = 'rgba(0,0,0,0.85)';
-                    overlay.style.display = 'flex';
-                    overlay.style.flexDirection = 'column';
-                    overlay.style.alignItems = 'center';
-                    overlay.style.justifyContent = 'center';
-                    overlay.style.zIndex = '20';
-                    overlay.innerHTML = `
-                    <div style="font-size:3rem; margin-bottom:20px;">⏳</div>
-                    <div style="font-size:1.2rem; font-weight:bold;">Rakip Bekleniyor...</div>
-                    <div style="color:var(--text-muted); margin-top:10px;">Sonuçlar birazdan açıklanacak</div>
-                `;
-                    document.getElementById('duel-container').appendChild(overlay);
-                }
-                overlay.classList.remove('hidden');
-                return;
-            }
-
-            document.getElementById('quiz-play-area').classList.add('hidden');
-            document.getElementById('quiz-result-area').classList.remove('hidden');
-            quizState.active = false;
-
-            let baseXP = quizState.score * 5;
-            if (quizState.mode === 'challenge') {
-                baseXP = quizState.score * 10; // Double XP for challenge
-                document.getElementById('res-title').innerText = "Meydan Okuma Bitti!";
-            } else {
-                document.getElementById('res-title').innerText = "Quiz Tamamlandı!";
-            }
-
-            let finalXP = baseXP;
-
-            if (window.store.state.activeItems.doubleXP > 0) {
-                finalXP = baseXP * 2;
-                window.store.update('activeItems', {
-                    ...window.store.state.activeItems,
-                    doubleXP: Math.max(0, window.store.state.activeItems.doubleXP - 20)
-                });
-            }
-
-            window.store.update('xp', window.store.state.xp + finalXP);
-            window.store.updateHistory(finalXP);
-
-            window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: finalXP } }));
-            window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'quiz', amount: 1 } }));
-
-            document.getElementById('res-score').innerText = `${quizState.score} Doğru`;
-            document.getElementById('res-xp').innerText = `+${finalXP}`;
-        }
-    }) ();
+        document.getElementById('res-score').innerText = `${quizState.score} Doğru`;
+        document.getElementById('res-xp').innerText = `+${finalXP}`;
+    }
+})();

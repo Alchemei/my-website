@@ -2,7 +2,7 @@
     // Real-time Multiplayer System using Firebase Firestore
 
     const APP_ID = 'english-master-global';
-    const BET_AMOUNT = 50; // Cost to enter a duel
+    const BET_AMOUNT = 50; // Cost to challenge
     let activeListener = null;
     let progressListener = null;
 
@@ -10,6 +10,7 @@
         activeChallengeId: null,
         opponent: null,
         isHost: false,
+        bet: 0,
 
         // Initialize listeners
         init() {
@@ -36,7 +37,7 @@
                             const data = change.doc.data();
                             const now = Date.now();
                             const created = data.createdAt?.toMillis() || 0;
-                            if (now - created < 60000) {
+                            if (now - created < 60000) { // 1 min expiry for notification
                                 showChallengeModal(change.doc.id, data);
                             }
                         }
@@ -52,12 +53,13 @@
             }
 
             if (window.store.state.coins < BET_AMOUNT) {
-                window.toast(`Yetersiz Altın! Düello için ${BET_AMOUNT} altına ihtiyacın var.`);
+                window.toast(`Yetersiz altın! Meydan okuma bedeli: ${BET_AMOUNT} 🪙`);
                 return;
             }
 
-            // Deduct coins
+            // Deduct coins immediately
             window.store.update('coins', window.store.state.coins - BET_AMOUNT);
+            window.toast(`-${BET_AMOUNT} Altın (Bahis)`);
 
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
@@ -70,9 +72,9 @@
                     targetId: targetId,
                     targetName: targetName,
                     status: 'pending',
-                    bet: BET_AMOUNT,
+                    betAmount: BET_AMOUNT,
                     createdAt: window.Firebase.firestore.FieldValue.serverTimestamp(),
-                    players: {
+                    progress: {
                         [myId]: { score: 0, total: 10, finished: false },
                         [targetId]: { score: 0, total: 10, finished: false }
                     }
@@ -81,6 +83,7 @@
                 this.activeChallengeId = docRef.id;
                 this.opponent = { id: targetId, name: targetName };
                 this.isHost = true;
+                this.bet = BET_AMOUNT;
 
                 window.toast(`${targetName} kişisine meydan okundu! Yanıt bekleniyor...`);
 
@@ -90,29 +93,35 @@
                     if (data && data.status === 'accepted') {
                         window.toast("Meydan okuma kabul edildi! Yarış başlıyor!");
                         this.startDuel(docRef.id);
+                    } else if (data && data.status === 'rejected') {
+                        window.toast("Meydan okuma reddedildi.");
+                        // Refund
+                        window.store.update('coins', window.store.state.coins + BET_AMOUNT);
+                        activeListener(); // Stop listening
                     }
                 });
 
             } catch (e) {
                 console.error("Challenge error:", e);
                 window.toast("Meydan okuma gönderilemedi.");
-                // Refund on error
-                window.store.update('coins', window.store.state.coins + BET_AMOUNT);
+                window.store.update('coins', window.store.state.coins + BET_AMOUNT); // Refund on error
             }
         },
 
         // Accept a challenge
-        async acceptChallenge(challengeId, senderId, senderName) {
-            if (window.store.state.coins < BET_AMOUNT) {
-                window.toast(`Yetersiz Altın! Düello için ${BET_AMOUNT} altına ihtiyacın var.`);
+        async acceptChallenge(challengeId, senderId, senderName, betAmount) {
+            if (window.store.state.coins < betAmount) {
+                window.toast(`Yetersiz altın! Kabul etmek için ${betAmount} 🪙 gerekli.`);
+                // Optionally reject automatically or just do nothing
                 return;
             }
 
-            // Deduct coins
-            window.store.update('coins', window.store.state.coins - BET_AMOUNT);
-
             const db = window.Firebase.db;
             try {
+                // Deduct coins
+                window.store.update('coins', window.store.state.coins - betAmount);
+                window.toast(`-${betAmount} Altın (Bahis)`);
+
                 await db.collection('challenges').doc(challengeId).update({
                     status: 'accepted',
                     startTime: window.Firebase.firestore.FieldValue.serverTimestamp()
@@ -121,28 +130,38 @@
                 this.activeChallengeId = challengeId;
                 this.opponent = { id: senderId, name: senderName };
                 this.isHost = false;
+                this.bet = betAmount;
 
                 this.startDuel(challengeId);
 
             } catch (e) {
                 console.error("Accept error:", e);
                 window.toast("Hata oluştu.");
-                // Refund
-                window.store.update('coins', window.store.state.coins + BET_AMOUNT);
+                window.store.update('coins', window.store.state.coins + betAmount); // Refund
             }
+        },
+
+        rejectChallenge(challengeId) {
+            const db = window.Firebase.db;
+            db.collection('challenges').doc(challengeId).update({
+                status: 'rejected'
+            });
         },
 
         // Start the game logic & Listen for progress
         startDuel(challengeId) {
             if (activeListener) activeListener();
 
+            // Close modals
             document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
 
+            // Switch to quiz tab
             window.switchTab('quiz');
             if (window.startDuelMode) {
                 window.startDuelMode(this.opponent);
             }
 
+            // Listen for game progress
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 
@@ -150,33 +169,74 @@
                 const data = doc.data();
                 if (!data) return;
 
-                // Update opponent progress
-                const oppData = data.players[this.opponent.id];
-                if (oppData) {
-                    updateOpponentProgress(oppData.score, oppData.total);
+                // Check for opponent progress
+                const oppProgress = data.progress[this.opponent.id];
+                if (oppProgress) {
+                    updateOpponentProgress(oppProgress.score, oppProgress.total);
                 }
 
-                // Check if BOTH finished
-                const myData = data.players[myId];
-
-                if (myData && myData.finished && oppData && oppData.finished) {
-                    // Determine winner
-                    let winnerId = null;
-                    if (myData.score > oppData.score) winnerId = myId;
-                    else if (oppData.score > myData.score) winnerId = this.opponent.id;
-                    else {
-                        // Tie - check time (lower is better)
-                        // Note: We are using local time sent to server, which can be cheated, but fine for demo.
-                        // Or just declare Draw. Let's do Draw if scores equal.
-                        winnerId = 'draw';
-                    }
-
+                // Check if winner is decided
+                if (data.winner) {
+                    this.handleGameEnd(data.winner, data.betAmount);
                     if (progressListener) progressListener(); // Stop listening
+                    return;
+                }
 
-                    // Call result handler
-                    window.handleDuelResult(winnerId, data.bet * 2);
+                // Check if both finished (Client-side check to trigger winner calculation)
+                const myP = data.progress[myId];
+                const oppP = data.progress[this.opponent.id];
+
+                if (myP?.finished && oppP?.finished && !data.winner) {
+                    // Both finished, calculate winner
+                    // To avoid race conditions, let the 'Host' (sender) decide
+                    // OR simply use a transaction. Here we'll let the Host decide.
+                    if (this.isHost) {
+                        this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
+                    }
                 }
             });
+        },
+
+        async determineWinner(challengeId, p1Id, p1Data, p2Id, p2Data) {
+            let winnerId = null;
+
+            if (p1Data.score > p2Data.score) winnerId = p1Id;
+            else if (p2Data.score > p1Data.score) winnerId = p2Id;
+            else {
+                // Tie on score, check time (lower is better)
+                // Note: We need to store completion time. 
+                // For now, let's just say Tie = Host wins (or Draw). 
+                // Let's implement Draw logic or just pick one.
+                // Let's pick p1 for now if exact tie.
+                winnerId = (p1Data.time < p2Data.time) ? p1Id : p2Id;
+            }
+
+            const db = window.Firebase.db;
+            await db.collection('challenges').doc(challengeId).update({
+                winner: winnerId
+            });
+        },
+
+        handleGameEnd(winnerId, betAmount) {
+            const myId = window.store.state.userId;
+            const isMe = winnerId === myId;
+
+            // If I won, I get the pot (2 * bet)
+            // Logic: I already paid 'bet', so I get back '2 * bet' (net +bet)
+            // If I lost, I get nothing (net -bet)
+
+            if (isMe) {
+                const pot = betAmount * 2;
+                window.store.update('coins', window.store.state.coins + pot);
+                window.toast(`KAZANDIN! +${pot} Altın 🏆`);
+                window.playSound('success');
+            } else {
+                window.playSound('error');
+            }
+
+            if (window.handleDuelFinish) {
+                window.handleDuelFinish(winnerId, betAmount);
+            }
         },
 
         // Send current progress
@@ -187,8 +247,8 @@
 
             try {
                 await db.collection('challenges').doc(this.activeChallengeId).update({
-                    [`players.${myId}.score`]: score,
-                    [`players.${myId}.total`]: total
+                    [`progress.${myId}.score`]: score,
+                    [`progress.${myId}.total`]: total
                 });
             } catch (e) {
                 console.error("Progress sync error", e);
@@ -201,15 +261,18 @@
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 
-            try {
-                await db.collection('challenges').doc(this.activeChallengeId).update({
-                    [`players.${myId}.score`]: score,
-                    [`players.${myId}.time`]: time,
-                    [`players.${myId}.finished`]: true
-                });
-            } catch (e) {
-                console.error("Game over sync error", e);
-            }
+            // Mark as finished
+            await db.collection('challenges').doc(this.activeChallengeId).update({
+                [`progress.${myId}`]: {
+                    score,
+                    total: 10,
+                    finished: true,
+                    time: time
+                }
+            });
+
+            // Show waiting message
+            window.toast("Rakip bekleniyor...");
         },
 
         requestRematch() {
@@ -230,12 +293,10 @@
                 <div class="modal-content" style="text-align:center; border:1px solid var(--neon-purple);">
                     <h2 style="color:var(--neon-purple);">⚔️ Meydan Okuma!</h2>
                     <p id="challenge-msg" style="margin:20px 0; font-size:1.1rem;"></p>
-                    <div style="margin-bottom:20px; color:var(--neon-yellow); font-weight:bold;">
-                        Giriş Ücreti: ${BET_AMOUNT} Altın 💰
-                    </div>
+                    <div style="font-size:0.9rem; color:var(--neon-yellow); margin-bottom:20px;">Bahis: 50 🪙</div>
                     <div style="display:flex; gap:10px; justify-content:center;">
-                        <button class="btn" onclick="document.getElementById('challenge-modal').classList.add('hidden')" style="background:#334155;">Reddet</button>
-                        <button class="btn" id="btn-accept-challenge" style="background:var(--neon-green); color:black; font-weight:bold;">Kabul Et</button>
+                        <button class="btn" id="btn-reject-challenge" style="background:#334155;">Reddet</button>
+                        <button class="btn" id="btn-accept-challenge" style="background:var(--neon-green); color:black; font-weight:bold;">Kabul Et (-50🪙)</button>
                     </div>
                 </div>
             `;
@@ -245,9 +306,13 @@
 
         document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
 
-        const acceptBtn = document.getElementById('btn-accept-challenge');
-        acceptBtn.onclick = () => {
-            window.multiplayer.acceptChallenge(id, data.senderId, data.senderName);
+        document.getElementById('btn-accept-challenge').onclick = () => {
+            window.multiplayer.acceptChallenge(id, data.senderId, data.senderName, data.betAmount || 50);
+            modal.classList.add('hidden');
+        };
+
+        document.getElementById('btn-reject-challenge').onclick = () => {
+            window.multiplayer.rejectChallenge(id);
             modal.classList.add('hidden');
         };
 
