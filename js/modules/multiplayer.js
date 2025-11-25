@@ -215,9 +215,12 @@
                     const myP = data.progress[myId];
                     const oppP = data.progress[otherId];
 
+                    console.log("Duel Check:", { myId, otherId, myFinished: myP?.finished, oppFinished: oppP?.finished, winner: data.winner });
+
                     if (myP?.finished && oppP?.finished && !data.winner) {
                         // Both finished, calculate winner.
                         // We allow ANY client to calculate this to prevent hanging if Host disconnects.
+                        console.log("Determining winner...");
                         this.determineWinner(challengeId, myId, myP, otherId, oppP);
                     }
                 }
@@ -337,7 +340,9 @@
 
         document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
 
-        document.getElementById('btn-accept-challenge').onclick = () => {
+        document.getElementById('btn-accept-challenge').onclick = (e) => {
+            e.target.disabled = true;
+            e.target.innerText = "Başlatılıyor...";
             window.multiplayer.acceptChallenge(id, data.senderId, data.senderName, data.betAmount || 50);
             modal.classList.add('hidden');
         };

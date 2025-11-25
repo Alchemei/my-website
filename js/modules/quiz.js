@@ -267,6 +267,13 @@
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
 
+        // Clear any waiting toasts
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.classList.remove('show');
+            toast.style.opacity = '0';
+        }
+
         finishGame(xp, title);
 
         // Hide Duel Bars
