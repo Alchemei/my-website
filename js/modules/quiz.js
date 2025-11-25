@@ -6,7 +6,6 @@
         window.startChallenge = startChallenge;
         window.startMatch = startMatch;
         window.startHangman = startHangman;
-        window.startRainGame = startRainGame;
         window.showGamesMenu = showGamesMenu;
         window.resetQuiz = startQuiz;
         window.handleQuizAns = handleQuizAns;
@@ -19,15 +18,7 @@
         document.getElementById('quiz-challenge-area').classList.add('hidden');
         document.getElementById('match-area').classList.add('hidden');
         document.getElementById('hangman-area').classList.add('hidden');
-        document.getElementById('rain-area').classList.add('hidden');
         if (quizState.timer) clearInterval(quizState.timer);
-        
-        // Stop Rain Game if active
-        if (typeof rainState !== 'undefined' && rainState.active) {
-            rainState.active = false;
-            clearInterval(rainState.spawnTimer);
-            cancelAnimationFrame(rainState.gameLoop);
-        }
     }
 
     function startQuiz() {
@@ -234,114 +225,9 @@
         renderKeyboard();
     }
 
-    // --- Rain Game ---
-    let rainState = { active: false, score: 0, words: [], spawnTimer: null, gameLoop: null, speed: 2 };
-
-    function startRainGame() {
-        showGamesMenu();
-        document.getElementById('games-menu').classList.add('hidden');
-        document.getElementById('rain-area').classList.remove('hidden');
-        
-        rainState = { active: true, score: 0, words: [], speed: 2 };
-        document.getElementById('rain-score').innerText = 0;
-        document.getElementById('rain-container').innerHTML = '';
-        
-        const input = document.getElementById('rain-input');
-        input.value = '';
-        input.focus();
-        input.oninput = checkRainInput;
-        
-        rainState.spawnTimer = setInterval(spawnRainWord, 2000);
-        rainState.gameLoop = requestAnimationFrame(updateRainGame);
-    }
-
-    function spawnRainWord() {
-        if (!rainState.active) return;
-        const w = window.words[Math.floor(Math.random() * window.words.length)];
-        const el = document.createElement('div');
-        el.innerText = w.en;
-        el.className = 'rain-word';
-        el.style.position = 'absolute';
-        el.style.left = Math.random() * 80 + 10 + '%';
-        el.style.top = '-50px';
-        el.style.color = 'white';
-        el.style.fontWeight = 'bold';
-        el.style.fontSize = '1.2rem';
-        el.style.textShadow = '0 0 5px var(--neon-blue)';
-        
-        document.getElementById('rain-container').appendChild(el);
-        rainState.words.push({ el, text: w.en, y: -50 });
-    }
-
-    function updateRainGame() {
-        if (!rainState.active) return;
-        
-        rainState.words.forEach((w, i) => {
-            w.y += rainState.speed;
-            w.el.style.top = w.y + 'px';
-            
-            if (w.y > window.innerHeight - 150) {
-                // Game Over condition or lose life
-                // For now, just remove and flash red
-                w.el.remove();
-                rainState.words.splice(i, 1);
-                document.getElementById('rain-area').style.boxShadow = 'inset 0 0 50px red';
-                setTimeout(() => document.getElementById('rain-area').style.boxShadow = 'none', 200);
-                window.playSound('error');
-                // Optional: End game if too many missed
-            }
-        });
-        
-        rainState.gameLoop = requestAnimationFrame(updateRainGame);
-    }
-
-    function checkRainInput() {
-        const input = document.getElementById('rain-input');
-        const val = input.value.toLowerCase().trim();
-        
-        const matchIdx = rainState.words.findIndex(w => w.text.toLowerCase() === val);
-        if (matchIdx !== -1) {
-            // Match!
-            const w = rainState.words[matchIdx];
-            
-            // Create explosion effect
-            const rect = w.el.getBoundingClientRect();
-            createExplosion(rect.left, rect.top);
-            
-            w.el.remove();
-            rainState.words.splice(matchIdx, 1);
-            input.value = '';
-            
-            rainState.score += 10;
-            document.getElementById('rain-score').innerText = rainState.score;
-            window.playSound('success');
-            
-            // Increase speed slightly
-            rainState.speed += 0.1;
-        }
-    }
-
-    function createExplosion(x, y) {
-        const el = document.createElement('div');
-        el.innerText = '💥';
-        el.style.position = 'absolute';
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-        el.style.fontSize = '2rem';
-        el.style.pointerEvents = 'none';
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 500);
-    }
-
     function finishGame(xp, title) {
-        // Stop Rain Game
-        rainState.active = false;
-        clearInterval(rainState.spawnTimer);
-        cancelAnimationFrame(rainState.gameLoop);
-        
         document.getElementById('match-area').classList.add('hidden');
         document.getElementById('hangman-area').classList.add('hidden');
-        document.getElementById('rain-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.remove('hidden');
         
         document.getElementById('res-title').innerText = title;
@@ -351,11 +237,6 @@
         if (xp > 0) {
             window.store.update('xp', window.store.state.xp + xp);
             window.store.updateHistory(xp);
-            
-            // Update Stats
-            const currentTotal = window.store.state.totalQ || 0;
-            const currentCorrect = window.store.state.correctQ || 0;
-            
             window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: xp } }));
             window.confetti();
         }
@@ -408,12 +289,6 @@
             if (navigator.vibrate) navigator.vibrate(200);
             window.playSound('error');
         }
-
-        // Update Stats
-        const currentTotal = window.store.state.totalQ || 0;
-        const currentCorrect = window.store.state.correctQ || 0;
-        window.store.update('totalQ', currentTotal + 1);
-        if (isCorrect) window.store.update('correctQ', currentCorrect + 1);
 
         setTimeout(() => {
             if (quizState.currentQ < quizState.totalQ) {

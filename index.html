@@ -147,6 +147,43 @@
                 </button>
             </div>
 
+            <!-- Quiz & Challenge Area -->
+            <div id="quiz-play-area" class="glass-panel hidden" style="padding:20px; text-align:center;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px; color:var(--text-muted); font-size:0.9rem;">
+                    <span id="quiz-counter">1 / 20</span>
+                    <span id="quiz-challenge-area" class="hidden" style="color:var(--neon-red); font-weight:bold;">⏱️ <span id="challenge-timer">60</span>s</span>
+                </div>
+                <div id="q-word" style="font-size:2.5rem; font-weight:800; margin-bottom:30px;">Word</div>
+                <div id="q-options" style="display:grid; gap:10px;"></div>
+            </div>
+
+            <!-- Match Game Area -->
+            <div id="match-area" class="hidden">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <button class="btn" onclick="window.showGamesMenu()" style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:10px;">🔙 Çık</button>
+                    <div style="font-weight:800; color:var(--neon-yellow);">Skor: <span id="match-score">0</span></div>
+                </div>
+                <div id="match-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"></div>
+            </div>
+
+            <!-- Hangman Area -->
+            <div id="hangman-area" class="glass-panel hidden" style="padding:20px; text-align:center;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <button class="btn" onclick="window.showGamesMenu()" style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:10px;">🔙 Çık</button>
+                    <div style="color:var(--neon-red);">❤️ <span id="hangman-lives">6</span></div>
+                </div>
+                <div id="hangman-word" style="font-size:2rem; letter-spacing:5px; margin:30px 0; font-family:monospace; font-weight:700;">_ _ _ _ _</div>
+                <div id="hangman-hint" style="color:var(--text-muted); margin-bottom:30px; font-style:italic;"></div>
+                <div id="hangman-keyboard" style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;"></div>
+            </div>
+
+            <div id="quiz-result-area" class="glass-panel hidden" style="padding:40px; text-align:center;">
+                <h2 id="res-title" style="font-size:2rem; margin-bottom:10px;">Oyun Bitti!</h2>
+                <div style="font-size:4rem; font-weight:800; color:var(--neon-green);" id="res-score">0</div>
+                <div style="color:var(--text-muted); margin-bottom:20px;">Skor</div>
+                <div class="glass-panel" style="display:inline-block; padding:10px 20px; margin-bottom:30px;">
+                    <span style="color:var(--neon-yellow);">XP Kazanıldı:</span> <span id="res-xp" style="font-weight:bold;">+0</span>
+                </div>
                 <button class="btn w-full" style="padding:15px; background:var(--neon-blue); color:white; border-radius:12px;" onclick="window.showGamesMenu()">Oyunlara Dön</button>
             </div>
         </div>
