@@ -1,4 +1,4 @@
-export function toast(msg) {
+window.toast = function(msg) {
     const t = document.getElementById('toast');
     if (!t) return;
     t.innerText = msg;
@@ -6,7 +6,7 @@ export function toast(msg) {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-export function confetti() {
+window.confetti = function() {
     const c = document.getElementById('confetti-canvas');
     if (!c) return;
     const x = c.getContext('2d');
@@ -41,7 +41,7 @@ export function confetti() {
     draw();
 }
 
-export function playTTS(text) {
+window.playTTS = function(text) {
     const t = new SpeechSynthesisUtterance(text);
     t.lang = 'en-US';
     speechSynthesis.speak(t);

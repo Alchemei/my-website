@@ -13,13 +13,27 @@ const userConfig = {
     measurementId: "G-K60HHNSBQ2"
 };
 
-// Use global config if available (for consistency with original app logic)
+// Use global config if available
 const firebaseConfig = (typeof window.__firebase_config !== 'undefined') ? JSON.parse(window.__firebase_config) : userConfig;
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
-export const googleProvider = new GoogleAuthProvider();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const analytics = getAnalytics(app);
+const googleProvider = new GoogleAuthProvider();
 
-export { signInWithPopup, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, getDoc };
+// Expose to window for other scripts to use
+window.Firebase = {
+    auth,
+    db,
+    analytics,
+    googleProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged,
+    signInAnonymously,
+    signInWithCustomToken,
+    doc,
+    setDoc,
+    getDoc
+};
