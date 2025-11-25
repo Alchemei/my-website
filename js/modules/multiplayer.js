@@ -171,163 +171,132 @@
                 progressListener();
                 progressListener = null;
             }
+            // Check for opponent progress
+            if (otherId && data.progress) {
+                const oppProgress = data.progress[otherId];
+                if (oppProgress) {
+                    updateOpponentProgress(oppProgress.score, oppProgress.total);
+                }
+            }
 
-            // Close modals
-            document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-
-            // Switch to quiz tab
-            window.switchTab('quiz');
-
-            // Wait for listener to get data and seed before starting
-            if (!this.opponent) {
-                console.error("Cannot start duel: Missing opponent");
+            // Check if winner is decided
+            if (data.winner) {
+                this.handleGameEnd(data.winner, data.betAmount, data.progress);
+                if (progressListener) progressListener(); // Stop listening
                 return;
             }
 
-            // Listen for game progress
-            const db = window.Firebase.db;
-            const myId = window.store.state.userId;
+            // Check if both finished (Client-side check to trigger winner calculation)
+            if (otherId && data.progress) {
+                const myP = data.progress[myId];
+                const oppP = data.progress[otherId];
 
-            progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
-                const data = doc.data();
-                if (!data) return;
-
-                // Initialize duel mode ONCE with seed if not already active
-                // Only start if we are NOT currently in a duel
-                if ((!window.quizState?.active || window.quizState?.mode !== 'duel') && window.startDuelMode && this.opponent) {
-                    window.startDuelMode(this.opponent, data.seed);
+                if (myP?.finished && oppP?.finished && !data.winner) {
+                    // Both finished, calculate winner.
+                    // We allow ANY client to calculate this to prevent hanging if Host disconnects.
+                    this.determineWinner(challengeId, myId, myP, otherId, oppP);
                 }
-
-                // Robustly find opponent ID from progress keys
-                const progressKeys = Object.keys(data.progress || {});
-                const otherId = progressKeys.find(k => k !== myId);
-
-                // Check for opponent progress
-                if (otherId && data.progress) {
-                    const oppProgress = data.progress[otherId];
-                    if (oppProgress) {
-                        updateOpponentProgress(oppProgress.score, oppProgress.total);
-                    }
-                }
-
-                // Check if winner is decided
-                if (data.winner) {
-                    this.handleGameEnd(data.winner, data.betAmount, data.progress);
-                    if (progressListener) progressListener(); // Stop listening
-                    return;
-                }
-
-                // Check if both finished (Client-side check to trigger winner calculation)
-                if (otherId && data.progress) {
-                    const myP = data.progress[myId];
-                    const oppP = data.progress[otherId];
-
-                    if (myP?.finished && oppP?.finished && !data.winner) {
-                        // Both finished, calculate winner.
-                        // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                        this.determineWinner(challengeId, myId, myP, otherId, oppP);
-                    }
-                }
-            });
-        },
+            }
+        });
+    },
 
         async determineWinner(challengeId, p1Id, p1Data, p2Id, p2Data) {
-            let winnerId = null;
+        let winnerId = null;
 
-            // Deterministic Winner Logic
-            if (p1Data.score > p2Data.score) winnerId = p1Id;
-            else if (p2Data.score > p1Data.score) winnerId = p2Id;
-            else {
-                // Tie on score, check time (lower is better)
-                // If time is missing, fallback to 0 (which is unfair but prevents crash)
-                // Ideally time should always be present if finished=true
-                const t1 = p1Data.time || Number.MAX_SAFE_INTEGER;
-                const t2 = p2Data.time || Number.MAX_SAFE_INTEGER;
+        // Deterministic Winner Logic
+        if (p1Data.score > p2Data.score) winnerId = p1Id;
+        else if (p2Data.score > p1Data.score) winnerId = p2Id;
+        else {
+            // Tie on score, check time (lower is better)
+            // If time is missing, fallback to 0 (which is unfair but prevents crash)
+            // Ideally time should always be present if finished=true
+            const t1 = p1Data.time || Number.MAX_SAFE_INTEGER;
+            const t2 = p2Data.time || Number.MAX_SAFE_INTEGER;
 
-                if (t1 < t2) winnerId = p1Id;
-                else if (t2 < t1) winnerId = p2Id;
-                else winnerId = p1Id; // Exact tie, p1 wins (Host advantage or random)
-            }
+            if (t1 < t2) winnerId = p1Id;
+            else if (t2 < t1) winnerId = p2Id;
+            else winnerId = p1Id; // Exact tie, p1 wins (Host advantage or random)
+        }
 
-            const db = window.Firebase.db;
-            try {
-                await db.collection('challenges').doc(challengeId).update({
-                    winner: winnerId
-                });
-            } catch (e) {
-                console.log("Winner update race", e);
-            }
-        },
+        const db = window.Firebase.db;
+        try {
+            await db.collection('challenges').doc(challengeId).update({
+                winner: winnerId
+            });
+        } catch (e) {
+            console.log("Winner update race", e);
+        }
+    },
 
-        handleGameEnd(winnerId, betAmount, progress) {
-            const myId = window.store.state.userId;
-            const isMe = winnerId === myId;
+    handleGameEnd(winnerId, betAmount, progress) {
+        const myId = window.store.state.userId;
+        const isMe = winnerId === myId;
 
-            if (isMe) {
-                const pot = betAmount * 2;
-                window.store.update('coins', window.store.state.coins + pot);
-                window.toast(`KAZANDIN! +${pot} Altın 🏆`);
-                window.playSound('success');
-            } else {
-                window.playSound('error');
-            }
+        if (isMe) {
+            const pot = betAmount * 2;
+            window.store.update('coins', window.store.state.coins + pot);
+            window.toast(`KAZANDIN! +${pot} Altın 🏆`);
+            window.playSound('success');
+        } else {
+            window.playSound('error');
+        }
 
-            if (window.handleDuelFinish) {
-                window.handleDuelFinish(winnerId, betAmount, progress);
-            }
-        },
+        if (window.handleDuelFinish) {
+            window.handleDuelFinish(winnerId, betAmount, progress);
+        }
+    },
 
         // Send current progress
         async sendProgress(score, total) {
-            if (!this.activeChallengeId) return;
-            const db = window.Firebase.db;
-            const myId = window.store.state.userId;
+        if (!this.activeChallengeId) return;
+        const db = window.Firebase.db;
+        const myId = window.store.state.userId;
 
-            try {
-                await db.collection('challenges').doc(this.activeChallengeId).update({
-                    [`progress.${myId}.score`]: score,
-                    [`progress.${myId}.total`]: total
-                });
-            } catch (e) {
-                console.error("Progress sync error", e);
-            }
-        },
+        try {
+            await db.collection('challenges').doc(this.activeChallengeId).update({
+                [`progress.${myId}.score`]: score,
+                [`progress.${myId}.total`]: total
+            });
+        } catch (e) {
+            console.error("Progress sync error", e);
+        }
+    },
 
         // Send game over
         async sendGameOver(score, total, time) {
-            if (!this.activeChallengeId) return;
-            const db = window.Firebase.db;
-            const myId = window.store.state.userId;
+        if (!this.activeChallengeId) return;
+        const db = window.Firebase.db;
+        const myId = window.store.state.userId;
 
-            // Mark as finished
-            await db.collection('challenges').doc(this.activeChallengeId).update({
-                [`progress.${myId}`]: {
-                    score,
-                    total: total,
-                    finished: true,
-                    time: time
-                }
-            });
-
-            // Show waiting message
-            window.toast("Sonuçlar bekleniyor...");
-        },
-
-        requestRematch() {
-            if (this.opponent) {
-                this.challengeUser(this.opponent.id, this.opponent.name);
+        // Mark as finished
+        await db.collection('challenges').doc(this.activeChallengeId).update({
+            [`progress.${myId}`]: {
+                score,
+                total: total,
+                finished: true,
+                time: time
             }
-        }
-    };
+        });
 
-    // UI Helpers
-    function showChallengeModal(id, data) {
-        let modal = document.getElementById('challenge-modal');
-        if (!modal) {
-            const div = document.createElement('div');
-            div.id = 'challenge-modal';
-            div.className = 'modal';
-            div.innerHTML = `
+        // Show waiting message
+        window.toast("Sonuçlar bekleniyor...");
+    },
+
+    requestRematch() {
+        if (this.opponent) {
+            this.challengeUser(this.opponent.id, this.opponent.name);
+        }
+    }
+};
+
+// UI Helpers
+function showChallengeModal(id, data) {
+    let modal = document.getElementById('challenge-modal');
+    if (!modal) {
+        const div = document.createElement('div');
+        div.id = 'challenge-modal';
+        div.className = 'modal';
+        div.innerHTML = `
                 <div class="modal-content" style="text-align:center; border:1px solid var(--neon-purple);">
                     <h2 style="color:var(--neon-purple);">⚔️ Meydan Okuma!</h2>
                     <p id="challenge-msg" style="margin:20px 0; font-size:1.1rem;"></p>
@@ -338,40 +307,40 @@
                     </div>
                 </div>
             `;
-            document.body.appendChild(div);
-            modal = div;
-        }
-
-        document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
-
-        document.getElementById('btn-accept-challenge').onclick = () => {
-            window.multiplayer.acceptChallenge(id, data.senderId, data.senderName, data.betAmount || 50);
-            modal.classList.add('hidden');
-        };
-
-        document.getElementById('btn-reject-challenge').onclick = () => {
-            window.multiplayer.rejectChallenge(id);
-            modal.classList.add('hidden');
-        };
-
-        modal.classList.remove('hidden');
-        window.playSound('success');
+        document.body.appendChild(div);
+        modal = div;
     }
 
-    function updateOpponentProgress(score, total) {
-        const bar = document.getElementById('duel-opponent-bar');
-        if (bar) {
-            const pct = (score / total) * 100;
-            bar.style.width = `${pct}%`;
-        } else {
-            // Try to find it again or log warning
-            // console.warn("Opponent bar not found");
-        }
-    }
+    document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
 
-    // Expose init
-    window.initMultiplayer = function () {
-        window.multiplayer.init();
+    document.getElementById('btn-accept-challenge').onclick = () => {
+        window.multiplayer.acceptChallenge(id, data.senderId, data.senderName, data.betAmount || 50);
+        modal.classList.add('hidden');
     };
 
-})();
+    document.getElementById('btn-reject-challenge').onclick = () => {
+        window.multiplayer.rejectChallenge(id);
+        modal.classList.add('hidden');
+    };
+
+    modal.classList.remove('hidden');
+    window.playSound('success');
+}
+
+function updateOpponentProgress(score, total) {
+    const bar = document.getElementById('duel-opponent-bar');
+    if (bar) {
+        const pct = (score / total) * 100;
+        bar.style.width = `${pct}%`;
+    } else {
+        // Try to find it again or log warning
+        // console.warn("Opponent bar not found");
+    }
+}
+
+// Expose init
+window.initMultiplayer = function () {
+    window.multiplayer.init();
+};
+
+}) ();
