@@ -327,19 +327,7 @@
         }
     }
 
-    // Seeded Random Generator (Mulberry32)
-    function mulberry32(a) {
-        return function () {
-            var t = a += 0x6D2B79F5;
-            t = Math.imul(t ^ (t >>> 15), t | 1);
-            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        }
-    }
-
-    let duelRng = null;
-
-    function startDuelMode(opponent, seed) {
+    function startDuelMode(opponent, questions) {
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
 
@@ -353,11 +341,14 @@
         document.getElementById('duel-my-bar').style.width = '0%';
         document.getElementById('duel-opponent-bar').style.width = '0%';
 
-        // Initialize RNG with seed or random fallback
-        const s = seed || Math.floor(Math.random() * 1000000);
-        duelRng = mulberry32(s);
-
-        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
+        quizState = {
+            active: true,
+            currentQ: 1,
+            score: 0,
+            totalQ: 10,
+            mode: 'duel',
+            questions: questions // Store synchronized questions
+        };
         renderQuizQ();
     }
 
@@ -372,10 +363,27 @@
     function renderQuizQ() {
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
 
-        // Use seeded RNG for duel, Math.random for others
-        const random = (quizState.mode === 'duel' && duelRng) ? duelRng : Math.random;
+        let target, opts;
 
-        const target = window.words[Math.floor(random() * window.words.length)];
+        if (quizState.mode === 'duel' && quizState.questions) {
+            // Use synchronized questions for duel mode
+            const q = quizState.questions[quizState.currentQ - 1];
+            if (!q) {
+                console.error("Question not found for index:", quizState.currentQ - 1);
+                return;
+            }
+            target = { en: q.word, tr: q.correct };
+            opts = q.options;
+        } else {
+            // Random questions for other modes
+            target = window.words[Math.floor(Math.random() * window.words.length)];
+            opts = window.words.filter(w => w.en !== target.en)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3)
+                .map(w => w.tr);
+            opts.push(target.tr);
+            opts.sort(() => 0.5 - Math.random());
+        }
 
         const wordEl = document.getElementById('q-word');
 
@@ -386,13 +394,6 @@
             wordEl.innerText = target.en;
         }
 
-        let opts = window.words.filter(w => w.en !== target.en)
-            .sort(() => 0.5 - random())
-            .slice(0, 3)
-            .map(w => w.tr);
-
-        opts.push(target.tr);
-        opts.sort(() => 0.5 - random());
 
         const div = document.getElementById('q-options');
         div.innerHTML = '';

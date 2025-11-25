@@ -65,6 +65,31 @@
             const myId = window.store.state.userId;
             const myName = window.store.state.username;
 
+            // Generate synchronized question set
+            const questionSet = [];
+            const availableWords = [...window.words];
+
+            for (let i = 0; i < 10; i++) {
+                // Pick a random word for this question
+                const targetIndex = Math.floor(Math.random() * availableWords.length);
+                const target = availableWords.splice(targetIndex, 1)[0];
+
+                // Generate 3 wrong options
+                const wrongOptions = availableWords
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 3)
+                    .map(w => w.tr);
+
+                // Add correct answer and shuffle
+                const options = [...wrongOptions, target.tr].sort(() => 0.5 - Math.random());
+
+                questionSet.push({
+                    word: target.en,
+                    correct: target.tr,
+                    options: options
+                });
+            }
+
             try {
                 const docRef = await db.collection('challenges').add({
                     senderId: myId,
@@ -73,8 +98,8 @@
                     targetName: targetName,
                     status: 'pending',
                     betAmount: BET_AMOUNT,
-                    seed: Math.floor(Math.random() * 1000000), // Random seed for same questions
                     createdAt: window.Firebase.firestore.FieldValue.serverTimestamp(),
+                    questions: questionSet,
                     progress: {
                         [myId]: { score: 0, total: 10, finished: false },
                         [targetId]: { score: 0, total: 10, finished: false }
@@ -178,26 +203,29 @@
             // Switch to quiz tab
             window.switchTab('quiz');
 
-            // Wait for listener to get data and seed before starting
-            if (!this.opponent) {
-                console.error("Cannot start duel: Missing opponent");
-                return;
-            }
+            // Get challenge data to retrieve questions
+            const db = window.Firebase.db;
+            db.collection('challenges').doc(challengeId).get().then(doc => {
+                const data = doc.data();
+                const questions = data?.questions || [];
+
+                if (window.startDuelMode && this.opponent) {
+                    window.startDuelMode(this.opponent, questions);
+                } else {
+                    console.error("Cannot start duel: Missing opponent or startDuelMode");
+                    return;
+                }
+            }).catch(err => {
+                console.error("Error loading questions:", err);
+                window.toast("Sorular yüklenemedi!");
+            });
 
             // Listen for game progress
-            const db = window.Firebase.db;
             const myId = window.store.state.userId;
-            let duelInitialized = false; // Flag to prevent multiple initializations
 
             progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
                 const data = doc.data();
                 if (!data) return;
-
-                // Initialize duel mode ONCE with seed
-                if (!duelInitialized && window.startDuelMode && this.opponent) {
-                    window.startDuelMode(this.opponent, data.seed);
-                    duelInitialized = true;
-                }
 
                 // Robustly find opponent ID from progress keys
                 const progressKeys = Object.keys(data.progress || {});
