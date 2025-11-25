@@ -10,7 +10,9 @@ window.store = {
         tasks: [],
         activeItems: { freeze: false, doubleXP: 0 },
         level: 1,
-        history: {}
+        history: {},
+        inventory: { frames: [], themes: [] },
+        profileStyle: { frame: null, theme: 'default' }
     },
 
     init() {

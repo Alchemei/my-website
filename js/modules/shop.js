@@ -1,23 +1,47 @@
 (function() {
+    const shopCatalog = {
+        frames: [
+            { id: 'frame_gold', name: 'Altın Çerçeve', price: 500, icon: '🟡', css: 'border: 3px solid gold; box-shadow: 0 0 15px gold;' },
+            { id: 'frame_neon', name: 'Neon Çerçeve', price: 1000, icon: '💠', css: 'border: 3px solid var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue);' },
+            { id: 'frame_fire', name: 'Alev Çerçeve', price: 2000, icon: '🔥', css: 'border: 3px solid #f97316; box-shadow: 0 0 20px #f97316;' }
+        ],
+        themes: [
+            { id: 'theme_dark', name: 'Karanlık Mod', price: 0, icon: '🌑', css: 'background: var(--glass-surface);' },
+            { id: 'theme_ocean', name: 'Okyanus', price: 750, icon: '🌊', css: 'background: linear-gradient(135deg, #1e3a8a, #0f172a);' },
+            { id: 'theme_sunset', name: 'Gün Batımı', price: 1200, icon: '🌅', css: 'background: linear-gradient(135deg, #7c2d12, #1e1b4b);' }
+        ]
+    };
+
     window.initShop = function() {
         renderShop();
         window.buyItem = buyItem;
+        window.equipItem = equipItem;
         
         // Re-render shop when state changes (e.g. coins update)
         window.addEventListener('state-updated', renderShop);
     }
 
-    function buyItem(type, cost) {
+    function buyItem(type, id, cost) {
         if (window.store.state.coins >= cost) {
-            if (type === 'freeze') {
-                if (window.store.state.activeItems.freeze) {
-                    window.toast("Zaten Aktif!");
-                    return;
+            // Handle Consumables
+            if (type === 'buff') {
+                if (id === 'freeze') {
+                    if (window.store.state.activeItems.freeze) { window.toast("Zaten Aktif!"); return; }
+                    window.store.update('activeItems', { ...window.store.state.activeItems, freeze: true });
                 }
-                window.store.update('activeItems', { ...window.store.state.activeItems, freeze: true });
-            }
-            if (type === 'double') {
-                window.store.update('activeItems', { ...window.store.state.activeItems, doubleXP: window.store.state.activeItems.doubleXP + 20 });
+                if (id === 'double') {
+                    window.store.update('activeItems', { ...window.store.state.activeItems, doubleXP: window.store.state.activeItems.doubleXP + 20 });
+                }
+            } 
+            // Handle Cosmetics
+            else {
+                const inventory = window.store.state.inventory || { frames: [], themes: [] };
+                if (!inventory[type]) inventory[type] = [];
+                
+                if (inventory[type].includes(id)) { window.toast("Zaten Sahipsin!"); return; }
+                
+                inventory[type].push(id);
+                window.store.update('inventory', inventory);
             }
             
             window.store.update('coins', window.store.state.coins - cost);
@@ -25,27 +49,33 @@
             
             window.toast("Satın Alındı! 🎉");
             window.confetti();
+            renderShop(); // Force re-render to show Equip button
         } else {
             window.toast("Yetersiz Bakiye");
         }
     }
 
-    function renderShop() {
-        const btnFreeze = document.getElementById('btn-freeze');
-        const buffContainer = document.getElementById('active-buffs-container');
-        
-        if (btnFreeze) {
-            if (window.store.state.activeItems.freeze) {
-                btnFreeze.innerText = "Aktif ✅";
-                btnFreeze.disabled = true;
-                btnFreeze.style.opacity = 0.6;
-            } else {
-                btnFreeze.innerText = "200";
-                btnFreeze.disabled = false;
-                btnFreeze.style.opacity = 1;
-            }
+    function equipItem(type, id) {
+        const style = window.store.state.profileStyle || { frame: null, theme: 'default' };
+        // Toggle off if already equipped
+        if (type === 'frame' && style.frame === id) style.frame = null;
+        else if (type === 'theme' && style.theme === id) style.theme = 'default';
+        else {
+            if (type === 'frame') style.frame = id;
+            if (type === 'theme') style.theme = id;
         }
         
+        window.store.update('profileStyle', style);
+        window.toast("Kuşanıldı! ✨");
+        renderShop();
+    }
+
+    function renderShop() {
+        const buffContainer = document.getElementById('active-buffs-container');
+        const framesContainer = document.getElementById('shop-frames');
+        const themesContainer = document.getElementById('shop-themes');
+        
+        // Render Buffs Status
         if (buffContainer) {
             buffContainer.innerHTML = '';
             if (window.store.state.activeItems.freeze) {
@@ -54,6 +84,84 @@
             if (window.store.state.activeItems.doubleXP > 0) {
                 buffContainer.innerHTML += `<div style="background:rgba(59, 130, 246, 0.2); color:var(--neon-blue); padding:5px 10px; border-radius:20px; font-size:0.8rem; display:inline-block;">⚡ 2x Aktif (${window.store.state.activeItems.doubleXP})</div>`;
             }
+        }
+
+        // Render Frames
+        if (framesContainer) {
+            framesContainer.innerHTML = '';
+            shopCatalog.frames.forEach(item => {
+                const owned = (window.store.state.inventory?.frames || []).includes(item.id);
+                const equipped = window.store.state.profileStyle?.frame === item.id;
+                
+                let btnHtml = '';
+                if (owned) {
+                    btnHtml = `<button class="btn" onclick="window.equipItem('frame', '${item.id}')" style="background:${equipped ? 'var(--neon-green)' : 'rgba(255,255,255,0.1)'}; padding:8px 15px; border-radius:8px;">${equipped ? 'Çıkar' : 'Kuşan'}</button>`;
+                } else {
+                    btnHtml = `<button class="btn price-btn" onclick="window.buyItem('frames', '${item.id}', ${item.price})">${item.price}</button>`;
+                }
+
+                framesContainer.innerHTML += `
+                    <div class="glass-panel shop-item">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <div class="item-icon" style="${item.css} border-radius:50%;">${item.icon}</div>
+                            <div>
+                                <div style="font-weight:700; font-size:1.1rem;">${item.name}</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">Profil Çerçevesi</div>
+                            </div>
+                        </div>
+                        ${btnHtml}
+                    </div>`;
+            });
+        }
+
+        // Render Themes
+        if (themesContainer) {
+            themesContainer.innerHTML = '';
+            shopCatalog.themes.forEach(item => {
+                // Default theme is always owned
+                const owned = item.price === 0 || (window.store.state.inventory?.themes || []).includes(item.id);
+                const equipped = (window.store.state.profileStyle?.theme || 'default') === item.id || (item.id === 'theme_dark' && (!window.store.state.profileStyle?.theme || window.store.state.profileStyle.theme === 'default'));
+                
+                let btnHtml = '';
+                if (owned) {
+                    btnHtml = `<button class="btn" onclick="window.equipItem('theme', '${item.id}')" style="background:${equipped ? 'var(--neon-green)' : 'rgba(255,255,255,0.1)'}; padding:8px 15px; border-radius:8px;">${equipped ? 'Seçili' : 'Seç'}</button>`;
+                } else {
+                    btnHtml = `<button class="btn price-btn" onclick="window.buyItem('themes', '${item.id}', ${item.price})">${item.price}</button>`;
+                }
+
+                themesContainer.innerHTML += `
+                    <div class="glass-panel shop-item">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <div class="item-icon" style="${item.css} border-radius:8px;">${item.icon}</div>
+                            <div>
+                                <div style="font-weight:700; font-size:1.1rem;">${item.name}</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">Arka Plan Teması</div>
+                            </div>
+                        </div>
+                        ${btnHtml}
+                    </div>`;
+            });
+        }
+        
+        // Update Buff Buttons (Legacy ID support)
+        const btnFreeze = document.getElementById('btn-freeze');
+        if (btnFreeze) {
+             if (window.store.state.activeItems.freeze) {
+                btnFreeze.innerText = "Aktif ✅";
+                btnFreeze.disabled = true;
+                btnFreeze.style.opacity = 0.6;
+            } else {
+                btnFreeze.innerText = "200";
+                btnFreeze.disabled = false;
+                btnFreeze.style.opacity = 1;
+            }
+            // Update onclick to use new signature
+            btnFreeze.onclick = () => window.buyItem('buff', 'freeze', 200);
+        }
+        
+        const btnDouble = document.getElementById('btn-double');
+        if (btnDouble) {
+             btnDouble.onclick = () => window.buyItem('buff', 'double', 350);
         }
     }
 })();

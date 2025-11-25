@@ -24,10 +24,10 @@
         try {
             const db = window.Firebase.db;
             // Query global leaderboard collection
-            // Query top 10 by XP
+            // Query larger batch to ensure we find real players even if bots exist
             const snapshot = await db.collection('artifacts').doc(appId).collection('leaderboard')
                 .orderBy('xp', 'desc')
-                .limit(10)
+                .limit(50)
                 .get();
 
             if (snapshot.empty) {
@@ -37,19 +37,22 @@
 
             let players = [];
             snapshot.forEach(doc => {
-                players.push({ id: doc.id, ...doc.data() });
+                const data = doc.data();
+                // Filter out bots explicitly
+                if (data.isBot) return;
+                players.push({ id: doc.id, ...data });
             });
 
-            // Client-side sort fallback (just in case)
+            // Sort by XP descending
             players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+
+            // Take only top 10 real users
+            players = players.slice(0, 10);
 
             let html = '';
             let rank = 1;
             
             players.forEach(data => {
-                // Filter out bots if any exist in DB (legacy)
-                if (data.isBot) return;
-
                 const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
                 
                 let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;

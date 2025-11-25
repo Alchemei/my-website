@@ -235,6 +235,41 @@
              if (badge) badge.innerText = `Lvl ${lvl} • ${title}`;
         }
 
+        // Apply Profile Styles
+        const style = window.store.state.profileStyle || { frame: null, theme: 'default' };
+        
+        // Apply Theme (Background)
+        const appBg = document.querySelector('.aurora-bg');
+        if (appBg) {
+            if (style.theme === 'theme_ocean') appBg.style.background = 'radial-gradient(circle at 50% 0%, #1e3a8a, #0f172a)';
+            else if (style.theme === 'theme_sunset') appBg.style.background = 'radial-gradient(circle at 50% 0%, #7c2d12, #1e1b4b)';
+            else appBg.style.background = 'radial-gradient(circle at 50% 0%, #172554, #020617)'; // Default
+        }
+
+        // Apply Frame (to avatar/icon)
+        // We need an avatar element. Let's assume the profile icon in the nav or create a big one in profile.
+        // For now, let's apply it to the "career-badge" as a border, or add a specific avatar area.
+        // Let's add a big avatar display in the profile tab if it doesn't exist, or style the existing elements.
+        
+        // Let's style the "Level Display" circle in the header as the avatar placeholder for now
+        const levelDisplay = document.getElementById('level-display');
+        if (levelDisplay) {
+            // Reset styles
+            levelDisplay.style.border = '1px solid var(--glass-border)';
+            levelDisplay.style.boxShadow = 'none';
+            
+            if (style.frame === 'frame_gold') {
+                levelDisplay.style.border = '3px solid gold';
+                levelDisplay.style.boxShadow = '0 0 15px gold';
+            } else if (style.frame === 'frame_neon') {
+                levelDisplay.style.border = '3px solid var(--neon-blue)';
+                levelDisplay.style.boxShadow = '0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue)';
+            } else if (style.frame === 'frame_fire') {
+                levelDisplay.style.border = '3px solid #f97316';
+                levelDisplay.style.boxShadow = '0 0 20px #f97316';
+            }
+        }
+
         renderChart();
         renderFavs();
     }
