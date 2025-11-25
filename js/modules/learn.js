@@ -6,98 +6,25 @@
         return { en: parts[0], tr: parts[1], ctx: parts[2] };
     });
 
-    // --- Word of the Day ---
-    let wordOfDay = null;
 
-    function initWordOfDay() {
-        // Pick a word based on the date so it's consistent for everyone (or at least consistent for the user per day)
-        const dateStr = new Date().toISOString().slice(0, 10);
-        // Simple hash of date string to pick index
-        let hash = 0;
-        for (let i = 0; i < dateStr.length; i++) {
-            hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
-            hash |= 0;
-        }
-        const idx = Math.abs(hash) % window.words.length;
-        wordOfDay = window.words[idx];
 
-        const el = document.getElementById('wod-text');
-        if (el) {
-            el.innerHTML = `${wordOfDay.en} <span style="opacity:0.7; font-weight:400;">(${wordOfDay.tr})</span>`;
-        }
-    }
 
-    // --- Speaking Practice ---
-    let recognition;
-    let isListening = false;
-
-    function initSpeaking() {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                isListening = true;
-                const btn = document.getElementById('btn-mic');
-                if (btn) btn.classList.add('mic-active');
-                window.toast("Dinliyorum...");
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                const btn = document.getElementById('btn-mic');
-                if (btn) btn.classList.remove('mic-active');
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript.toLowerCase().trim();
-                const target = window.words[window.store.state.wordIndex].en.toLowerCase().trim();
-
-                // Remove punctuation for comparison
-                const cleanTranscript = transcript.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-                const cleanTarget = target.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-
-                if (cleanTranscript === cleanTarget) {
-                    window.toast(`Harika! "${transcript}"`);
-                    vote(true, true); // true for known, true for speaking bonus
-                } else {
-                    window.toast(`Duyulan: "${transcript}" (Tekrar dene)`);
-                    window.playSound('error');
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech error", event.error);
-                window.toast("Ses algılanamadı.");
-            };
-        }
-    }
-
-    function toggleSpeaking() {
-        if (!recognition) {
-            window.toast("Tarayıcın sesli komutu desteklemiyor.");
-            return;
-        }
-        if (isListening) {
-            recognition.stop();
-        } else {
-            recognition.start();
-        }
-    }
 
     window.initLearn = function () {
         findNextWord();
-        initWordOfDay();
-        initSpeaking();
+
+
 
         // Bind global events for HTML onclick attributes
         window.flipCard = flipCard;
-        window.playTTS = () => window.playTTS(window.words[window.store.state.wordIndex].en);
+        window.playTTS = function () {
+            const text = window.words[window.store.state.wordIndex].en;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        };
         window.toggleFav = toggleFav;
-        window.toggleSpeaking = toggleSpeaking;
+
         window.vote = vote;
 
         // Listen for state updates
@@ -164,16 +91,9 @@
                 window.store.update('activeItems', { ...window.store.state.activeItems, doubleXP: window.store.state.activeItems.doubleXP - 1 });
             }
 
-            if (isSpeaking) {
-                gainedXp += 5; // Bonus for speaking
-            }
 
-            // Word of the Day Bonus
-            if (wordOfDay && w === wordOfDay.en) {
-                gainedXp += 50;
-                window.toast("Günün Kelimesi Bonusu! +50 XP");
-                window.playSound('success');
-            }
+
+
 
             window.store.update('xp', window.store.state.xp + gainedXp);
             window.store.update('coins', window.store.state.coins + 5);
@@ -186,9 +106,7 @@
 
             window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: gainedXp } }));
 
-            let msg = `+${gainedXp} XP`;
             if (window.store.state.activeItems.doubleXP > 0) msg += ' ⚡';
-            if (isSpeaking) msg += ' 🎤';
 
             window.toast(msg);
             window.confetti();

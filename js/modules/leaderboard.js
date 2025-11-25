@@ -1,19 +1,19 @@
-(function() {
+(function () {
     const APP_ID_KEY = 'english-master-global';
     const appId = window.__app_id || APP_ID_KEY;
 
-    window.initLeaderboard = function() {
+    window.initLeaderboard = function () {
         // Listen for tab switch to leaderboard to trigger refresh
         const btn = document.querySelector('button[onclick*="leaderboard"]');
-        if(btn) {
+        if (btn) {
             btn.addEventListener('click', loadLeaderboard);
         }
     }
 
     async function loadLeaderboard() {
         const list = document.getElementById('leaderboard-list');
-        if(!list) return;
-        
+        if (!list) return;
+
         if (!window.Firebase || !window.Firebase.db) {
             list.innerHTML = '<div style="padding:20px; text-align:center;">Bağlantı bekleniyor...</div>';
             return;
@@ -51,14 +51,14 @@
 
             let html = '';
             let rank = 1;
-            
+
             players.forEach(data => {
                 const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
-                
+
                 let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
-                if(rank === 1) rankBadge = '🥇';
-                if(rank === 2) rankBadge = '🥈';
-                if(rank === 3) rankBadge = '🥉';
+                if (rank === 1) rankBadge = '🥇';
+                if (rank === 2) rankBadge = '🥈';
+                if (rank === 3) rankBadge = '🥉';
 
                 // Determine league if not saved
                 let league = data.league;
@@ -78,16 +78,19 @@
                         <div style="margin-right:10px; font-size:1.2rem;">${league}</div>
                         <div style="flex:1;">
                             <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0)/100)+1}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
                         </div>
-                        <div style="font-weight:800; color:var(--neon-green);">${data.xp || 0} XP</div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; color:var(--neon-green);">${data.xp || 0} XP</div>
+                            ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" style="background:var(--neon-purple); border:none; color:white; font-size:0.7rem; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer;">⚔️ Meydan Oku</button>` : ''}
+                        </div>
                     </div>
                 `;
                 rank++;
             });
 
             if (html === '') {
-                 list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz başka oyuncu yok.</div>';
+                list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz başka oyuncu yok.</div>';
             } else {
                 list.innerHTML = html;
             }

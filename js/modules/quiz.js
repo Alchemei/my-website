@@ -242,10 +242,64 @@
         }
     }
 
+    window.startDuelMode = startDuelMode;
+    window.handleDuelFinish = handleDuelFinish;
+
+    function startDuelMode(opponent) {
+        showGamesMenu();
+        document.getElementById('games-menu').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.remove('hidden');
+        document.getElementById('duel-container').classList.remove('hidden');
+
+        // Move question area inside duel container
+        const qArea = document.getElementById('quiz-play-area').querySelector('.glass-panel');
+        if (qArea) document.getElementById('duel-question-area').appendChild(qArea);
+
+        document.getElementById('duel-opponent-name').innerText = opponent.name;
+        document.getElementById('duel-my-bar').style.width = '0%';
+        document.getElementById('duel-opponent-bar').style.width = '0%';
+
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
+        renderQuizQ();
+    }
+
+    function handleDuelFinish(winnerId, score, time) {
+        if (quizState.mode !== 'duel') return;
+
+        const isMe = winnerId === window.store.state.userId;
+        const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
+        const xp = isMe ? 100 : 20;
+
+        finishGame(xp, title);
+        document.getElementById('duel-container').classList.add('hidden');
+
+        // Move question area back
+        const qArea = document.getElementById('duel-question-area').querySelector('.glass-panel');
+        if (qArea) document.getElementById('quiz-play-area').appendChild(qArea);
+    }
+
+    window.startListeningGame = startListeningGame;
+
+    function startListeningGame() {
+        showGamesMenu();
+        document.getElementById('games-menu').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.remove('hidden');
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'listening' };
+        renderQuizQ();
+    }
+
     function renderQuizQ() {
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
         const target = window.words[Math.floor(Math.random() * window.words.length)];
-        document.getElementById('q-word').innerText = target.en;
+
+        const wordEl = document.getElementById('q-word');
+
+        if (quizState.mode === 'listening') {
+            wordEl.innerHTML = `<button class="btn" onclick="window.playTTS('${target.en}')" style="background:var(--neon-blue); width:80px; height:80px; border-radius:50%; font-size:2rem;">🔊</button>`;
+            setTimeout(() => window.playTTS(target.en), 300);
+        } else {
+            wordEl.innerText = target.en;
+        }
 
         let opts = window.words.filter(w => w.en !== target.en)
             .sort(() => 0.5 - Math.random())
@@ -290,6 +344,14 @@
             window.playSound('error');
         }
 
+        if (quizState.mode === 'duel') {
+            // Update my bar
+            const pct = (quizState.score / quizState.totalQ) * 100;
+            document.getElementById('duel-my-bar').style.width = `${pct}%`;
+            // Send to opponent
+            window.multiplayer.sendProgress(quizState.score, quizState.totalQ);
+        }
+
         setTimeout(() => {
             if (quizState.currentQ < quizState.totalQ) {
                 quizState.currentQ++;
@@ -301,6 +363,12 @@
     }
 
     function finishQuiz() {
+        if (quizState.mode === 'duel') {
+            window.multiplayer.sendGameOver(quizState.score, Date.now());
+            handleDuelFinish(window.store.state.userId, quizState.score, Date.now());
+            return;
+        }
+
         document.getElementById('quiz-play-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.remove('hidden');
         quizState.active = false;

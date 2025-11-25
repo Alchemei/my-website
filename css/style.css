@@ -15,6 +15,10 @@
     
     --radius-xl: 28px;
     --radius-lg: 18px;
+
+    /* Card Variables */
+    --card-bg-front: linear-gradient(145deg, #1e293b, #0f172a);
+    --card-bg-back: linear-gradient(145deg, #4c1d95, #0f172a);
 }
 
 /* --- RESET & BASE --- */
@@ -142,7 +146,7 @@ main {
     backface-visibility: hidden; -webkit-backface-visibility: hidden;
     border-radius: var(--radius-xl);
     /* DÜZELTME: Tam opak arka plan */
-    background: linear-gradient(145deg, #1e293b, #0f172a);
+    background: var(--card-bg-front);
     border: 1px solid var(--glass-border);
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     padding: 30px; text-align: center;
@@ -153,7 +157,7 @@ main {
 .card-back { 
     transform: rotateY(180deg); 
     /* DÜZELTME: Tam opak arka plan */
-    background: linear-gradient(145deg, #4c1d95, #0f172a); 
+    background: var(--card-bg-back); 
     border-color: var(--neon-purple); 
     z-index: 1;
 }

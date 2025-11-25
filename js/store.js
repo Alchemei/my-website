@@ -12,7 +12,10 @@ window.store = {
         level: 1,
         history: {},
         inventory: { frames: [], themes: [] },
-        profileStyle: { frame: null, theme: 'default' }
+        profileStyle: { frame: null, theme: 'default' },
+        soundEnabled: true,
+        userId: null,
+        username: 'Player'
     },
 
     init() {
@@ -28,6 +31,11 @@ window.store = {
                 console.error('Error loading state:', e);
             }
         }
+
+        if (!this.state.userId) {
+            this.state.userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            this.save();
+        }
     },
 
     save() {
@@ -38,7 +46,7 @@ window.store = {
     update(key, value) {
         const oldXp = this.state.xp;
         this.state[key] = value;
-        
+
         if (key === 'xp') {
             const newLevel = Math.floor(value / 100) + 1;
             if (newLevel > this.state.level) {
@@ -46,7 +54,7 @@ window.store = {
                 window.dispatchEvent(new CustomEvent('level-up', { detail: { level: newLevel } }));
             }
         }
-        
+
         this.save();
     },
 

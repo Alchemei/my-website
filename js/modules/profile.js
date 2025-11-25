@@ -249,6 +249,10 @@
             root.style.setProperty('--neon-blue', '#38bdf8'); // Sky 400
             root.style.setProperty('--neon-purple', '#818cf8'); // Indigo 400
 
+            // Card Theme
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #1e40af, #0f172a)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #2563eb, #1e3a8a)');
+
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #0369a1, #0f172a)';
         }
         else if (style.theme === 'theme_sunset') {
@@ -257,6 +261,10 @@
             root.style.setProperty('--glass-surface', 'rgba(88, 28, 135, 0.6)'); // Purple 900
             root.style.setProperty('--neon-blue', '#fb7185'); // Rose 400 (Replaces Blue accent)
             root.style.setProperty('--neon-purple', '#c084fc'); // Purple 400
+
+            // Card Theme
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #9d174d, #4a044e)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #db2777, #831843)');
 
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #be123c, #2a0a18)';
         }
@@ -267,13 +275,12 @@
             root.style.setProperty('--neon-blue', '#60a5fa');
             root.style.setProperty('--neon-purple', '#a78bfa');
 
+            // Card Theme (Reset)
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #1e293b, #0f172a)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #4c1d95, #0f172a)');
+
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #172554, #020617)';
         }
-
-        // Apply Frame (to avatar/icon)
-        // We need an avatar element. Let's assume the profile icon in the nav or create a big one in profile.
-        // For now, let's apply it to the "career-badge" as a border, or add a specific avatar area.
-        // Let's add a big avatar display in the profile tab if it doesn't exist, or style the existing elements.
 
         // Apply Frame (to avatar/icon)
         // 1. Header Level Badge (The whole badge, not just the text)
