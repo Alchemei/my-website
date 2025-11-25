@@ -3,6 +3,7 @@
 
     window.initQuiz = function() {
         window.startQuiz = startQuiz;
+        window.startChallenge = startChallenge;
         window.resetQuiz = startQuiz;
         window.handleQuizAns = handleQuizAns;
     }
@@ -10,8 +11,34 @@
     function startQuiz() {
         document.getElementById('quiz-play-area').classList.remove('hidden');
         document.getElementById('quiz-result-area').classList.add('hidden');
-        quizState = { active: true, currentQ: 1, score: 0, totalQ: 20 };
+        document.getElementById('quiz-challenge-area').classList.add('hidden');
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 20, mode: 'normal' };
         renderQuizQ();
+    }
+
+    function startChallenge() {
+        document.getElementById('quiz-play-area').classList.remove('hidden');
+        document.getElementById('quiz-result-area').classList.add('hidden');
+        document.getElementById('quiz-challenge-area').classList.remove('hidden');
+        
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 999, mode: 'challenge', timeLeft: 60 };
+        renderQuizQ();
+        
+        const timerEl = document.getElementById('challenge-timer');
+        const timer = setInterval(() => {
+            if (!quizState.active || quizState.mode !== 'challenge') {
+                clearInterval(timer);
+                return;
+            }
+            
+            quizState.timeLeft--;
+            timerEl.innerText = quizState.timeLeft;
+            
+            if (quizState.timeLeft <= 0) {
+                clearInterval(timer);
+                finishQuiz();
+            }
+        }, 1000);
     }
 
     function renderQuizQ() {
@@ -75,8 +102,16 @@
     function finishQuiz() {
         document.getElementById('quiz-play-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.remove('hidden');
+        quizState.active = false;
         
         let baseXP = quizState.score * 5;
+        if (quizState.mode === 'challenge') {
+            baseXP = quizState.score * 10; // Double XP for challenge
+            document.getElementById('res-title').innerText = "Meydan Okuma Bitti!";
+        } else {
+            document.getElementById('res-title').innerText = "Quiz Tamamlandı!";
+        }
+
         let finalXP = baseXP;
         
         if (window.store.state.activeItems.doubleXP > 0) {
@@ -93,7 +128,7 @@
         window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: finalXP } }));
         window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'quiz', amount: 1 } }));
 
-        document.getElementById('res-score').innerText = `${quizState.score} / 20`;
+        document.getElementById('res-score').innerText = `${quizState.score} Doğru`;
         document.getElementById('res-xp').innerText = `+${finalXP}`;
     }
 })();

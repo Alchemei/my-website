@@ -257,13 +257,28 @@
         });
     }
 
+    window.openFavs = function() {
+        document.getElementById('favs-modal').classList.remove('hidden');
+        renderFavs();
+    }
+
+    window.openDictionary = function() {
+        document.getElementById('dict-modal').classList.remove('hidden');
+        renderDictionary();
+    }
+
+    window.filterDictionary = function() {
+        const q = document.getElementById('dict-search').value.toLowerCase();
+        renderDictionary(q);
+    }
+
     function renderFavs() {
-        const list = document.getElementById('favorites-list');
+        const list = document.getElementById('favorites-list-modal');
         if (!list) return;
         
         list.innerHTML = '';
         if (window.store.state.favs.length === 0) {
-            list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Liste boş.</div>';
+            list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; margin-top:50px;">Henüz favori kelimen yok.</div>';
             return;
         }
         
@@ -277,8 +292,56 @@
             div.style.display = 'flex';
             div.style.justifyContent = 'space-between';
             div.style.alignItems = 'center';
-            div.innerHTML = `<div><div style="font-weight:700;">${wObj.en}</div><div style="font-size:0.85rem; color:var(--text-muted);">${wObj.tr}</div></div><button class="btn" onclick="window.removeFav('${wEn}')" style="background:transparent; color:var(--neon-red);">✕</button>`;
+            div.innerHTML = `
+                <div>
+                    <div style="font-weight:700; font-size:1.1rem;">${wObj.en}</div>
+                    <div style="font-size:0.9rem; color:var(--text-muted);">${wObj.tr}</div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn" onclick="window.playTTS('${wObj.en}')" style="background:rgba(255,255,255,0.1); width:36px; height:36px; border-radius:50%;">🔊</button>
+                    <button class="btn" onclick="window.removeFav('${wEn}')" style="background:rgba(239,68,68,0.1); color:var(--neon-red); width:36px; height:36px; border-radius:50%;">✕</button>
+                </div>`;
             list.appendChild(div);
         });
+    }
+
+    function renderDictionary(query = '') {
+        const list = document.getElementById('dict-list');
+        if (!list) return;
+        
+        list.innerHTML = '';
+        let count = 0;
+        
+        // Show only first 50 if no query to prevent lag
+        const limit = query ? 100 : 50;
+        
+        for (const w of window.words) {
+            if (count >= limit) break;
+            if (query && !w.en.toLowerCase().includes(query) && !w.tr.toLowerCase().includes(query)) continue;
+            
+            const isLearned = window.store.state.learned.includes(w.en);
+            const isFav = window.store.state.favs.includes(w.en);
+            
+            const div = document.createElement('div');
+            div.style.padding = '15px';
+            div.style.borderBottom = '1px solid var(--glass-border)';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'space-between';
+            div.style.alignItems = 'center';
+            
+            div.innerHTML = `
+                <div>
+                    <div style="font-weight:700; color:${isLearned ? 'var(--neon-green)' : 'white'}">${w.en}</div>
+                    <div style="font-size:0.85rem; color:var(--text-muted);">${w.tr}</div>
+                </div>
+                <div style="font-size:1.2rem;">${isFav ? '❤️' : ''}</div>
+            `;
+            list.appendChild(div);
+            count++;
+        }
+        
+        if (count === 0) {
+            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">Sonuç bulunamadı.</div>';
+        }
     }
 })();
