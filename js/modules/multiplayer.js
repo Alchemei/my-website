@@ -3,6 +3,7 @@
     // This simulates real-time features for demo purposes
 
     const CHANNEL = 'english-master-multiplayer';
+    const SESSION_ID = Math.random().toString(36).substr(2, 9);
 
     window.multiplayer = {
         activeChallenge: null,
@@ -16,6 +17,7 @@
                 payload,
                 senderId: window.store.state.userId,
                 senderName: window.store.state.username || 'Player',
+                sessionId: SESSION_ID,
                 timestamp: Date.now()
             };
             localStorage.setItem(CHANNEL, JSON.stringify(msg));
@@ -85,7 +87,7 @@
         if (e.key !== CHANNEL || !e.newValue) return;
 
         const msg = JSON.parse(e.newValue);
-        if (msg.senderId === window.store.state.userId) return; // Ignore own messages
+        if (msg.sessionId === SESSION_ID) return; // Ignore own messages from this tab
 
         // Handle Challenge Request
         if (msg.type === 'CHALLENGE_REQUEST') {
@@ -100,6 +102,8 @@
         // Handle Challenge Accepted
         if (msg.type === 'CHALLENGE_ACCEPTED') {
             // If I am the one who sent the challenge
+            // We check if the targetId matches OUR userId. 
+            // Since we might share userId in this demo, we also check if we are NOT the one who sent the ACCEPT message.
             if (msg.payload.targetId === window.store.state.userId) {
                 window.multiplayer.opponent = { id: msg.senderId, name: msg.senderName };
                 window.multiplayer.isHost = true;
@@ -110,15 +114,17 @@
 
         // Handle Game Progress
         if (msg.type === 'GAME_PROGRESS') {
-            if (window.multiplayer.opponent && msg.senderId === window.multiplayer.opponent.id) {
-                // Update opponent progress bar in UI
+            // Check if this message is from our current opponent
+            // In demo mode with shared userId, we rely on session ID filtering above to not receive our own progress
+            // So we just check if we are in a duel
+            if (window.multiplayer.opponent) {
                 updateOpponentProgress(msg.payload.score, msg.payload.total);
             }
         }
 
         // Handle Game Over
         if (msg.type === 'GAME_OVER') {
-            if (window.multiplayer.opponent && msg.senderId === window.multiplayer.opponent.id) {
+            if (window.multiplayer.opponent) {
                 window.handleDuelFinish(msg.senderId, msg.payload.score, msg.payload.time);
             }
         }
