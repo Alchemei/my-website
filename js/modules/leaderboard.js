@@ -34,12 +34,19 @@
                 return;
             }
 
+            let players = [];
+            snapshot.forEach(doc => {
+                players.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Client-side sort fallback to ensure correct order
+            players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+
             let html = '';
             let rank = 1;
             
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === doc.id;
+            players.forEach(data => {
+                const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
                 
                 let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
                 if(rank === 1) rankBadge = '🥇';
@@ -51,9 +58,9 @@
                         <div style="font-size:1.2rem; margin-right:15px;">${rankBadge}</div>
                         <div style="flex:1;">
                             <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor(data.xp/100)+1}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0)/100)+1}</div>
                         </div>
-                        <div style="font-weight:800; color:var(--neon-green);">${data.xp} XP</div>
+                        <div style="font-weight:800; color:var(--neon-green);">${data.xp || 0} XP</div>
                     </div>
                 `;
                 rank++;

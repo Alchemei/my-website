@@ -1,44 +1,6 @@
 // --- AUDIO SYSTEM ---
-const AudioSys = {
-    ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    
-    playTone(freq, type, duration, vol = 0.1) {
-        if (this.ctx.state === 'suspended') this.ctx.resume();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        
-        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-        
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
-    },
-
-    click() { this.playTone(400, 'sine', 0.1, 0.05); },
-    success() { 
-        this.playTone(600, 'sine', 0.1, 0.1);
-        setTimeout(() => this.playTone(800, 'sine', 0.2, 0.1), 100);
-    },
-    error() { 
-        this.playTone(300, 'sawtooth', 0.1, 0.1);
-        setTimeout(() => this.playTone(200, 'sawtooth', 0.2, 0.1), 100);
-    },
-    levelUp() {
-        [400, 500, 600, 800, 1000].forEach((f, i) => {
-            setTimeout(() => this.playTone(f, 'square', 0.2, 0.1), i * 100);
-        });
-    }
-};
-
-window.playSound = (type) => {
-    if (AudioSys[type]) AudioSys[type]();
-};
+// Sound effects disabled by user request
+window.playSound = () => {};
 
 // --- UTILS ---
 window.toast = function(msg) {

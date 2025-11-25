@@ -139,7 +139,7 @@
             if (window.store.state.xp > 0) {
                 const lbRef = db.collection('artifacts').doc(appId).collection('leaderboard').doc(currentUser.uid);
                 await lbRef.set({
-                    xp: window.store.state.xp,
+                    xp: Number(window.store.state.xp), // Ensure number type
                     name: currentUser.displayName || 'Anonim',
                     photo: currentUser.photoURL || null,
                     updatedAt: window.Firebase.firestore.FieldValue.serverTimestamp()
