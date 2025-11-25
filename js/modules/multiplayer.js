@@ -171,92 +171,22 @@
 
                 // Check for opponent progress
                 const oppProgress = data.progress[this.opponent.id];
-                if (oppProgress) {
-                    updateOpponentProgress(oppProgress.score, oppProgress.total);
+                const db = window.Firebase.db;
+                const myId = window.store.state.userId;
+
+                try {
+                    await db.collection('challenges').doc(this.activeChallengeId).update({
+                        [`progress.${myId}.score`]: score,
+                        [`progress.${myId}.total`]: total
+                    });
+                } catch (e) {
+                    console.error("Progress sync error", e);
                 }
+            },
 
-                // Check if winner is decided
-                if (data.winner) {
-                    this.handleGameEnd(data.winner, data.betAmount);
-                    if (progressListener) progressListener(); // Stop listening
-                    return;
-                }
-
-                // Check if both finished (Client-side check to trigger winner calculation)
-                const myP = data.progress[myId];
-                const oppP = data.progress[this.opponent.id];
-
-                if (myP?.finished && oppP?.finished && !data.winner) {
-                    // Both finished, calculate winner.
-                    // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                    this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
-                }
-            });
-        },
-
-        async determineWinner(challengeId, p1Id, p1Data, p2Id, p2Data) {
-            let winnerId = null;
-
-            // Deterministic Winner Logic
-            if (p1Data.score > p2Data.score) winnerId = p1Id;
-            else if (p2Data.score > p1Data.score) winnerId = p2Id;
-            else {
-                // Tie on score, check time (lower is better)
-                const t1 = p1Data.time || 0;
-                const t2 = p2Data.time || 0;
-
-                if (t1 < t2) winnerId = p1Id;
-                else if (t2 < t1) winnerId = p2Id;
-                else winnerId = p1Id; // Exact tie, p1 wins
-            }
-
-            const db = window.Firebase.db;
-            try {
-                await db.collection('challenges').doc(challengeId).update({
-                    winner: winnerId
-                });
-            } catch (e) {
-                console.log("Winner update race", e);
-            }
-        },
-
-        handleGameEnd(winnerId, betAmount) {
-            const myId = window.store.state.userId;
-            const isMe = winnerId === myId;
-
-            if (isMe) {
-                const pot = betAmount * 2;
-                window.store.update('coins', window.store.state.coins + pot);
-                window.toast(`KAZANDIN! +${pot} Altın 🏆`);
-                window.playSound('success');
-            } else {
-                window.playSound('error');
-            }
-
-            if (window.handleDuelFinish) {
-                window.handleDuelFinish(winnerId, betAmount);
-            }
-        },
-
-        // Send current progress
-        async sendProgress(score, total) {
-            if (!this.activeChallengeId) return;
-            const db = window.Firebase.db;
-            const myId = window.store.state.userId;
-
-            try {
-                await db.collection('challenges').doc(this.activeChallengeId).update({
-                    [`progress.${myId}.score`]: score,
-                    [`progress.${myId}.total`]: total
-                });
-            } catch (e) {
-                console.error("Progress sync error", e);
-            }
-        },
-
-        // Send game over
-        async sendGameOver(score, time) {
-            if (!this.activeChallengeId) return;
+                // Send game over
+                async sendGameOver(score, time) {
+                if(!this.activeChallengeId) return;
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 

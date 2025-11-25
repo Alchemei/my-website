@@ -245,18 +245,61 @@
     window.startDuelMode = startDuelMode;
     window.handleDuelFinish = handleDuelFinish;
 
-    function handleDuelFinish(winnerId, betAmount) {
+    function handleDuelFinish(winnerId, betAmount, progress) {
         if (quizState.mode !== 'duel') return;
 
-        const isMe = winnerId === window.store.state.userId;
+        const myId = window.store.state.userId;
+        const opponentId = window.multiplayer.opponent.id;
+        const opponentName = window.multiplayer.opponent.name;
+
+        const myData = progress[myId];
+        const oppData = progress[opponentId];
+
+        const isMe = winnerId === myId;
         const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
 
+        // Calculate times (approximate if not stored precisely, but we send Date.now())
+        // Note: We sent Date.now() as 'time'. To get duration, we'd need start time.
+        // For now, let's just show score. If we want duration, we need to store startTime in challenge.
+        // Assuming 'time' in progress is the timestamp of completion.
+        // Let's just show Score for now to be safe, or if we have startTime in challenge data (we do), we can diff.
+        // But 'progress' passed here might just be the progress object.
+        // Let's just show Score & Correct/Total.
+
         finishGame(xp, title);
 
+        // Hide Duel Container explicitly
+        document.getElementById('duel-container').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.add('hidden'); // Ensure this is hidden too
+
         // Custom Result Message for Duel
-        document.getElementById('res-score').innerText = isMe ? 'Zafer!' : 'Yenilgi';
+        const resScore = document.getElementById('res-score');
+        resScore.innerHTML = ''; // Clear previous text
+
+        // Create Comparison Table
+        const table = document.createElement('div');
+        table.style.display = 'flex';
+        table.style.flexDirection = 'column';
+        table.style.gap = '10px';
+        table.style.margin = '20px 0';
+        table.style.width = '100%';
+
+        const rowStyle = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:8px;";
+
+        table.innerHTML = `
+            <div style="${rowStyle} border: 1px solid ${isMe ? 'var(--neon-green)' : 'transparent'};">
+                <span style="font-weight:bold;">Sen</span>
+                <span>${myData.score} / ${myData.total} Doğru</span>
+            </div>
+            <div style="${rowStyle} border: 1px solid ${!isMe ? 'var(--neon-red)' : 'transparent'};">
+                <span style="font-weight:bold;">${opponentName}</span>
+                <span>${oppData.score} / ${oppData.total} Doğru</span>
+            </div>
+        `;
+
+        resScore.appendChild(table);
         document.getElementById('res-xp').innerText = `${gold} | +${xp} XP`;
 
         // Add Rematch Button
@@ -271,15 +314,11 @@
             btn.style.width = '100%';
             btn.innerText = '🔄 Rövanş İste';
             btn.onclick = () => window.multiplayer.requestRematch();
-            // Insert before the "Main Menu" button (which is usually the last child or close to it)
-            // We'll just append it to the content container
-            const content = resArea.querySelector('.glass-panel');
-            if (content) content.appendChild(btn);
+            const content = resArea.querySelector('.glass-panel') || resArea;
+            content.appendChild(btn);
         } else {
-            btn.style.display = 'block'; // Ensure it's visible
+            btn.style.display = 'block';
         }
-
-        document.getElementById('duel-container').classList.add('hidden');
 
         // Move question area back to tab-quiz
         const qArea = document.getElementById('quiz-play-area');
