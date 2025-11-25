@@ -1,9 +1,16 @@
 // --- AUDIO SYSTEM ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioCtx;
 
 window.playSound = function (type) {
     if (!window.store || !window.store.state.soundEnabled) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(e => console.warn("Audio resume failed", e));
+    }
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
