@@ -429,7 +429,7 @@
 
     function finishQuiz() {
         if (quizState.mode === 'duel') {
-            window.multiplayer.sendGameOver(quizState.score, Date.now());
+            window.multiplayer.sendGameOver(quizState.score, quizState.totalQ, Date.now());
             // handleDuelFinish is called by multiplayer when winner is decided
             return;
         }

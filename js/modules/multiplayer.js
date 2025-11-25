@@ -213,12 +213,14 @@
             else if (p2Data.score > p1Data.score) winnerId = p2Id;
             else {
                 // Tie on score, check time (lower is better)
-                const t1 = p1Data.time || 0;
-                const t2 = p2Data.time || 0;
+                // If time is missing, fallback to 0 (which is unfair but prevents crash)
+                // Ideally time should always be present if finished=true
+                const t1 = p1Data.time || Number.MAX_SAFE_INTEGER;
+                const t2 = p2Data.time || Number.MAX_SAFE_INTEGER;
 
                 if (t1 < t2) winnerId = p1Id;
                 else if (t2 < t1) winnerId = p2Id;
-                else winnerId = p1Id; // Exact tie, p1 wins
+                else winnerId = p1Id; // Exact tie, p1 wins (Host advantage or random)
             }
 
             const db = window.Firebase.db;
@@ -266,7 +268,7 @@
         },
 
         // Send game over
-        async sendGameOver(score, time) {
+        async sendGameOver(score, total, time) {
             if (!this.activeChallengeId) return;
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
@@ -275,14 +277,14 @@
             await db.collection('challenges').doc(this.activeChallengeId).update({
                 [`progress.${myId}`]: {
                     score,
-                    total: 10,
+                    total: total,
                     finished: true,
                     time: time
                 }
             });
 
             // Show waiting message
-            window.toast("Rakip bekleniyor...");
+            window.toast("Sonuçlar bekleniyor...");
         },
 
         requestRematch() {
