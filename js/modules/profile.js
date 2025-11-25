@@ -236,7 +236,7 @@
         }
 
         // Apply Profile Styles
-        const style = window.store.state.profileStyle || { frame: null, theme: 'default' };
+        const style = window.store.state.profileStyle || { frame: null, theme: 'default', accent: 'blue' };
         
         // Apply Theme (Background)
         const appBg = document.querySelector('.aurora-bg');
@@ -246,12 +246,27 @@
             else appBg.style.background = 'radial-gradient(circle at 50% 0%, #172554, #020617)'; // Default
         }
 
+        // Apply Accent Color
+        const root = document.documentElement;
+        if (style.accent === 'red') {
+            root.style.setProperty('--neon-blue', '#ef4444'); // Red
+            root.style.setProperty('--neon-purple', '#f87171');
+        } else if (style.accent === 'green') {
+            root.style.setProperty('--neon-blue', '#22c55e'); // Green
+            root.style.setProperty('--neon-purple', '#4ade80');
+        } else if (style.accent === 'orange') {
+            root.style.setProperty('--neon-blue', '#f97316'); // Orange
+            root.style.setProperty('--neon-purple', '#fb923c');
+        } else if (style.accent === 'pink') {
+            root.style.setProperty('--neon-blue', '#ec4899'); // Pink
+            root.style.setProperty('--neon-purple', '#f472b6');
+        } else {
+            // Default Blue
+            root.style.setProperty('--neon-blue', '#3b82f6');
+            root.style.setProperty('--neon-purple', '#8b5cf6');
+        }
+
         // Apply Frame (to avatar/icon)
-        // We need an avatar element. Let's assume the profile icon in the nav or create a big one in profile.
-        // For now, let's apply it to the "career-badge" as a border, or add a specific avatar area.
-        // Let's add a big avatar display in the profile tab if it doesn't exist, or style the existing elements.
-        
-        // Let's style the "Level Display" circle in the header as the avatar placeholder for now
         const levelDisplay = document.getElementById('level-display');
         if (levelDisplay) {
             // Reset styles
@@ -272,6 +287,14 @@
 
         renderChart();
         renderFavs();
+    }
+
+    window.setAccent = function(color) {
+        const style = window.store.state.profileStyle || { frame: null, theme: 'default', accent: 'blue' };
+        style.accent = color;
+        window.store.update('profileStyle', style);
+        window.toast("Renk Teması Güncellendi! 🎨");
+        renderProfile(); // Re-apply styles
     }
 
     function renderChart() {
@@ -304,9 +327,68 @@
         });
     }
 
-    window.openFavs = function() {
-        document.getElementById('favs-modal').classList.remove('hidden');
-        renderFavs();
+    window.openStats = function() {
+        const modal = document.getElementById('stats-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            renderDetailedStats();
+        }
+    }
+
+    function renderDetailedStats() {
+        const container = document.getElementById('detailed-stats-content');
+        if (!container) return;
+
+        const state = window.store.state;
+        const totalWords = window.words.length;
+        const learned = state.learned.length;
+        const accuracy = state.totalQ > 0 ? Math.round((state.correctQ / state.totalQ) * 100) : 0;
+        
+        // Calculate category mastery (mock logic as words don't have categories yet, using first letter)
+        const categories = {};
+        state.learned.forEach(w => {
+            const char = w.charAt(0).toUpperCase();
+            if (!categories[char]) categories[char] = 0;
+            categories[char]++;
+        });
+        
+        let topCat = Object.entries(categories).sort((a,b) => b[1] - a[1])[0];
+        
+        container.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                <div class="glass-panel" style="padding:15px; text-align:center;">
+                    <div style="font-size:2rem;">🎯</div>
+                    <div style="font-weight:700; font-size:1.2rem; color:var(--neon-blue);">${accuracy}%</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Doğruluk</div>
+                </div>
+                <div class="glass-panel" style="padding:15px; text-align:center;">
+                    <div style="font-size:2rem;">🔥</div>
+                    <div style="font-weight:700; font-size:1.2rem; color:var(--neon-orange);">${state.streak}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Günlük Seri</div>
+                </div>
+                <div class="glass-panel" style="padding:15px; text-align:center;">
+                    <div style="font-size:2rem;">📚</div>
+                    <div style="font-weight:700; font-size:1.2rem; color:var(--neon-green);">${learned}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Öğrenilen</div>
+                </div>
+                <div class="glass-panel" style="padding:15px; text-align:center;">
+                    <div style="font-size:2rem;">⚡</div>
+                    <div style="font-weight:700; font-size:1.2rem; color:var(--neon-purple);">${state.xp}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Toplam XP</div>
+                </div>
+            </div>
+            
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                <h3 style="margin:0 0 15px 0; font-size:1rem;">En İyi Harf Grubu</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="font-size:2rem; font-weight:800; color:white;">${topCat ? topCat[0] : '-'}</div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:700; color:var(--neon-blue);">${topCat ? topCat[1] : 0} Kelime</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Bu harfle başlayan</div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     window.openDictionary = function() {

@@ -12,7 +12,9 @@ window.store = {
         level: 1,
         history: {},
         inventory: { frames: [], themes: [] },
-        profileStyle: { frame: null, theme: 'default' }
+        profileStyle: { frame: null, theme: 'default', accent: 'blue' },
+        totalQ: 0,
+        correctQ: 0
     },
 
     init() {
