@@ -8,6 +8,7 @@
         window.initShop();
         window.initProfile();
         window.initLeaderboard();
+        window.initAchievements();
         
         // Initial Render
         // If no tasks yet, generate them now to prevent empty screen

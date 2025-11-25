@@ -118,6 +118,7 @@
             updateSyncStatus('done');
         } catch (e) {
             console.error("Sync error:", e);
+            window.toast("Senkronizasyon Hatası: " + e.message);
             updateSyncStatus('error');
         }
     }
@@ -138,17 +139,21 @@
             // Sync to Leaderboard
             if (window.store.state.xp > 0) {
                 const lbRef = db.collection('artifacts').doc(appId).collection('leaderboard').doc(currentUser.uid);
+                // Ensure we have the namespace before calling
+                const timestamp = window.Firebase.firestore ? window.Firebase.firestore.FieldValue.serverTimestamp() : new Date();
+                
                 await lbRef.set({
-                    xp: Number(window.store.state.xp), // Ensure number type
+                    xp: Number(window.store.state.xp),
                     name: currentUser.displayName || 'Anonim',
                     photo: currentUser.photoURL || null,
-                    updatedAt: window.Firebase.firestore.FieldValue.serverTimestamp()
+                    updatedAt: timestamp
                 });
             }
 
             updateSyncStatus('done');
         } catch (e) {
-            console.error(e);
+            console.error("Save error:", e);
+            window.toast("Kaydetme Hatası: " + e.message);
             updateSyncStatus('error');
         }
     }

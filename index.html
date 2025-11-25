@@ -154,6 +154,9 @@
             </div>
             <h3 style="font-weight:300; border-bottom:1px solid var(--glass-border); padding-bottom:10px; margin-bottom:15px;">Favoriler</h3>
             <div id="favorites-list" style="min-height:50px; margin-bottom:30px;"><div style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Liste boş.</div></div>
+            <h3 style="font-weight:300; border-bottom:1px solid var(--glass-border); padding-bottom:10px; margin-bottom:15px;">Başarımlar</h3>
+            <div id="achievements-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:30px;"></div>
+
             <button class="btn w-full" style="padding:15px; background:rgba(239,68,68,0.15); color:var(--neon-red); border:1px solid rgba(239,68,68,0.3); border-radius:16px;" onclick="window.resetData()">Verileri Sıfırla</button>
         </div>
         <div id="tab-leaderboard" class="hidden fade-in">
@@ -207,6 +210,7 @@
         window.Firebase = {
             auth: firebase.auth(),
             db: firebase.firestore(),
+            firestore: firebase.firestore, // Expose namespace for FieldValue
             analytics: firebase.analytics(),
             googleProvider: new firebase.auth.GoogleAuthProvider(),
             // Map compat methods to match modular names used in profile.js
@@ -214,22 +218,14 @@
             signOut: (auth) => auth.signOut(),
             onAuthStateChanged: (auth, cb) => auth.onAuthStateChanged(cb),
             signInAnonymously: (auth) => auth.signInAnonymously(),
-            doc: (db, ...path) => {
-                // Compat firestore doc() takes a path string
-                // We need to handle the variadic arguments from the modular style
-                // path[0] is db instance (ignored in compat), path[1...] are collection/doc parts
-                // Actually, let's just make profile.js use the compat API directly to be cleaner.
-                // But to minimize changes, we can try to adapt.
-                // Better: Update profile.js to use window.Firebase.db.doc(...) style?
-                // No, let's update profile.js to use the compat API. It's safer.
-                return null; 
-            }
+            doc: (db, ...path) => null 
         };
     </script>
     <script src="js/modules/learn.js"></script>
     <script src="js/modules/quests.js"></script>
     <script src="js/modules/shop.js"></script>
     <script src="js/modules/leaderboard.js"></script>
+    <script src="js/modules/achievements.js"></script>
     <script src="js/modules/quiz.js"></script>
     <script src="js/modules/profile.js"></script>
     <script src="js/app.js"></script>
