@@ -35,10 +35,13 @@
         document.getElementById('quiz-play-area').classList.remove('hidden');
         document.getElementById('quiz-challenge-area').classList.remove('hidden');
         
+        // Time Attack Mode
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 999, mode: 'challenge', timeLeft: 60 };
         renderQuizQ();
         
         const timerEl = document.getElementById('challenge-timer');
+        const timerArea = document.getElementById('quiz-challenge-area');
+        
         quizState.timer = setInterval(() => {
             if (!quizState.active || quizState.mode !== 'challenge') {
                 clearInterval(quizState.timer);
@@ -47,6 +50,15 @@
             
             quizState.timeLeft--;
             timerEl.innerText = quizState.timeLeft;
+            
+            // Visual flair for low time
+            if (quizState.timeLeft <= 10) {
+                timerArea.style.animation = 'pulse 0.5s infinite';
+                timerArea.style.color = 'var(--neon-red)';
+            } else {
+                timerArea.style.animation = '';
+                timerArea.style.color = 'var(--neon-blue)';
+            }
             
             if (quizState.timeLeft <= 0) {
                 clearInterval(quizState.timer);
@@ -66,41 +78,85 @@
         matchState = { selected: null, pairs: [], matched: 0, score: 0 };
         document.getElementById('match-score').innerText = 0;
         
-        // Pick 6 random words
-        const words = [...window.words].sort(() => 0.5 - Math.random()).slice(0, 6);
-        let cards = [];
+        // Pick 5 random words (User requested 5 pairs)
+        const words = [...window.words].sort(() => 0.5 - Math.random()).slice(0, 5);
+        let leftCol = [];
+        let rightCol = [];
+        
         words.forEach((w, i) => {
-            cards.push({ id: i, type: 'en', text: w.en, pairId: i });
-            cards.push({ id: i, type: 'tr', text: w.tr, pairId: i });
+            leftCol.push({ id: i, type: 'en', text: w.en, pairId: i });
+            rightCol.push({ id: i, type: 'tr', text: w.tr, pairId: i });
         });
         
-        // Shuffle cards
-        cards.sort(() => 0.5 - Math.random());
+        // Shuffle columns independently
+        leftCol.sort(() => 0.5 - Math.random());
+        rightCol.sort(() => 0.5 - Math.random());
         
         const grid = document.getElementById('match-grid');
         grid.innerHTML = '';
+        // Use 2 columns layout for clearer "Left vs Right" matching
+        grid.style.gridTemplateColumns = '1fr 1fr'; 
         
-        cards.forEach((card, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'glass-panel';
-            btn.style.padding = '20px 10px';
-            btn.style.fontSize = '0.9rem';
-            btn.style.fontWeight = '700';
-            btn.style.minHeight = '80px';
-            btn.style.display = 'flex';
-            btn.style.alignItems = 'center';
-            btn.style.justifyContent = 'center';
-            btn.innerText = card.text;
-            btn.dataset.idx = idx;
-            
-            btn.onclick = () => handleMatchClick(btn, card);
-            grid.appendChild(btn);
+        // Render Left Column
+        const leftDiv = document.createElement('div');
+        leftDiv.style.display = 'flex';
+        leftDiv.style.flexDirection = 'column';
+        leftDiv.style.gap = '10px';
+        
+        leftCol.forEach(card => {
+            const btn = createMatchCard(card);
+            leftDiv.appendChild(btn);
         });
+        
+        // Render Right Column
+        const rightDiv = document.createElement('div');
+        rightDiv.style.display = 'flex';
+        rightDiv.style.flexDirection = 'column';
+        rightDiv.style.gap = '10px';
+        
+        rightCol.forEach(card => {
+            const btn = createMatchCard(card);
+            rightDiv.appendChild(btn);
+        });
+        
+        grid.appendChild(leftDiv);
+        grid.appendChild(rightDiv);
+    }
+
+    function createMatchCard(card) {
+        const btn = document.createElement('button');
+        btn.className = 'glass-panel';
+        btn.style.padding = '15px';
+        btn.style.fontSize = '0.9rem';
+        btn.style.fontWeight = '700';
+        btn.style.width = '100%';
+        btn.style.minHeight = '60px';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.cursor = 'pointer';
+        btn.style.transition = 'all 0.2s';
+        btn.innerText = card.text;
+        
+        btn.onclick = () => handleMatchClick(btn, card);
+        return btn;
     }
 
     function handleMatchClick(btn, card) {
         if (btn.classList.contains('matched') || btn.classList.contains('selected')) return;
         
+        // Deselect if clicking same type (e.g. clicked EN then another EN)
+        if (matchState.selected && matchState.selected.card.type === card.type) {
+            matchState.selected.btn.classList.remove('selected');
+            matchState.selected.btn.style.background = '';
+            matchState.selected.btn.style.border = '';
+            matchState.selected = { btn, card };
+            btn.classList.add('selected');
+            btn.style.background = 'rgba(255,255,255,0.2)';
+            btn.style.border = '1px solid var(--neon-blue)';
+            return;
+        }
+
         btn.classList.add('selected');
         btn.style.background = 'rgba(255,255,255,0.2)';
         btn.style.border = '1px solid var(--neon-blue)';
@@ -114,6 +170,8 @@
                 // Match!
                 btn.classList.add('matched');
                 first.btn.classList.add('matched');
+                
+                // Success visual
                 btn.style.background = 'rgba(34, 197, 94, 0.2)';
                 first.btn.style.background = 'rgba(34, 197, 94, 0.2)';
                 btn.style.border = '1px solid var(--neon-green)';
@@ -121,18 +179,23 @@
                 btn.style.opacity = '0.5';
                 first.btn.style.opacity = '0.5';
                 
-                matchState.score += 10;
+                // Draw line effect (simulated via border/color for now)
+                
+                matchState.score += 10 + (matchState.matched * 2); // Combo bonus
                 matchState.matched++;
                 matchState.selected = null;
                 document.getElementById('match-score').innerText = matchState.score;
                 window.playSound('success');
                 
-                if (matchState.matched === 6) {
+                if (matchState.matched === 5) {
                     setTimeout(() => finishGame(matchState.score, 'Eşleştirme Tamamlandı!'), 500);
                 }
             } else {
                 // Mismatch
                 window.playSound('error');
+                btn.style.background = 'rgba(239, 68, 68, 0.2)';
+                first.btn.style.background = 'rgba(239, 68, 68, 0.2)';
+                
                 setTimeout(() => {
                     btn.classList.remove('selected');
                     first.btn.classList.remove('selected');
@@ -271,6 +334,19 @@
         opts.forEach(o => o.onclick = null);
 
         let isCorrect = (selected === correct);
+        
+        // Time Attack Logic
+        if (quizState.mode === 'challenge') {
+            if (isCorrect) {
+                quizState.timeLeft += 2;
+                window.toast("+2 Saniye!");
+            } else {
+                quizState.timeLeft = Math.max(0, quizState.timeLeft - 5);
+                window.toast("-5 Saniye!", 1000);
+                document.getElementById('challenge-timer').innerText = quizState.timeLeft;
+            }
+        }
+
         if (isCorrect) {
             btn.style.background = "rgba(16, 185, 129, 0.4)";
             btn.style.borderColor = "var(--neon-green)";
@@ -291,7 +367,11 @@
         }
 
         setTimeout(() => {
-            if (quizState.currentQ < quizState.totalQ) {
+            if (quizState.mode === 'challenge') {
+                // Challenge continues until time runs out
+                 quizState.currentQ++;
+                 renderQuizQ();
+            } else if (quizState.currentQ < quizState.totalQ) {
                 quizState.currentQ++;
                 renderQuizQ();
             } else {
@@ -304,11 +384,12 @@
         document.getElementById('quiz-play-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.remove('hidden');
         quizState.active = false;
+        if (quizState.timer) clearInterval(quizState.timer);
         
         let baseXP = quizState.score * 5;
         if (quizState.mode === 'challenge') {
             baseXP = quizState.score * 10; // Double XP for challenge
-            document.getElementById('res-title').innerText = "Meydan Okuma Bitti!";
+            document.getElementById('res-title').innerText = "Süre Doldu!";
         } else {
             document.getElementById('res-title').innerText = "Quiz Tamamlandı!";
         }
