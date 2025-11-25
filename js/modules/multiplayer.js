@@ -187,12 +187,9 @@
                 const oppP = data.progress[this.opponent.id];
 
                 if (myP?.finished && oppP?.finished && !data.winner) {
-                    // Both finished, calculate winner
-                    // To avoid race conditions, let the 'Host' (sender) decide
-                    // OR simply use a transaction. Here we'll let the Host decide.
-                    if (this.isHost) {
-                        this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
-                    }
+                    // Both finished, calculate winner.
+                    // We allow ANY client to calculate this to prevent hanging if Host disconnects.
+                    this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
                 }
             });
         },
@@ -200,30 +197,32 @@
         async determineWinner(challengeId, p1Id, p1Data, p2Id, p2Data) {
             let winnerId = null;
 
+            // Deterministic Winner Logic
             if (p1Data.score > p2Data.score) winnerId = p1Id;
             else if (p2Data.score > p1Data.score) winnerId = p2Id;
             else {
                 // Tie on score, check time (lower is better)
-                // Note: We need to store completion time. 
-                // For now, let's just say Tie = Host wins (or Draw). 
-                // Let's implement Draw logic or just pick one.
-                // Let's pick p1 for now if exact tie.
-                winnerId = (p1Data.time < p2Data.time) ? p1Id : p2Id;
+                const t1 = p1Data.time || 0;
+                const t2 = p2Data.time || 0;
+
+                if (t1 < t2) winnerId = p1Id;
+                else if (t2 < t1) winnerId = p2Id;
+                else winnerId = p1Id; // Exact tie, p1 wins
             }
 
             const db = window.Firebase.db;
-            await db.collection('challenges').doc(challengeId).update({
-                winner: winnerId
-            });
+            try {
+                await db.collection('challenges').doc(challengeId).update({
+                    winner: winnerId
+                });
+            } catch (e) {
+                console.log("Winner update race", e);
+            }
         },
 
         handleGameEnd(winnerId, betAmount) {
             const myId = window.store.state.userId;
             const isMe = winnerId === myId;
-
-            // If I won, I get the pot (2 * bet)
-            // Logic: I already paid 'bet', so I get back '2 * bet' (net +bet)
-            // If I lost, I get nothing (net -bet)
 
             if (isMe) {
                 const pot = betAmount * 2;
