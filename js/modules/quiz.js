@@ -245,6 +245,47 @@
     window.startDuelMode = startDuelMode;
     window.handleDuelFinish = handleDuelFinish;
 
+    function handleDuelFinish(winnerId, betAmount) {
+        if (quizState.mode !== 'duel') return;
+
+        const isMe = winnerId === window.store.state.userId;
+        const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
+        const xp = isMe ? 100 : 20;
+        const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
+
+        finishGame(xp, title);
+
+        // Custom Result Message for Duel
+        document.getElementById('res-score').innerText = isMe ? 'Zafer!' : 'Yenilgi';
+        document.getElementById('res-xp').innerText = `${gold} | +${xp} XP`;
+
+        // Add Rematch Button
+        const resArea = document.getElementById('quiz-result-area');
+        let btn = document.getElementById('btn-rematch');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'btn-rematch';
+            btn.className = 'btn';
+            btn.style.background = 'var(--neon-purple)';
+            btn.style.marginTop = '10px';
+            btn.style.width = '100%';
+            btn.innerText = '🔄 Rövanş İste';
+            btn.onclick = () => window.multiplayer.requestRematch();
+            // Insert before the "Main Menu" button (which is usually the last child or close to it)
+            // We'll just append it to the content container
+            const content = resArea.querySelector('.glass-panel');
+            if (content) content.appendChild(btn);
+        } else {
+            btn.style.display = 'block'; // Ensure it's visible
+        }
+
+        document.getElementById('duel-container').classList.add('hidden');
+
+        // Move question area back to tab-quiz
+        const qArea = document.getElementById('quiz-play-area');
+        document.getElementById('tab-quiz').appendChild(qArea);
+    }
+
     function startDuelMode(opponent) {
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
