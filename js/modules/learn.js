@@ -106,6 +106,7 @@
 
             window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: gainedXp } }));
 
+            let msg = `+${gainedXp} XP`;
             if (window.store.state.activeItems.doubleXP > 0) msg += ' ⚡';
 
             window.toast(msg);
