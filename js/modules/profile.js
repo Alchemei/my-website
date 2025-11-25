@@ -62,6 +62,11 @@
                         emailEl.style.opacity = 1;
                     }
 
+                    // Sync Auth User to Store for Multiplayer
+                    window.store.state.userId = u.uid;
+                    window.store.state.username = u.displayName || 'Kullanıcı';
+                    window.store.save();
+
                     await loadFromCloud(true);
                 } else {
                     const btnLogin = document.getElementById('google-login-btn');

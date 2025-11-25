@@ -1,138 +1,186 @@
 (function () {
-    // Multiplayer System using LocalStorage for cross-tab communication
-    // This simulates real-time features for demo purposes
+    // Real-time Multiplayer System using Firebase Firestore
 
-    const CHANNEL = 'english-master-multiplayer';
-    const SESSION_ID = Math.random().toString(36).substr(2, 9);
+    const APP_ID = 'english-master-global'; // Using the same app ID as leaderboard
+    let activeListener = null;
+    let progressListener = null;
 
     window.multiplayer = {
-        activeChallenge: null,
+        activeChallengeId: null,
         opponent: null,
         isHost: false,
 
-        // Send a message to other tabs
-        broadcast(type, payload) {
-            const msg = {
-                type,
-                payload,
-                senderId: window.store.state.userId,
-                senderName: window.store.state.username || 'Player',
-                sessionId: SESSION_ID,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(CHANNEL, JSON.stringify(msg));
-            // Clear it immediately so we can trigger same event again if needed
-            // But wait a tiny bit to ensure other tabs catch it
-            setTimeout(() => localStorage.removeItem(CHANNEL), 100);
+        // Initialize listeners
+        init() {
+            if (!window.Firebase || !window.Firebase.auth) {
+                setTimeout(() => this.init(), 1000);
+                return;
+            }
+
+            window.Firebase.auth.onAuthStateChanged(user => {
+                if (user) {
+                    this.listenForChallenges(user.uid);
+                }
+            });
+        },
+
+        listenForChallenges(uid) {
+            const db = window.Firebase.db;
+            // Listen for incoming challenges
+            db.collection('challenges')
+                .where('targetId', '==', uid)
+                .where('status', '==', 'pending')
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            // Show modal only if it's a fresh challenge (created in last minute)
+                            // This prevents showing old stale challenges
+                            const now = Date.now();
+                            const created = data.createdAt?.toMillis() || 0;
+                            if (now - created < 60000) {
+                                showChallengeModal(change.doc.id, data);
+                            }
+                        }
+                    });
+                });
         },
 
         // Challenge a user
-        challengeUser(targetId, targetName) {
-            this.broadcast('CHALLENGE_REQUEST', {
-                targetId,
-                targetName
-            });
-            window.toast(`${targetName} kişisine meydan okundu!`);
+        async challengeUser(targetId, targetName) {
+            if (!window.store.state.userId) {
+                window.toast("Önce giriş yapmalısın!");
+                return;
+            }
+
+            const db = window.Firebase.db;
+            const myId = window.store.state.userId;
+            const myName = window.store.state.username;
+
+            try {
+                const docRef = await db.collection('challenges').add({
+                    senderId: myId,
+                    senderName: myName,
+                    targetId: targetId,
+                    targetName: targetName,
+                    status: 'pending',
+                    createdAt: window.Firebase.firestore.FieldValue.serverTimestamp(),
+                    progress: {
+                        [myId]: { score: 0, total: 10 },
+                        [targetId]: { score: 0, total: 10 }
+                    }
+                });
+
+                this.activeChallengeId = docRef.id;
+                this.opponent = { id: targetId, name: targetName };
+                this.isHost = true;
+
+                window.toast(`${targetName} kişisine meydan okundu! Yanıt bekleniyor...`);
+
+                // Listen for acceptance
+                activeListener = docRef.onSnapshot(doc => {
+                    const data = doc.data();
+                    if (data && data.status === 'accepted') {
+                        // Challenge accepted!
+                        window.toast("Meydan okuma kabul edildi! Yarış başlıyor!");
+                        this.startDuel(docRef.id);
+                    }
+                });
+
+            } catch (e) {
+                console.error("Challenge error:", e);
+                window.toast("Meydan okuma gönderilemedi.");
+            }
         },
 
         // Accept a challenge
-        acceptChallenge(challengeData) {
-            this.activeChallenge = challengeData;
-            this.opponent = { id: challengeData.senderId, name: challengeData.senderName };
-            this.isHost = false;
+        async acceptChallenge(challengeId, senderId, senderName) {
+            const db = window.Firebase.db;
+            try {
+                await db.collection('challenges').doc(challengeId).update({
+                    status: 'accepted',
+                    startTime: window.Firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-            this.broadcast('CHALLENGE_ACCEPTED', {
-                challengeId: challengeData.timestamp,
-                targetId: challengeData.senderId
-            });
+                this.activeChallengeId = challengeId;
+                this.opponent = { id: senderId, name: senderName };
+                this.isHost = false;
 
-            this.startDuel();
+                this.startDuel(challengeId);
+
+            } catch (e) {
+                console.error("Accept error:", e);
+                window.toast("Hata oluştu.");
+            }
         },
 
-        // Start the game logic
-        startDuel() {
-            // Close any open modals
+        // Start the game logic & Listen for progress
+        startDuel(challengeId) {
+            // Unsubscribe from previous listeners if any
+            if (activeListener) activeListener();
+
+            // Close modals
             document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
 
-            // Switch to quiz tab and start duel mode
+            // Switch to quiz tab
             window.switchTab('quiz');
             if (window.startDuelMode) {
                 window.startDuelMode(this.opponent);
             }
+
+            // Listen for game progress
+            const db = window.Firebase.db;
+            progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
+                const data = doc.data();
+                if (!data) return;
+
+                // Check for opponent progress
+                const oppProgress = data.progress[this.opponent.id];
+                if (oppProgress) {
+                    updateOpponentProgress(oppProgress.score, oppProgress.total);
+                }
+
+                // Check for game over / winner
+                if (data.winner) {
+                    window.handleDuelFinish(data.winner, 0, 0); // Score/time handled locally or via data
+                    if (progressListener) progressListener(); // Stop listening
+                }
+            });
         },
 
         // Send current progress
-        sendProgress(score, total) {
-            if (!this.opponent) return;
-            this.broadcast('GAME_PROGRESS', {
-                targetId: this.opponent.id,
-                score,
-                total
-            });
+        async sendProgress(score, total) {
+            if (!this.activeChallengeId) return;
+            const db = window.Firebase.db;
+            const myId = window.store.state.userId;
+
+            try {
+                await db.collection('challenges').doc(this.activeChallengeId).update({
+                    [`progress.${myId}`]: { score, total }
+                });
+            } catch (e) {
+                console.error("Progress sync error", e);
+            }
         },
 
         // Send game over
-        sendGameOver(score, time) {
-            if (!this.opponent) return;
-            this.broadcast('GAME_OVER', {
-                targetId: this.opponent.id,
-                score,
-                time
-            });
+        async sendGameOver(score, time) {
+            if (!this.activeChallengeId) return;
+            // We don't necessarily end the game here in Firestore, 
+            // we just ensure our final score is sent.
+            // The logic to decide "Winner" could be complex (who finished first?), 
+            // for simplicity, let's just mark ourselves as finished.
+
+            // In a real app, we'd use a cloud function or transaction to determine winner safely.
+            // Here, we'll just wait for the other player or show result locally.
+
+            // Let's just update our final score.
+            await this.sendProgress(score, 10);
         }
     };
 
-    // Listen for messages
-    window.addEventListener('storage', (e) => {
-        if (e.key !== CHANNEL || !e.newValue) return;
-
-        const msg = JSON.parse(e.newValue);
-        if (msg.sessionId === SESSION_ID) return; // Ignore own messages from this tab
-
-        // Handle Challenge Request
-        if (msg.type === 'CHALLENGE_REQUEST') {
-            // In a real app, we check if msg.payload.targetId === myId
-            // For demo, we'll accept ALL challenges to simulate "being the other user"
-            // OR we can check if we are explicitly the target.
-            // Since we don't have a real user list, we'll just show it if we are NOT the sender.
-
-            showChallengeModal(msg);
-        }
-
-        // Handle Challenge Accepted
-        if (msg.type === 'CHALLENGE_ACCEPTED') {
-            // If I am the one who sent the challenge
-            // We check if the targetId matches OUR userId. 
-            // Since we might share userId in this demo, we also check if we are NOT the one who sent the ACCEPT message.
-            if (msg.payload.targetId === window.store.state.userId) {
-                window.multiplayer.opponent = { id: msg.senderId, name: msg.senderName };
-                window.multiplayer.isHost = true;
-                window.multiplayer.startDuel();
-                window.toast("Meydan okuma kabul edildi! Yarış başlıyor!");
-            }
-        }
-
-        // Handle Game Progress
-        if (msg.type === 'GAME_PROGRESS') {
-            // Check if this message is from our current opponent
-            // In demo mode with shared userId, we rely on session ID filtering above to not receive our own progress
-            // So we just check if we are in a duel
-            if (window.multiplayer.opponent) {
-                updateOpponentProgress(msg.payload.score, msg.payload.total);
-            }
-        }
-
-        // Handle Game Over
-        if (msg.type === 'GAME_OVER') {
-            if (window.multiplayer.opponent) {
-                window.handleDuelFinish(msg.senderId, msg.payload.score, msg.payload.time);
-            }
-        }
-    });
-
     // UI Helpers
-    function showChallengeModal(msg) {
-        // Create modal dynamically if not exists
+    function showChallengeModal(id, data) {
         let modal = document.getElementById('challenge-modal');
         if (!modal) {
             const div = document.createElement('div');
@@ -152,16 +200,16 @@
             modal = div;
         }
 
-        document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${msg.senderName}</span> seni düelloya davet ediyor!`;
+        document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
 
         const acceptBtn = document.getElementById('btn-accept-challenge');
         acceptBtn.onclick = () => {
-            window.multiplayer.acceptChallenge(msg);
+            window.multiplayer.acceptChallenge(id, data.senderId, data.senderName);
             modal.classList.add('hidden');
         };
 
         modal.classList.remove('hidden');
-        window.playSound('success'); // Notification sound
+        window.playSound('success');
     }
 
     function updateOpponentProgress(score, total) {
@@ -174,7 +222,7 @@
 
     // Expose init
     window.initMultiplayer = function () {
-        console.log("Multiplayer system initialized");
+        window.multiplayer.init();
     };
 
 })();
