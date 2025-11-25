@@ -205,6 +205,8 @@
 
             // Get challenge data to retrieve questions
             const db = window.Firebase.db;
+            const myId = window.store.state.userId;
+
             db.collection('challenges').doc(challengeId).get().then(doc => {
                 const data = doc.data();
                 const questions = data?.questions || [];
@@ -215,48 +217,47 @@
                     console.error("Cannot start duel: Missing opponent or startDuelMode");
                     return;
                 }
+
+                // NOW start listening for progress after game is initialized
+                progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
+                    const data = doc.data();
+                    if (!data) return;
+
+                    // Robustly find opponent ID from progress keys
+                    const progressKeys = Object.keys(data.progress || {});
+                    const otherId = progressKeys.find(k => k !== myId);
+
+                    // Check for opponent progress
+                    if (otherId && data.progress) {
+                        const oppProgress = data.progress[otherId];
+                        if (oppProgress) {
+                            updateOpponentProgress(oppProgress.score, oppProgress.total);
+                        }
+                    }
+
+                    // Check if winner is decided
+                    if (data.winner) {
+                        this.handleGameEnd(data.winner, data.betAmount, data.progress);
+                        if (progressListener) progressListener(); // Stop listening
+                        return;
+                    }
+
+                    // Check if both finished (Client-side check to trigger winner calculation)
+                    if (otherId && data.progress) {
+                        const myP = data.progress[myId];
+                        const oppP = data.progress[otherId];
+
+                        if (myP?.finished && oppP?.finished && !data.winner) {
+                            // Both finished, calculate winner.
+                            // We allow ANY client to calculate this to prevent hanging if Host disconnects.
+                            this.determineWinner(challengeId, myId, myP, otherId, oppP);
+                        }
+                    }
+                });
+
             }).catch(err => {
                 console.error("Error loading questions:", err);
                 window.toast("Sorular yüklenemedi!");
-            });
-
-            // Listen for game progress
-            const myId = window.store.state.userId;
-
-            progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
-                const data = doc.data();
-                if (!data) return;
-
-                // Robustly find opponent ID from progress keys
-                const progressKeys = Object.keys(data.progress || {});
-                const otherId = progressKeys.find(k => k !== myId);
-
-                // Check for opponent progress
-                if (otherId && data.progress) {
-                    const oppProgress = data.progress[otherId];
-                    if (oppProgress) {
-                        updateOpponentProgress(oppProgress.score, oppProgress.total);
-                    }
-                }
-
-                // Check if winner is decided
-                if (data.winner) {
-                    this.handleGameEnd(data.winner, data.betAmount, data.progress);
-                    if (progressListener) progressListener(); // Stop listening
-                    return;
-                }
-
-                // Check if both finished (Client-side check to trigger winner calculation)
-                if (otherId && data.progress) {
-                    const myP = data.progress[myId];
-                    const oppP = data.progress[otherId];
-
-                    if (myP?.finished && oppP?.finished && !data.winner) {
-                        // Both finished, calculate winner.
-                        // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                        this.determineWinner(challengeId, myId, myP, otherId, oppP);
-                    }
-                }
             });
         },
 
