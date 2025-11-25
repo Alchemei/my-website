@@ -251,22 +251,26 @@
         // For now, let's apply it to the "career-badge" as a border, or add a specific avatar area.
         // Let's add a big avatar display in the profile tab if it doesn't exist, or style the existing elements.
         
-        // Let's style the "Level Display" circle in the header as the avatar placeholder for now
+        // Let's style the "Level Display" badge in the header
+        // The level display is inside a .hud-badge div. We should style that parent.
         const levelDisplay = document.getElementById('level-display');
         if (levelDisplay) {
-            // Reset styles
-            levelDisplay.style.border = '1px solid var(--glass-border)';
-            levelDisplay.style.boxShadow = 'none';
-            
-            if (style.frame === 'frame_gold') {
-                levelDisplay.style.border = '3px solid gold';
-                levelDisplay.style.boxShadow = '0 0 15px gold';
-            } else if (style.frame === 'frame_neon') {
-                levelDisplay.style.border = '3px solid var(--neon-blue)';
-                levelDisplay.style.boxShadow = '0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue)';
-            } else if (style.frame === 'frame_fire') {
-                levelDisplay.style.border = '3px solid #f97316';
-                levelDisplay.style.boxShadow = '0 0 20px #f97316';
+            const badge = levelDisplay.parentElement; // Get the .hud-badge container
+            if (badge) {
+                // Reset styles
+                badge.style.border = '1px solid var(--glass-border)';
+                badge.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                
+                if (style.frame === 'frame_gold') {
+                    badge.style.border = '3px solid gold';
+                    badge.style.boxShadow = '0 0 15px gold';
+                } else if (style.frame === 'frame_neon') {
+                    badge.style.border = '3px solid var(--neon-blue)';
+                    badge.style.boxShadow = '0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue)';
+                } else if (style.frame === 'frame_fire') {
+                    badge.style.border = '3px solid #f97316';
+                    badge.style.boxShadow = '0 0 20px #f97316';
+                }
             }
         }
 

@@ -67,6 +67,7 @@
         
         window.store.update('profileStyle', style);
         window.toast("Kuşanıldı! ✨");
+        window.dispatchEvent(new CustomEvent('state-updated')); // Trigger profile update to show frame
         renderShop();
     }
 
