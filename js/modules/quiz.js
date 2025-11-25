@@ -1,5 +1,7 @@
 (function () {
-    let quizState = { active: false, currentQ: 0, score: 0, totalQ: 20 };
+    // Expose quizState globally
+    window.quizState = { active: false, currentQ: 0, score: 0, totalQ: 20 };
+    let quizState = window.quizState;
 
     window.initQuiz = function () {
         window.startQuiz = startQuiz;
@@ -351,19 +353,6 @@
 
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
-        document.getElementById('duel-opponent-bar').style.width = '0%';
-
-        // Initialize RNG with seed or random fallback
-        const s = seed || Math.floor(Math.random() * 1000000);
-        duelRng = mulberry32(s);
-
-        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
-        renderQuizQ();
-    }
-
-    function startListeningGame() {
-        showGamesMenu();
-        document.getElementById('games-menu').classList.add('hidden');
         document.getElementById('quiz-play-area').classList.remove('hidden');
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'listening' };
         renderQuizQ();

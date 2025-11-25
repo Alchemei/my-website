@@ -193,7 +193,8 @@
                 if (!data) return;
 
                 // Initialize duel mode ONCE with seed if not already active
-                if (!window.quizState?.active && window.startDuelMode && this.opponent) {
+                // Only start if we are NOT currently in a duel
+                if ((!window.quizState?.active || window.quizState?.mode !== 'duel') && window.startDuelMode && this.opponent) {
                     window.startDuelMode(this.opponent, data.seed);
                 }
 
