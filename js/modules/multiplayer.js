@@ -91,13 +91,24 @@
                 activeListener = docRef.onSnapshot(doc => {
                     const data = doc.data();
                     if (data && data.status === 'accepted') {
+                        // Prevent double-firing
+                        if (!activeListener) return;
+
                         window.toast("Meydan okuma kabul edildi! Yarış başlıyor!");
+
+                        // Unsubscribe immediately
+                        activeListener();
+                        activeListener = null;
+
                         this.startDuel(docRef.id);
                     } else if (data && data.status === 'rejected') {
                         window.toast("Meydan okuma reddedildi.");
                         // Refund
                         window.store.update('coins', window.store.state.coins + BET_AMOUNT);
-                        activeListener(); // Stop listening
+                        if (activeListener) {
+                            activeListener();
+                            activeListener = null;
+                        }
                     }
                 });
 
@@ -150,7 +161,15 @@
 
         // Start the game logic & Listen for progress
         startDuel(challengeId) {
-            if (activeListener) activeListener();
+            // Cleanup previous listeners
+            if (activeListener) {
+                activeListener();
+                activeListener = null;
+            }
+            if (progressListener) {
+                progressListener();
+                progressListener = null;
+            }
 
             // Close modals
             document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
