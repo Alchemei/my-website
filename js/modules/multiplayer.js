@@ -230,8 +230,8 @@
                     // Check for opponent progress
                     if (otherId && data.progress) {
                         const oppProgress = data.progress[otherId];
-                        if (oppProgress) {
-                            updateOpponentProgress(oppProgress.score, oppProgress.total);
+                        if (oppProgress && oppProgress.currentQ !== undefined) {
+                            updateOpponentProgress(oppProgress.currentQ, oppProgress.total || 10);
                         }
                     }
 
@@ -308,14 +308,14 @@
         },
 
         // Send current progress
-        async sendProgress(score, total) {
+        async sendProgress(currentQ, total) {
             if (!this.activeChallengeId) return;
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 
             try {
                 await db.collection('challenges').doc(this.activeChallengeId).update({
-                    [`progress.${myId}.score`]: score,
+                    [`progress.${myId}.currentQ`]: currentQ,
                     [`progress.${myId}.total`]: total
                 });
             } catch (e) {
@@ -388,10 +388,10 @@
         window.playSound('success');
     }
 
-    function updateOpponentProgress(score, total) {
+    function updateOpponentProgress(currentQ, total) {
         const bar = document.getElementById('duel-opponent-bar');
         if (bar) {
-            const pct = (score / total) * 100;
+            const pct = (currentQ / total) * 100;
             bar.style.width = `${pct}%`;
         } else {
             // Try to find it again or log warning

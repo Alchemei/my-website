@@ -431,11 +431,11 @@
         }
 
         if (quizState.mode === 'duel') {
-            // Update my bar
-            const pct = (quizState.score / quizState.totalQ) * 100;
+            // Update my bar based on question progress, not score
+            const pct = (quizState.currentQ / quizState.totalQ) * 100;
             document.getElementById('duel-my-bar').style.width = `${pct}%`;
-            // Send to opponent
-            window.multiplayer.sendProgress(quizState.score, quizState.totalQ);
+            // Send current question number to opponent
+            window.multiplayer.sendProgress(quizState.currentQ, quizState.totalQ);
         }
 
         setTimeout(() => {
