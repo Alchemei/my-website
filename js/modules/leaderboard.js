@@ -6,14 +6,7 @@
         // Listen for tab switch to leaderboard to trigger refresh
         const btn = document.querySelector('button[onclick*="leaderboard"]');
         if(btn) {
-            btn.addEventListener('click', () => {
-                // Ensure Firebase is ready before loading
-                if (window.Firebase && window.Firebase.auth) {
-                    loadLeaderboard();
-                } else {
-                    setTimeout(loadLeaderboard, 1000); // Retry if too early
-                }
-            });
+            btn.addEventListener('click', loadLeaderboard);
         }
     }
 
