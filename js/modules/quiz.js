@@ -248,12 +248,13 @@
     function startDuelMode(opponent) {
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
-        document.getElementById('quiz-play-area').classList.remove('hidden');
+
+        const qArea = document.getElementById('quiz-play-area');
+        qArea.classList.remove('hidden');
         document.getElementById('duel-container').classList.remove('hidden');
 
         // Move question area inside duel container
-        const qArea = document.getElementById('quiz-play-area').querySelector('.glass-panel');
-        if (qArea) document.getElementById('duel-question-area').appendChild(qArea);
+        document.getElementById('duel-question-area').appendChild(qArea);
 
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
@@ -273,9 +274,9 @@
         finishGame(xp, title);
         document.getElementById('duel-container').classList.add('hidden');
 
-        // Move question area back
-        const qArea = document.getElementById('duel-question-area').querySelector('.glass-panel');
-        if (qArea) document.getElementById('quiz-play-area').appendChild(qArea);
+        // Move question area back to tab-quiz
+        const qArea = document.getElementById('quiz-play-area');
+        document.getElementById('tab-quiz').appendChild(qArea);
     }
 
     window.startListeningGame = startListeningGame;
