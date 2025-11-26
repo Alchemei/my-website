@@ -6,6 +6,7 @@
         window.startChallenge = startChallenge;
         window.startMatch = startMatch;
         window.startHangman = startHangman;
+        window.startListeningGame = startListeningGame;
         window.showGamesMenu = showGamesMenu;
         window.resetQuiz = startQuiz;
         window.handleQuizAns = handleQuizAns;
