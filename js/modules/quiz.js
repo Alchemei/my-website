@@ -262,6 +262,8 @@
         const myData = progress[myId] || { score: 0, total: 10 };
         const oppData = progress[opponentId] || { score: 0, total: 10 };
 
+        console.log("Duel finish data:", { myData, oppData, progress }); // Debug log
+
         const isMe = winnerId === myId;
         const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
         const xp = isMe ? 100 : 20;
