@@ -65,31 +65,6 @@
             const myId = window.store.state.userId;
             const myName = window.store.state.username;
 
-            // Generate synchronized question set
-            const questionSet = [];
-            const availableWords = [...window.words];
-
-            for (let i = 0; i < 10; i++) {
-                // Pick a random word for this question
-                const targetIndex = Math.floor(Math.random() * availableWords.length);
-                const target = availableWords.splice(targetIndex, 1)[0];
-
-                // Generate 3 wrong options
-                const wrongOptions = availableWords
-                    .sort(() => 0.5 - Math.random())
-                    .slice(0, 3)
-                    .map(w => w.tr);
-
-                // Add correct answer and shuffle
-                const options = [...wrongOptions, target.tr].sort(() => 0.5 - Math.random());
-
-                questionSet.push({
-                    word: target.en,
-                    correct: target.tr,
-                    options: options
-                });
-            }
-
             try {
                 const docRef = await db.collection('challenges').add({
                     senderId: myId,
@@ -99,7 +74,6 @@
                     status: 'pending',
                     betAmount: BET_AMOUNT,
                     createdAt: window.Firebase.firestore.FieldValue.serverTimestamp(),
-                    questions: questionSet,
                     progress: {
                         [myId]: { score: 0, total: 10, finished: false },
                         [targetId]: { score: 0, total: 10, finished: false }
@@ -117,24 +91,13 @@
                 activeListener = docRef.onSnapshot(doc => {
                     const data = doc.data();
                     if (data && data.status === 'accepted') {
-                        // Prevent double-firing
-                        if (!activeListener) return;
-
                         window.toast("Meydan okuma kabul edildi! Yarış başlıyor!");
-
-                        // Unsubscribe immediately
-                        activeListener();
-                        activeListener = null;
-
                         this.startDuel(docRef.id);
                     } else if (data && data.status === 'rejected') {
                         window.toast("Meydan okuma reddedildi.");
                         // Refund
                         window.store.update('coins', window.store.state.coins + BET_AMOUNT);
-                        if (activeListener) {
-                            activeListener();
-                            activeListener = null;
-                        }
+                        activeListener(); // Stop listening
                     }
                 });
 
@@ -187,92 +150,51 @@
 
         // Start the game logic & Listen for progress
         startDuel(challengeId) {
-            // Cleanup previous listeners
-            if (activeListener) {
-                activeListener();
-                activeListener = null;
-            }
-            if (progressListener) {
-                progressListener();
-                progressListener = null;
-            }
+            if (activeListener) activeListener();
 
             // Close modals
             document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
 
             // Switch to quiz tab
             window.switchTab('quiz');
+            if (window.startDuelMode) {
+                window.startDuelMode(this.opponent);
+            }
 
-            // Get challenge data to retrieve questions
+            // Listen for game progress
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 
-            db.collection('challenges').doc(challengeId).get().then(doc => {
+            progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
                 const data = doc.data();
-                const questions = data?.questions || [];
+                if (!data) return;
 
-                if (window.startDuelMode && this.opponent) {
-                    window.startDuelMode(this.opponent, questions);
-                } else {
-                    console.error("Cannot start duel: Missing opponent or startDuelMode");
+                // Check for opponent progress
+                const oppProgress = data.progress[this.opponent.id];
+                if (oppProgress) {
+                    updateOpponentProgress(oppProgress.score, oppProgress.total);
+                }
+
+                // Check if winner is decided
+                if (data.winner) {
+                    this.handleGameEnd(data.winner, data.betAmount, data.progress);
+                    if (progressListener) progressListener(); // Stop listening
                     return;
                 }
 
-                // NOW start listening for progress after game is initialized
-                progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {
-                    const data = doc.data();
-                    if (!data) return;
+                // Check if both finished (Client-side check to trigger winner calculation)
+                const myP = data.progress[myId];
+                const oppP = data.progress[this.opponent.id];
 
-                    // Robustly find opponent ID from progress keys
-                    const progressKeys = Object.keys(data.progress || {});
-                    const otherId = progressKeys.find(k => k !== myId);
-
-                    // Check for opponent progress
-                    if (otherId && data.progress) {
-                        const oppProgress = data.progress[otherId];
-                        if (oppProgress && oppProgress.currentQ !== undefined) {
-                            updateOpponentProgress(oppProgress.currentQ, oppProgress.total || 10);
-                        }
-                    }
-
-                    // Check if winner is decided
-                    if (data.winner) {
-                        this.handleGameEnd(data.winner, data.betAmount, data.progress);
-                        if (progressListener) progressListener(); // Stop listening
-                        return;
-                    }
-
-                    // Check if both finished (Client-side check to trigger winner calculation)
-                    if (otherId && data.progress) {
-                        const myP = data.progress[myId];
-                        const oppP = data.progress[otherId];
-
-                        console.log("Checking finish status:", {
-                            myFinished: myP?.finished,
-                            oppFinished: oppP?.finished,
-                            hasWinner: !!data.winner,
-                            myP,
-                            oppP
-                        }); // Debug log
-
-                        if (myP?.finished && oppP?.finished && !data.winner) {
-                            console.log("Both finished! Calling determineWinner"); // Debug log
-                            // Both finished, calculate winner.
-                            // We allow ANY client to calculate this to prevent hanging if Host disconnects.
-                            this.determineWinner(challengeId, myId, myP, otherId, oppP);
-                        }
-                    }
-                });
-
-            }).catch(err => {
-                console.error("Error loading questions:", err);
-                window.toast("Sorular yüklenemedi!");
+                if (myP?.finished && oppP?.finished && !data.winner) {
+                    // Both finished, calculate winner.
+                    // We allow ANY client to calculate this to prevent hanging if Host disconnects.
+                    this.determineWinner(challengeId, myId, myP, this.opponent.id, oppP);
+                }
             });
         },
 
         async determineWinner(challengeId, p1Id, p1Data, p2Id, p2Data) {
-            console.log("Determining winner:", { p1Id, p1Data, p2Id, p2Data }); // Debug log
-
             let winnerId = null;
 
             // Deterministic Winner Logic
@@ -280,24 +202,19 @@
             else if (p2Data.score > p1Data.score) winnerId = p2Id;
             else {
                 // Tie on score, check time (lower is better)
-                // If time is missing, fallback to 0 (which is unfair but prevents crash)
-                // Ideally time should always be present if finished=true
-                const t1 = p1Data.time || Number.MAX_SAFE_INTEGER;
-                const t2 = p2Data.time || Number.MAX_SAFE_INTEGER;
+                const t1 = p1Data.time || 0;
+                const t2 = p2Data.time || 0;
 
                 if (t1 < t2) winnerId = p1Id;
                 else if (t2 < t1) winnerId = p2Id;
-                else winnerId = p1Id; // Exact tie, p1 wins (Host advantage or random)
+                else winnerId = p1Id; // Exact tie, p1 wins
             }
-
-            console.log("Winner determined:", winnerId); // Debug log
 
             const db = window.Firebase.db;
             try {
                 await db.collection('challenges').doc(challengeId).update({
                     winner: winnerId
                 });
-                console.log("Winner saved to Firestore"); // Debug log
             } catch (e) {
                 console.log("Winner update race", e);
             }
@@ -322,14 +239,14 @@
         },
 
         // Send current progress
-        async sendProgress(currentQ, total) {
+        async sendProgress(score, total) {
             if (!this.activeChallengeId) return;
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
 
             try {
                 await db.collection('challenges').doc(this.activeChallengeId).update({
-                    [`progress.${myId}.currentQ`]: currentQ,
+                    [`progress.${myId}.score`]: score,
                     [`progress.${myId}.total`]: total
                 });
             } catch (e) {
@@ -338,26 +255,23 @@
         },
 
         // Send game over
-        async sendGameOver(score, total, time) {
+        async sendGameOver(score, time) {
             if (!this.activeChallengeId) return;
             const db = window.Firebase.db;
             const myId = window.store.state.userId;
-
-            console.log("Sending game over:", { score, total, time }); // Debug log
 
             // Mark as finished
             await db.collection('challenges').doc(this.activeChallengeId).update({
                 [`progress.${myId}`]: {
                     score,
-                    currentQ: total, // All questions answered
-                    total: total,
+                    total: 10,
                     finished: true,
                     time: time
                 }
             });
 
             // Show waiting message
-            window.toast("Sonuçlar bekleniyor...");
+            window.toast("Rakip bekleniyor...");
         },
 
         requestRematch() {
@@ -405,14 +319,11 @@
         window.playSound('success');
     }
 
-    function updateOpponentProgress(currentQ, total) {
+    function updateOpponentProgress(score, total) {
         const bar = document.getElementById('duel-opponent-bar');
         if (bar) {
-            const pct = (currentQ / total) * 100;
+            const pct = (score / total) * 100;
             bar.style.width = `${pct}%`;
-        } else {
-            // Try to find it again or log warning
-            // console.warn("Opponent bar not found");
         }
     }
 

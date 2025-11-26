@@ -82,7 +82,7 @@
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:800; color:var(--neon-green);">${data.xp || 0} XP</div>
-                            ${!isMe ? `<button class="btn" onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" style="background:linear-gradient(135deg, var(--neon-purple), var(--primary)); box-shadow:0 4px 12px rgba(139, 92, 246, 0.3); color:white; font-size:0.75rem; padding:6px 12px; border-radius:12px; margin-top:4px; width:100%;">⚔️ Meydan Oku</button>` : ''}
+                            ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" style="background:var(--neon-purple); border:none; color:white; font-size:0.7rem; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer;">⚔️ Meydan Oku</button>` : ''}
                         </div>
                     </div>
                 `;

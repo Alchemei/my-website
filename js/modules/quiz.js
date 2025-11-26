@@ -249,38 +249,34 @@
         if (quizState.mode !== 'duel') return;
 
         const myId = window.store.state.userId;
-        // Robustly find opponent ID from progress keys
-        const opponentId = Object.keys(progress || {}).find(k => k !== myId);
-        const opponentName = window.multiplayer.opponent ? window.multiplayer.opponent.name : 'Rakip';
+        const opponentId = window.multiplayer.opponent.id;
+        const opponentName = window.multiplayer.opponent.name;
 
-        if (!progress || !myId || !opponentId) {
-            console.error("Duel finish error: Missing data", { progress, myId, opponentId });
-            finishGame(0, "Hata Oluştu");
-            return;
-        }
-
-        const myData = progress[myId] || { score: 0, total: 10 };
-        const oppData = progress[opponentId] || { score: 0, total: 10 };
-
-        console.log("Duel finish data:", { myData, oppData, progress }); // Debug log
+        const myData = progress[myId];
+        const oppData = progress[opponentId];
 
         const isMe = winnerId === myId;
         const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
 
+        // Calculate times (approximate if not stored precisely, but we send Date.now())
+        // Note: We sent Date.now() as 'time'. To get duration, we'd need start time.
+        // For now, let's just show score. If we want duration, we need to store startTime in challenge.
+        // Assuming 'time' in progress is the timestamp of completion.
+        // Let's just show Score for now to be safe, or if we have startTime in challenge data (we do), we can diff.
+        // But 'progress' passed here might just be the progress object.
+        // Let's just show Score & Correct/Total.
+
         finishGame(xp, title);
 
-        // Hide Duel Bars
-        const duelBars = document.getElementById('duel-bars');
-        if (duelBars) duelBars.classList.add('hidden');
-
-        document.getElementById('quiz-play-area').classList.add('hidden');
+        // Hide Duel Container explicitly
+        document.getElementById('duel-container').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.add('hidden'); // Ensure this is hidden too
 
         // Custom Result Message for Duel
         const resScore = document.getElementById('res-score');
         resScore.innerHTML = ''; // Clear previous text
-        resScore.style.fontSize = '1.5rem'; // Smaller font for table
 
         // Create Comparison Table
         const table = document.createElement('div');
@@ -295,11 +291,11 @@
         table.innerHTML = `
             <div style="${rowStyle} border: 1px solid ${isMe ? 'var(--neon-green)' : 'transparent'};">
                 <span style="font-weight:bold;">Sen</span>
-                <span>${myData.score || 0} / ${myData.total || 10} Doğru</span>
+                <span>${myData.score} / ${myData.total} Doğru</span>
             </div>
             <div style="${rowStyle} border: 1px solid ${!isMe ? 'var(--neon-red)' : 'transparent'};">
                 <span style="font-weight:bold;">${opponentName}</span>
-                <span>${oppData.score || 0} / ${oppData.total || 10} Doğru</span>
+                <span>${oppData.score} / ${oppData.total} Doğru</span>
             </div>
         `;
 
@@ -313,44 +309,36 @@
             btn = document.createElement('button');
             btn.id = 'btn-rematch';
             btn.className = 'btn';
-            btn.style.background = 'linear-gradient(135deg, var(--neon-purple), var(--primary))';
-            btn.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.4)';
-            btn.style.marginTop = '15px';
+            btn.style.background = 'var(--neon-purple)';
+            btn.style.marginTop = '10px';
             btn.style.width = '100%';
-            btn.style.padding = '15px';
-            btn.style.borderRadius = '16px';
-            btn.style.fontSize = '1rem';
             btn.innerText = '🔄 Rövanş İste';
             btn.onclick = () => window.multiplayer.requestRematch();
-            // Append to the end of result area
-            resArea.appendChild(btn);
+            const content = resArea.querySelector('.glass-panel') || resArea;
+            content.appendChild(btn);
         } else {
             btn.style.display = 'block';
         }
+
+        // Move question area back to tab-quiz
+        const qArea = document.getElementById('quiz-play-area');
+        document.getElementById('tab-quiz').appendChild(qArea);
     }
 
-    function startDuelMode(opponent, questions) {
+    function startDuelMode(opponent) {
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
 
         const qArea = document.getElementById('quiz-play-area');
         qArea.classList.remove('hidden');
+        document.getElementById('duel-container').classList.remove('hidden');
 
-        // Show integrated duel bars
-        document.getElementById('duel-bars').classList.remove('hidden');
+        // Move question area inside duel container
+        document.getElementById('duel-question-area').appendChild(qArea);
 
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
-        document.getElementById('duel-opponent-bar').style.width = '0%';
-
-        quizState = {
-            active: true,
-            currentQ: 1,
-            score: 0,
-            totalQ: 10,
-            mode: 'duel',
-            questions: questions // Store synchronized questions
-        };
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
         renderQuizQ();
     }
 
@@ -364,28 +352,7 @@
 
     function renderQuizQ() {
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
-
-        let target, opts;
-
-        if (quizState.mode === 'duel' && quizState.questions) {
-            // Use synchronized questions for duel mode
-            const q = quizState.questions[quizState.currentQ - 1];
-            if (!q) {
-                console.error("Question not found for index:", quizState.currentQ - 1);
-                return;
-            }
-            target = { en: q.word, tr: q.correct };
-            opts = q.options;
-        } else {
-            // Random questions for other modes
-            target = window.words[Math.floor(Math.random() * window.words.length)];
-            opts = window.words.filter(w => w.en !== target.en)
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 3)
-                .map(w => w.tr);
-            opts.push(target.tr);
-            opts.sort(() => 0.5 - Math.random());
-        }
+        const target = window.words[Math.floor(Math.random() * window.words.length)];
 
         const wordEl = document.getElementById('q-word');
 
@@ -396,6 +363,13 @@
             wordEl.innerText = target.en;
         }
 
+        let opts = window.words.filter(w => w.en !== target.en)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(w => w.tr);
+
+        opts.push(target.tr);
+        opts.sort(() => 0.5 - Math.random());
 
         const div = document.getElementById('q-options');
         div.innerHTML = '';
@@ -433,11 +407,11 @@
         }
 
         if (quizState.mode === 'duel') {
-            // Update my bar based on question progress, not score
-            const pct = (quizState.currentQ / quizState.totalQ) * 100;
+            // Update my bar
+            const pct = (quizState.score / quizState.totalQ) * 100;
             document.getElementById('duel-my-bar').style.width = `${pct}%`;
-            // Send current question number to opponent
-            window.multiplayer.sendProgress(quizState.currentQ, quizState.totalQ);
+            // Send to opponent
+            window.multiplayer.sendProgress(quizState.score, quizState.totalQ);
         }
 
         setTimeout(() => {
@@ -452,7 +426,7 @@
 
     function finishQuiz() {
         if (quizState.mode === 'duel') {
-            window.multiplayer.sendGameOver(quizState.score, quizState.totalQ, Date.now());
+            window.multiplayer.sendGameOver(quizState.score, Date.now());
             // handleDuelFinish is called by multiplayer when winner is decided
             return;
         }
