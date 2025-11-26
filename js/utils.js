@@ -1,61 +1,11 @@
 // --- AUDIO SYSTEM ---
-let audioCtx;
-
+// Sounds disabled by user request
 window.playSound = function (type) {
-    if (!window.store || !window.store.state.soundEnabled) return;
-
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(e => console.warn("Audio resume failed", e));
-    }
-
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-
-    if (type === 'success') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, now);
-        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-    } else if (type === 'error') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, now);
-        osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-    } else if (type === 'click') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, now);
-        gain.gain.setValueAtTime(0.05, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-        osc.start(now);
-        osc.stop(now + 0.05);
-    }
+    // No-op
 }
 
 window.toggleSound = function () {
-    const newState = !window.store.state.soundEnabled;
-    window.store.update('soundEnabled', newState);
-
-    const btn = document.getElementById('btn-sound-toggle');
-    if (btn) {
-        btn.innerText = newState ? "Açık" : "Kapalı";
-        btn.style.background = newState ? "var(--neon-green)" : "rgba(255,255,255,0.1)";
-        btn.style.color = newState ? "black" : "white";
-    }
-    window.toast(`Sesler ${newState ? 'açıldı' : 'kapatıldı'}`);
+    // No-op
 }
 
 // --- UTILS ---

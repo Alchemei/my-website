@@ -280,22 +280,20 @@
 
         // Create Comparison Table
         const table = document.createElement('div');
-        table.style.display = 'flex';
-        table.style.flexDirection = 'column';
-        table.style.gap = '10px';
-        table.style.margin = '20px 0';
-        table.style.width = '100%';
-
-        const rowStyle = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:8px;";
+        table.className = 'result-card';
+        table.style.marginTop = '20px';
 
         table.innerHTML = `
-            <div style="${rowStyle} border: 1px solid ${isMe ? 'var(--neon-green)' : 'transparent'};">
-                <span style="font-weight:bold;">Sen</span>
-                <span>${myData.score} / ${myData.total} Doğru</span>
+            <div class="result-score-big">${myData.score}</div>
+            <div style="color:var(--text-muted); margin-bottom:20px; font-weight:600;">DOĞRU CEVAP</div>
+            
+            <div class="result-row ${isMe ? 'winner' : 'loser'}">
+                <span style="font-weight:700;">Sen</span>
+                <span style="font-weight:700;">${myData.score} / ${myData.total}</span>
             </div>
-            <div style="${rowStyle} border: 1px solid ${!isMe ? 'var(--neon-red)' : 'transparent'};">
-                <span style="font-weight:bold;">${opponentName}</span>
-                <span>${oppData.score} / ${oppData.total} Doğru</span>
+            <div class="result-row ${!isMe ? 'winner' : 'loser'}">
+                <span style="font-weight:700;">${opponentName}</span>
+                <span style="font-weight:700;">${oppData.score} / ${oppData.total}</span>
             </div>
         `;
 

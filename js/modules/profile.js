@@ -274,17 +274,17 @@
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #be123c, #2a0a18)';
         }
         else {
-            // Default Theme (Reset)
-            root.style.setProperty('--bg-dark', '#020617');
-            root.style.setProperty('--glass-surface', 'rgba(15, 23, 42, 0.85)');
-            root.style.setProperty('--neon-blue', '#60a5fa');
-            root.style.setProperty('--neon-purple', '#a78bfa');
+            // Default Theme (Reset to iOS Dark Glass)
+            root.style.setProperty('--bg-dark', '#000000');
+            root.style.setProperty('--glass-surface', 'rgba(255, 255, 255, 0.08)');
+            root.style.setProperty('--neon-blue', '#0A84FF');
+            root.style.setProperty('--neon-purple', '#BF5AF2');
 
             // Card Theme (Reset)
-            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #1e293b, #0f172a)');
-            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #4c1d95, #0f172a)');
+            root.style.setProperty('--card-bg-front', 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(135deg, #5e5ce6 0%, #4744ca 100%)');
 
-            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #172554, #020617)';
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #2c2c2e 0%, #000 100%)';
         }
 
         // Apply Frame (to avatar/icon)

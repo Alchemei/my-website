@@ -20,7 +20,7 @@
     
     <!-- Level Up Modal -->
     <div id="level-up-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel" style="text-align:center; padding:40px;">
+        <div class="modal-content" style="text-align:center; padding:40px;">
             <div style="font-size:4rem; margin-bottom:10px;">🎉</div>
             <h2 style="font-size:2.5rem; margin:0; color:var(--neon-purple); text-shadow:0 0 20px rgba(139,92,246,0.5);">SEVİYE ATLADIN!</h2>
             <div style="font-size:1.2rem; margin:20px 0; color:var(--text-muted);">Yeni Seviyen</div>
@@ -31,7 +31,7 @@
 
     <!-- Favorites Modal -->
     <div id="favs-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel" style="height:80vh; display:flex; flex-direction:column; padding:0;">
+        <div class="modal-content" style="height:80vh; display:flex; flex-direction:column; padding:0;">
             <div style="padding:20px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
                 <h2 style="margin:0; font-size:1.5rem;">Favorilerim</h2>
                 <button class="btn" onclick="document.getElementById('favs-modal').classList.add('hidden')" style="background:transparent; font-size:1.5rem;">✕</button>
@@ -42,7 +42,7 @@
 
     <!-- Dictionary Modal -->
     <div id="dict-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel" style="height:80vh; display:flex; flex-direction:column; padding:0;">
+        <div class="modal-content" style="height:80vh; display:flex; flex-direction:column; padding:0;">
             <div style="padding:20px; border-bottom:1px solid var(--glass-border);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h2 style="margin:0; font-size:1.5rem;">Sözlük</h2>
@@ -54,32 +54,7 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel" style="padding:25px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="margin:0; font-size:1.5rem;">Ayarlar</h2>
-                <button class="btn" onclick="document.getElementById('settings-modal').classList.add('hidden')" style="background:transparent; font-size:1.5rem;">✕</button>
-            </div>
-            
-            <div style="margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <span>Ses Efektleri</span>
-                    <button id="btn-sound-toggle" class="btn" onclick="window.toggleSound()" style="background:var(--neon-green); padding:5px 15px; border-radius:20px; color:black;">Açık</button>
-                </div>
-                <div style="font-size:0.8rem; color:var(--text-muted);">Uygulama içi sesleri aç/kapat.</div>
-            </div>
 
-            <div style="margin-bottom:20px; border-top:1px solid var(--glass-border); padding-top:20px;">
-                <h3 style="margin:0 0 10px 0; font-size:1rem;">Veri Yönetimi</h3>
-                <button class="btn w-full" onclick="window.resetData()" style="background:rgba(239,68,68,0.2); color:var(--neon-red); border:1px solid var(--neon-red); padding:10px; border-radius:12px;">Tüm İlerlemeyi Sıfırla</button>
-            </div>
-
-            <div style="text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:20px;">
-                English Master v7.2<br>by Deepmind
-            </div>
-        </div>
-    </div>
     <header>
         <div class="hud-top">
             <div class="hud-group">
@@ -100,7 +75,7 @@
                 <div id="sync-status" class="sync-status" title="Bulut Senkronizasyonu" onclick="window.retrySync()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
                 </div>
-                <button class="btn" onclick="document.getElementById('settings-modal').classList.remove('hidden')" style="background:rgba(15, 23, 42, 0.8); width:34px; height:34px; border-radius:50%; border:1px solid var(--glass-border); color:var(--text-muted); display:flex; align-items:center; justify-content:center;">⚙️</button>
+
             </div>
         </div>
         <div class="xp-track"><div id="xp-bar" class="xp-fill"></div></div>
@@ -144,15 +119,15 @@
 
         <div id="tab-quiz" class="hidden fade-in">
             <div id="duel-container" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:var(--bg-dark); z-index:10; padding:20px; display:flex; flex-direction:column;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding: 20px; background: rgba(30, 41, 59, 0.4); border-radius: var(--radius-lg); border: 1px solid var(--glass-border);">
-                    <div style="text-align:center; width:40%;">
-                        <div style="font-size:0.9rem; font-weight: 700; color:var(--neon-blue); margin-bottom: 8px;">SEN</div>
-                        <div class="xp-track" style="height:12px; background: rgba(0,0,0,0.3);"><div id="duel-my-bar" class="xp-fill" style="width:0%; background:var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue);"></div></div>
+                <div class="duel-header">
+                    <div class="duel-player-info">
+                        <div class="duel-name" style="color:var(--neon-blue);">SEN</div>
+                        <div class="duel-bar-track"><div id="duel-my-bar" class="duel-bar-fill" style="width:0%; background:var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue);"></div></div>
                     </div>
-                    <div style="font-weight:900; color:var(--text-muted); font-size:1.2rem; opacity: 0.5;">VS</div>
-                    <div style="text-align:center; width:40%;">
-                        <div id="duel-opponent-name" style="font-size:0.9rem; font-weight: 700; color:var(--neon-red); margin-bottom: 8px;">RAKİP</div>
-                        <div class="xp-track" style="height:12px; background: rgba(0,0,0,0.3);"><div id="duel-opponent-bar" class="xp-fill" style="width:0%; background:var(--neon-red); box-shadow: 0 0 10px var(--neon-red);"></div></div>
+                    <div class="duel-vs-badge">VS</div>
+                    <div class="duel-player-info">
+                        <div id="duel-opponent-name" class="duel-name" style="color:var(--neon-red);">RAKİP</div>
+                        <div class="duel-bar-track"><div id="duel-opponent-bar" class="duel-bar-fill" style="width:0%; background:var(--neon-red); box-shadow: 0 0 10px var(--neon-red);"></div></div>
                     </div>
                 </div>
                 <div id="duel-question-area" style="flex:1; display:flex; flex-direction:column; justify-content:center;">
@@ -167,7 +142,7 @@
                     <div style="font-weight:700;">Quiz</div>
                     <div style="font-size:0.8rem; color:var(--text-muted);">20 Soru</div>
                 </button>
-                <button class="glass-panel btn" onclick="window.startChallenge()" style="padding:20px; text-align:center; border:1px solid var(--neon-red);">
+                <button class="glass-panel btn" onclick="window.startChallenge()" style="padding:20px; text-align:center; border:1px solid var(--neon-red); background: rgba(255, 69, 58, 0.1);">
                     <div style="font-size:2rem;">⚡</div>
                     <div style="font-weight:700; color:var(--neon-red);">Meydan Okuma</div>
                     <div style="font-size:0.8rem; color:var(--text-muted);">60 Saniye</div>
@@ -303,7 +278,7 @@
             <h3 style="font-weight:300; border-bottom:1px solid var(--glass-border); padding-bottom:10px; margin-bottom:15px;">Başarımlar</h3>
             <div id="achievements-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:30px;"></div>
 
-            <button class="btn w-full" style="padding:15px; background:rgba(239,68,68,0.15); color:var(--neon-red); border:1px solid rgba(239,68,68,0.3); border-radius:16px;" onclick="window.resetData()">Verileri Sıfırla</button>
+            <button class="btn w-full" style="padding:15px; background:rgba(255, 69, 58, 0.15); color:var(--danger); border:1px solid rgba(255, 69, 58, 0.3); border-radius:16px; margin-top: 20px;" onclick="window.resetData()">Verileri Sıfırla</button>
         </div>
         <div id="tab-leaderboard" class="hidden fade-in">
             <div class="page-header"><h1 style="margin:0; font-size:1.8rem; font-weight:300;">Liderler</h1><div class="page-title">Top 10</div></div>
