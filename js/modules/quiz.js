@@ -253,21 +253,19 @@
         const opponentId = window.multiplayer.opponent.id;
         const opponentName = window.multiplayer.opponent.name;
 
-        const myData = progress[myId];
-        const oppData = progress[opponentId];
+        // Defensive: provide defaults if data is missing
+        const myData = progress[myId] || { score: quizState.score || 0, total: 10, finished: true };
+        const oppData = progress[opponentId] || { score: 0, total: 10, finished: true };
+
+        // Log warning if data seems incomplete
+        if (!progress[myId] || !progress[opponentId]) {
+            console.warn('Duel progress data incomplete:', { myId, opponentId, progress });
+        }
 
         const isMe = winnerId === myId;
         const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
-
-        // Calculate times (approximate if not stored precisely, but we send Date.now())
-        // Note: We sent Date.now() as 'time'. To get duration, we'd need start time.
-        // For now, let's just show score. If we want duration, we need to store startTime in challenge.
-        // Assuming 'time' in progress is the timestamp of completion.
-        // Let's just show Score for now to be safe, or if we have startTime in challenge data (we do), we can diff.
-        // But 'progress' passed here might just be the progress object.
-        // Let's just show Score & Correct/Total.
 
         finishGame(xp, title);
 
