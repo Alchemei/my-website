@@ -220,7 +220,7 @@
             }
         },
 
-        async handleGameEnd(winnerId, betAmount, progress) {
+        handleGameEnd(winnerId, betAmount, progress) {
             const myId = window.store.state.userId;
             const isMe = winnerId === myId;
 
@@ -233,21 +233,8 @@
                 window.playSound('error');
             }
 
-            // Fetch fresh data from Firebase to avoid stale progress info
-            try {
-                const db = window.Firebase.db;
-                const doc = await db.collection('challenges').doc(this.activeChallengeId).get();
-                const freshData = doc.data();
-
-                if (window.handleDuelFinish && freshData) {
-                    window.handleDuelFinish(winnerId, betAmount, freshData.progress || progress);
-                }
-            } catch (e) {
-                console.error("Error fetching fresh duel data:", e);
-                // Fallback to passed progress if fetch fails
-                if (window.handleDuelFinish) {
-                    window.handleDuelFinish(winnerId, betAmount, progress);
-                }
+            if (window.handleDuelFinish) {
+                window.handleDuelFinish(winnerId, betAmount, progress);
             }
         },
 
