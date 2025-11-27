@@ -423,7 +423,6 @@ main::-webkit-scrollbar { display: none; }
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     z-index: 200;
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
     opacity: 1; transition: opacity 0.3s;
 }
 .result-screen.hidden { opacity: 0; pointer-events: none; }
@@ -822,7 +821,7 @@ main::-webkit-scrollbar { display: none; }
 .duel-result-table { 
 padding: 15px;
 margin-bottom: 0;
-margin-top: 50px; }
+margin-top: 100px; }
 .duel-result-header { color: var(--text-muted); margin-bottom: 15px; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px; }
 .font-bold { font-weight: 700; }
 .btn-rematch {
