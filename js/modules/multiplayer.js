@@ -289,21 +289,21 @@
             div.id = 'challenge-modal';
             div.className = 'modal-overlay center-modal';
             div.innerHTML = `
-                <div class="modal-content" style="text-align:center; border:1px solid rgba(139, 92, 246, 0.3);">
-                    <div style="width:80px; height:80px; background:rgba(139, 92, 246, 0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; box-shadow:0 0 30px rgba(139, 92, 246, 0.3);">
-                        <span style="font-size: 3rem;">⚔️</span>
+                <div class="modal-content challenge-modal-content">
+                    <div class="challenge-icon-container">
+                        <span class="challenge-icon">⚔️</span>
                     </div>
-                    <h2 style="color:white; font-size: 1.6rem; margin: 0 0 10px 0; font-weight:700;">Meydan Okuma!</h2>
-                    <p id="challenge-msg" style="margin:10px 0 25px 0; font-size:1.1rem; line-height: 1.5; color:var(--text-muted);"></p>
+                    <h2 class="challenge-title">Meydan Okuma!</h2>
+                    <p id="challenge-msg" class="challenge-msg"></p>
                     
-                    <div style="background: rgba(255, 214, 10, 0.1); border: 1px solid rgba(255, 214, 10, 0.3); padding: 12px 20px; border-radius: 100px; display: inline-flex; align-items:center; gap:8px; margin-bottom: 30px;">
-                        <span style="font-size:1.2rem;">🪙</span>
-                        <span style="font-size:1rem; color:var(--neon-yellow); font-weight: 700;">Bahis: 50</span>
+                    <div class="challenge-bet-badge">
+                        <span class="bet-icon">🪙</span>
+                        <span class="bet-text">Bahis: 50</span>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                        <button class="btn" id="btn-reject-challenge" style="background:rgba(255, 69, 58, 0.15); color: var(--danger); padding: 16px; border:1px solid rgba(255, 69, 58, 0.3);">Reddet</button>
-                        <button class="btn" id="btn-accept-challenge" style="background:var(--neon-green); color:black; font-weight:bold; padding: 16px; box-shadow:0 0 20px rgba(48, 209, 88, 0.4);">Kabul Et</button>
+                    <div class="challenge-btn-grid">
+                        <button class="btn btn-reject" id="btn-reject-challenge">Reddet</button>
+                        <button class="btn btn-accept" id="btn-accept-challenge">Kabul Et</button>
                     </div>
                 </div>
             `;
@@ -311,7 +311,7 @@
             modal = div;
         }
 
-        document.getElementById('challenge-msg').innerHTML = `<span style="color:white; font-weight:bold;">${data.senderName}</span> seni düelloya davet ediyor!`;
+        document.getElementById('challenge-msg').innerHTML = `<span class="sender-name-bold">${data.senderName}</span> seni düelloya davet ediyor!`;
 
         document.getElementById('btn-accept-challenge').onclick = () => {
             window.multiplayer.acceptChallenge(id, data.senderId, data.senderName, data.betAmount || 50);

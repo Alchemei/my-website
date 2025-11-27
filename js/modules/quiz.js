@@ -82,14 +82,7 @@
 
         cards.forEach((card, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'glass-panel';
-            btn.style.padding = '20px 10px';
-            btn.style.fontSize = '0.9rem';
-            btn.style.fontWeight = '700';
-            btn.style.minHeight = '80px';
-            btn.style.display = 'flex';
-            btn.style.alignItems = 'center';
-            btn.style.justifyContent = 'center';
+            btn.className = 'glass-panel match-card-btn';
             btn.innerText = card.text;
             btn.dataset.idx = idx;
 
@@ -102,8 +95,7 @@
         if (btn.classList.contains('matched') || btn.classList.contains('selected')) return;
 
         btn.classList.add('selected');
-        btn.style.background = 'rgba(255,255,255,0.2)';
-        btn.style.border = '1px solid var(--neon-blue)';
+        btn.classList.add('match-card-selected');
 
         if (!matchState.selected) {
             matchState.selected = { btn, card };
@@ -114,12 +106,12 @@
                 // Match!
                 btn.classList.add('matched');
                 first.btn.classList.add('matched');
-                btn.style.background = 'rgba(34, 197, 94, 0.2)';
-                first.btn.style.background = 'rgba(34, 197, 94, 0.2)';
-                btn.style.border = '1px solid var(--neon-green)';
-                first.btn.style.border = '1px solid var(--neon-green)';
-                btn.style.opacity = '0.5';
-                first.btn.style.opacity = '0.5';
+                btn.classList.add('match-card-matched');
+                first.btn.classList.add('match-card-matched');
+
+                // Remove selected styles
+                btn.classList.remove('match-card-selected');
+                first.btn.classList.remove('match-card-selected');
 
                 matchState.score += 10;
                 matchState.matched++;
@@ -136,10 +128,8 @@
                 setTimeout(() => {
                     btn.classList.remove('selected');
                     first.btn.classList.remove('selected');
-                    btn.style.background = '';
-                    first.btn.style.background = '';
-                    btn.style.border = '';
-                    first.btn.style.border = '';
+                    btn.classList.remove('match-card-selected');
+                    first.btn.classList.remove('match-card-selected');
                 }, 500);
                 matchState.selected = null;
             }
@@ -185,21 +175,15 @@
         letters.forEach(l => {
             const btn = document.createElement('button');
             btn.innerText = l;
-            btn.className = 'btn';
-            btn.style.width = '36px';
-            btn.style.height = '40px';
-            btn.style.margin = '2px';
-            btn.style.background = 'rgba(255,255,255,0.1)';
-            btn.style.borderRadius = '8px';
+            btn.className = 'btn hangman-key-btn';
 
             if (hangmanState.guessed.includes(l)) {
                 btn.disabled = true;
-                btn.style.opacity = '0.3';
+                btn.classList.add('hangman-key-disabled');
                 if (hangmanState.word.en.toLowerCase().includes(l)) {
-                    btn.style.background = 'var(--neon-green)';
-                    btn.style.color = 'black';
+                    btn.classList.add('hangman-key-correct');
                 } else {
-                    btn.style.background = 'var(--neon-red)';
+                    btn.classList.add('hangman-key-wrong');
                 }
             } else {
                 btn.onclick = () => handleHangmanGuess(l);
@@ -275,20 +259,18 @@
         customArea.innerHTML = '';
 
         const table = document.createElement('div');
-        table.className = 'glass-panel';
-        table.style.padding = '15px';
-        table.style.marginBottom = '20px';
+        table.className = 'glass-panel duel-result-table';
 
         table.innerHTML = `
-            <div style="color:var(--text-muted); margin-bottom:15px; font-weight:600; font-size:0.9rem; letter-spacing:1px;">SONUÇLAR</div>
+            <div class="duel-result-header">SONUÇLAR</div>
             
             <div class="result-row ${isMe ? 'winner' : 'loser'}">
-                <span style="font-weight:700;">Sen</span>
-                <span style="font-weight:700;">${myData.score} / ${myData.total}</span>
+                <span class="font-bold">Sen</span>
+                <span class="font-bold">${myData.score} / ${myData.total}</span>
             </div>
             <div class="result-row ${!isMe ? 'winner' : 'loser'}">
-                <span style="font-weight:700;">${opponentName}</span>
-                <span style="font-weight:700;">${oppData.score} / ${oppData.total}</span>
+                <span class="font-bold">${opponentName}</span>
+                <span class="font-bold">${oppData.score} / ${oppData.total}</span>
             </div>
         `;
 
@@ -300,12 +282,7 @@
         if (!btn) {
             btn = document.createElement('button');
             btn.id = 'btn-rematch';
-            btn.className = 'btn w-full';
-            btn.style.background = 'rgba(139, 92, 246, 0.2)';
-            btn.style.border = '1px solid var(--neon-purple)';
-            btn.style.color = 'var(--neon-purple)';
-            btn.style.marginTop = '10px';
-            btn.style.padding = '15px';
+            btn.className = 'btn w-full btn-rematch';
             btn.innerText = '🔄 Rövanş İste';
             btn.onclick = () => window.multiplayer.requestRematch();
             // Append to actions area if possible, or custom area
@@ -351,7 +328,7 @@
         const wordEl = document.getElementById('q-word');
 
         if (quizState.mode === 'listening') {
-            wordEl.innerHTML = `<button class="btn" onclick="window.playTTS('${target.en}')" style="background:var(--neon-blue); width:80px; height:80px; border-radius:50%; font-size:2rem;">🔊</button>`;
+            wordEl.innerHTML = `<button class="btn listening-btn" onclick="window.playTTS('${target.en}')">🔊</button>`;
             setTimeout(() => window.playTTS(target.en), 300);
         } else {
             wordEl.innerText = target.en;
@@ -382,18 +359,209 @@
 
         let isCorrect = (selected === correct);
         if (isCorrect) {
-            btn.style.background = "rgba(16, 185, 129, 0.4)";
-            btn.style.borderColor = "var(--neon-green)";
+            btn.classList.add('quiz-opt-correct');
             quizState.score++;
             window.confetti();
             window.playSound('success');
         } else {
-            btn.style.background = "rgba(239, 68, 68, 0.4)";
-            btn.style.borderColor = "var(--neon-red)";
+            btn.classList.add('quiz-opt-wrong');
             opts.forEach(o => {
                 if (o.innerText === correct) {
-                    o.style.background = "rgba(16, 185, 129, 0.4)";
-                    o.style.borderColor = "var(--neon-green)";
+                    o.classList.add('quiz-opt-correct');
+                }
+            });
+            if (navigator.vibrate) navigator.vibrate(200);
+            window.playSound('error');
+        }
+
+        if (quizState.mode === 'duel') {
+            // Update my bar
+            const pct = (quizState.score / quizState.totalQ) * 100;
+            document.getElementById('duel-my-bar').style.width = `${pct}%`;
+            // Send to opponent
+            window.multiplayer.sendProgress(quizState.score, quizState.totalQ);
+        }
+
+        setTimeout(() => {
+            if (quizState.currentQ < quizState.totalQ) {
+                quizState.currentQ++;
+                renderQuizQ();
+            } else {
+                finishQuiz();
+            }
+        }, 1200);
+    }
+
+    function finishQuiz() {
+        if (quizState.mode === 'duel') {
+            window.multiplayer.sendGameOver(quizState.score, Date.now());
+            // handleDuelFinish is called by multiplayer when winner is decided
+            return;
+        }
+
+        document.getElementById('quiz-play-area').classList.add('hidden');
+        document.getElementById('quiz-result-area').classList.remove('hidden');
+        quizState.active = false;
+
+        let baseXP = quizState.score * 5;
+        if (quizState.mode === 'challenge') {
+            baseXP = quizState.score * 10; // Double XP for challenge
+            document.getElementById('res-title').innerText = "Meydan Okuma Bitti!";
+        } else {
+            document.getElementById('res-title').innerText = "Quiz Tamamlandı!";
+        }
+
+        let finalXP = baseXP;
+
+        if (window.store.state.activeItems.doubleXP > 0) {
+            finalXP = baseXP * 2;
+            window.store.update('activeItems', {
+                ...window.store.state.activeItems,
+                doubleXP: Math.max(0, window.store.state.activeItems.doubleXP - 20)
+            });
+        }
+
+        window.store.update('xp', window.store.state.xp + finalXP);
+        window.store.updateHistory(finalXP);
+
+        window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: finalXP } }));
+        window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'quiz', amount: 1 } }));
+
+        document.getElementById('res-score').innerText = quizState.score;
+        document.getElementById('res-xp').innerText = `+${finalXP}`;
+        document.getElementById('result-custom-content').innerHTML = ''; // Clear custom content
+
+        const myData = progress[myId];
+        const oppData = progress[opponentId];
+
+        const isMe = winnerId === myId;
+        const title = isMe ? "KAZANDIN!" : "KAYBETTİN";
+        const xp = isMe ? 100 : 20;
+        const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
+
+        finishGame(xp, title);
+
+        // Hide Duel Container explicitly
+        document.getElementById('duel-container').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.add('hidden');
+
+        // Set Score
+        document.getElementById('res-score').innerText = myData.score;
+
+        // Create Comparison Table in Custom Content Area
+        const customArea = document.getElementById('result-custom-content');
+        customArea.innerHTML = '';
+
+        const table = document.createElement('div');
+        table.className = 'glass-panel duel-result-table';
+
+        table.innerHTML = `
+            <div class="duel-result-header">SONUÇLAR</div>
+            
+            <div class="result-row ${isMe ? 'winner' : 'loser'}">
+                <span class="font-bold">Sen</span>
+                <span class="font-bold">${myData.score} / ${myData.total}</span>
+            </div>
+            <div class="result-row ${!isMe ? 'winner' : 'loser'}">
+                <span class="font-bold">${opponentName}</span>
+                <span class="font-bold">${oppData.score} / ${oppData.total}</span>
+            </div>
+        `;
+
+        customArea.appendChild(table);
+        document.getElementById('res-xp').innerText = `${gold} | +${xp} XP`;
+
+        // Add Rematch Button
+        let btn = document.getElementById('btn-rematch');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'btn-rematch';
+            btn.className = 'btn w-full btn-rematch';
+            btn.innerText = '🔄 Rövanş İste';
+            btn.onclick = () => window.multiplayer.requestRematch();
+            // Append to actions area if possible, or custom area
+            document.querySelector('.result-actions').insertBefore(btn, document.querySelector('.result-actions').firstChild);
+        } else {
+            btn.style.display = 'block';
+        }
+
+        // Move question area back to tab-quiz
+        const qArea = document.getElementById('quiz-play-area');
+        document.getElementById('tab-quiz').appendChild(qArea);
+    }
+
+    function startDuelMode(opponent) {
+        showGamesMenu();
+        document.getElementById('games-menu').classList.add('hidden');
+
+        const qArea = document.getElementById('quiz-play-area');
+        qArea.classList.remove('hidden');
+        document.getElementById('duel-container').classList.remove('hidden');
+
+        // Move question area inside duel container
+        document.getElementById('duel-question-area').appendChild(qArea);
+
+        document.getElementById('duel-opponent-name').innerText = opponent.name;
+        document.getElementById('duel-my-bar').style.width = '0%';
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
+        renderQuizQ();
+    }
+
+    function startListeningGame() {
+        showGamesMenu();
+        document.getElementById('games-menu').classList.add('hidden');
+        document.getElementById('quiz-play-area').classList.remove('hidden');
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'listening' };
+        renderQuizQ();
+    }
+
+    function renderQuizQ() {
+        document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
+        const target = window.words[Math.floor(Math.random() * window.words.length)];
+
+        const wordEl = document.getElementById('q-word');
+
+        if (quizState.mode === 'listening') {
+            wordEl.innerHTML = `<button class="btn listening-btn" onclick="window.playTTS('${target.en}')">🔊</button>`;
+            setTimeout(() => window.playTTS(target.en), 300);
+        } else {
+            wordEl.innerText = target.en;
+        }
+
+        let opts = window.words.filter(w => w.en !== target.en)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(w => w.tr);
+
+        opts.push(target.tr);
+        opts.sort(() => 0.5 - Math.random());
+
+        const div = document.getElementById('q-options');
+        div.innerHTML = '';
+        opts.forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'quiz-opt';
+            b.innerText = o;
+            b.onclick = () => handleQuizAns(b, o, target.tr);
+            div.appendChild(b);
+        });
+    }
+
+    function handleQuizAns(btn, selected, correct) {
+        const opts = document.querySelectorAll('.quiz-opt');
+        opts.forEach(o => o.onclick = null);
+
+        let isCorrect = (selected === correct);
+        if (isCorrect) {
+            btn.classList.add('quiz-opt-correct');
+            quizState.score++;
+            window.confetti();
+            window.playSound('success');
+        } else {
+            btn.classList.add('quiz-opt-wrong');
+            opts.forEach(o => {
+                if (o.innerText === correct) {
+                    o.classList.add('quiz-opt-correct');
                 }
             });
             if (navigator.vibrate) navigator.vibrate(200);
