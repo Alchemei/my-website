@@ -77,21 +77,6 @@
         // Shuffle cards
         cards.sort(() => 0.5 - Math.random());
 
-        const grid = document.getElementById('match-grid');
-        grid.innerHTML = '';
-
-        cards.forEach((card, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'glass-panel match-card-btn';
-            btn.innerText = card.text;
-            btn.dataset.idx = idx;
-
-            btn.onclick = () => handleMatchClick(btn, card);
-            grid.appendChild(btn);
-        });
-    }
-
-    function handleMatchClick(btn, card) {
         if (btn.classList.contains('matched') || btn.classList.contains('selected')) return;
 
         btn.classList.add('selected');
