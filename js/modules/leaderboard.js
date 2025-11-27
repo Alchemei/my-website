@@ -74,12 +74,12 @@
                         league = league.split(' ')[0];
                     }
 
-                    // Check online status based on lastActive (within 1 min)
+                    // Check online status based on lastActive (within 20 seconds)
                     let isOnline = false;
                     if (data.lastActive) {
                         const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
-                        const diffMinutes = (new Date() - lastActiveDate) / 1000 / 60;
-                        if (diffMinutes < 1) isOnline = true;
+                        const diffSeconds = (new Date() - lastActiveDate) / 1000;
+                        if (diffSeconds < 20) isOnline = true;
                     }
 
                     html += `

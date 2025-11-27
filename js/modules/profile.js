@@ -79,12 +79,12 @@
             }
         });
 
-        // Heartbeat to keep online status active (every 30 seconds)
+        // Heartbeat to keep online status active (every 10 seconds)
         setInterval(() => {
             if (currentUser && !currentUser.isAnonymous) {
                 saveCloud();
             }
-        }, 30 * 1000);
+        }, 10 * 1000);
 
         // Set offline on tab close/exit
         window.addEventListener('beforeunload', () => {
