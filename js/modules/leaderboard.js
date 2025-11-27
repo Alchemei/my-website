@@ -58,21 +58,29 @@
                 players.forEach(data => {
                     const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
 
-                    let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
-                    if (rank === 1) rankBadge = `<span style="font-weight:900; color:#FFD700;">1</span>`;
-                    if (rank === 2) rankBadge = `<span style="font-weight:900; color:#C0C0C0;">2</span>`;
-                    if (rank === 3) rankBadge = `<span style="font-weight:900; color:#CD7F32;">3</span>`;
+                    let rankDisplay = `<span class="leaderboard-rank">${rank}</span>`;
+                    if (rank === 1) rankDisplay = `<span class="leaderboard-rank rank-1">${rank}</span>`;
+                    if (rank === 2) rankDisplay = `<span class="leaderboard-rank rank-2">${rank}</span>`;
+                    if (rank === 3) rankDisplay = `<span class="leaderboard-rank rank-3">${rank}</span>`;
+
+                    // Check online status based on lastActive (within 20 seconds)
+                    let isOnline = false;
+                    if (data.lastActive) {
+                        const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
+                        const diffSeconds = (new Date() - lastActiveDate) / 1000;
+                        if (diffSeconds < 20) isOnline = true;
+                    }
 
                     html += `
                         <div class="leaderboard-row ${isMe ? 'me' : ''}">
-                            <div class="rank-num">${rankBadge}</div>
-                            <div style="flex:1; min-width:0;">
-                                <div class="player-name ${isMe ? 'me-text' : ''}">${data.name || 'İsimsiz'}</div>
-                                <div class="player-lvl">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
+                            ${rankDisplay}
+                            <div class="leaderboard-user-info">
+                                <div class="leaderboard-name ${isMe ? 'me-text' : ''}">${data.name || 'İsimsiz'}</div>
+                                <div class="leaderboard-lvl">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
                             </div>
                             <div class="leaderboard-row-right">
                                 <div class="leaderboard-xp">${data.xp || 0} XP</div>
-                                ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️ Meydan Oku</button>` : ''}
+                                ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️</button>` : ''}
                                 <div class="status-dot ${isOnline ? 'online' : 'offline'}" title="${isOnline ? 'Çevrimiçi' : 'Son Görülme: ' + (data.lastActive ? new Date(data.lastActive.toDate ? data.lastActive.toDate() : data.lastActive).toLocaleTimeString() : 'Bilinmiyor')}"></div>
                             </div>
                         </div>
