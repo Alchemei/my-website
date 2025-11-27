@@ -23,86 +23,92 @@
 
         try {
             const db = window.Firebase.db;
-            // Query global leaderboard collection
-            // Query larger batch to ensure we find real players even if bots exist
-            const snapshot = await db.collection('artifacts').doc(appId).collection('leaderboard')
+            // Real-time listener using onSnapshot
+            const query = db.collection('artifacts').doc(appId).collection('leaderboard')
                 .orderBy('xp', 'desc')
-                .limit(50)
-                .get();
+                .limit(50);
 
-            if (snapshot.empty) {
-                list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz veri yok.</div>';
-                return;
+            // Unsubscribe from previous listener if exists
+            if (window.leaderboardUnsub) {
+                window.leaderboardUnsub();
             }
 
-            let players = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                // Filter out bots explicitly
-                if (data.isBot) return;
-                players.push({ id: doc.id, ...data });
-            });
+            window.leaderboardUnsub = query.onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz veri yok.</div>';
+                    return;
+                }
 
-            // Sort by XP descending
-            players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+                let players = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.isBot) return;
+                    players.push({ id: doc.id, ...data });
+                });
 
-            // Take only top 10 real users
-            players = players.slice(0, 10);
+                // Sort by XP descending
+                players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
 
-            let html = '';
-            let rank = 1;
+                // Take only top 10 real users
+                players = players.slice(0, 10);
 
-            players.forEach(data => {
-                const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
+                let html = '';
+                let rank = 1;
 
-                let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
-                if (rank === 1) rankBadge = '🥇';
-                if (rank === 2) rankBadge = '🥈';
-                if (rank === 3) rankBadge = '🥉';
+                players.forEach(data => {
+                    const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
 
-                // Determine league if not saved
-                let league = data.league;
-                if (!league) {
-                    if (data.xp >= 10000) league = '💎';
-                    else if (data.xp >= 5000) league = '🥇';
-                    else if (data.xp >= 1000) league = '🥈';
-                    else league = '🥉';
+                    let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
+                    if (rank === 1) rankBadge = '🥇';
+                    if (rank === 2) rankBadge = '🥈';
+                    if (rank === 3) rankBadge = '🥉';
+
+                    // Determine league if not saved
+                    let league = data.league;
+                    if (!league) {
+                        if (data.xp >= 10000) league = '💎';
+                        else if (data.xp >= 5000) league = '🥇';
+                        else if (data.xp >= 1000) league = '🥈';
+                        else league = '🥉';
+                    } else {
+                        league = league.split(' ')[0];
+                    }
+
+                    // Check online status based on lastActive (within 5 mins)
+                    let isOnline = false;
+                    if (data.lastActive) {
+                        const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
+                        const diffMinutes = (new Date() - lastActiveDate) / 1000 / 60;
+                        if (diffMinutes < 5) isOnline = true;
+                    }
+
+                    html += `
+                        <div style="display:flex; align-items:center; padding:15px 20px; border-bottom:1px solid var(--glass-border); ${isMe ? 'background:rgba(139, 92, 246, 0.1);' : ''}">
+                            <div style="font-size:1.2rem; margin-right:15px;">${rankBadge}</div>
+                            <div style="margin-right:10px; font-size:1.2rem;">${league}</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
+                            </div>
+                            <div class="leaderboard-row-right">
+                                <div class="leaderboard-xp">${data.xp || 0} XP</div>
+                                ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️ Meydan Oku</button>` : ''}
+                                <div class="status-dot ${isOnline ? 'online' : 'offline'}" title="${isOnline ? 'Çevrimiçi' : 'Son Görülme: ' + (data.lastActive ? new Date(data.lastActive.toDate ? data.lastActive.toDate() : data.lastActive).toLocaleTimeString() : 'Bilinmiyor')}"></div>
+                            </div>
+                        </div>
+                    `;
+                    rank++;
+                });
+
+                if (html === '') {
+                    list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz başka oyuncu yok.</div>';
                 } else {
-                    // Extract icon from league string if saved as "💎 Elmas"
-                    league = league.split(' ')[0];
+                    list.innerHTML = html;
                 }
-
-                // Check online status based on lastActive (within 5 mins)
-                let isOnline = false;
-                if (data.lastActive) {
-                    const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
-                    const diffMinutes = (new Date() - lastActiveDate) / 1000 / 60;
-                    if (diffMinutes < 5) isOnline = true;
-                }
-
-                html += `
-                    <div style="display:flex; align-items:center; padding:15px 20px; border-bottom:1px solid var(--glass-border); ${isMe ? 'background:rgba(139, 92, 246, 0.1);' : ''}">
-                        <div style="font-size:1.2rem; margin-right:15px;">${rankBadge}</div>
-                        <div style="margin-right:10px; font-size:1.2rem;">${league}</div>
-                        <div style="flex:1;">
-                            <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
-                        </div>
-                        <div class="leaderboard-row-right">
-                            <div class="leaderboard-xp">${data.xp || 0} XP</div>
-                            ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️ Meydan Oku</button>` : ''}
-                            <div class="status-dot ${isOnline ? 'online' : 'offline'}" title="${isOnline ? 'Çevrimiçi' : 'Son Görülme: ' + (data.lastActive ? new Date(data.lastActive.toDate ? data.lastActive.toDate() : data.lastActive).toLocaleTimeString() : 'Bilinmiyor')}"></div>
-                        </div>
-                    </div>
-                `;
-                rank++;
+            }, error => {
+                console.error("Realtime listener error:", error);
+                list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--neon-red);">Veri akışı hatası.</div>';
             });
-
-            if (html === '') {
-                list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz başka oyuncu yok.</div>';
-            } else {
-                list.innerHTML = html;
-            }
 
         } catch (e) {
             console.error(e);
