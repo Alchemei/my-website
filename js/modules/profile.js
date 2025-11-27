@@ -425,7 +425,6 @@
                     <div style="font-size:0.9rem; color:var(--text-muted);">${wObj.tr}</div>
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn" onclick="window.playTTS('${wObj.en}')" style="background:rgba(255,255,255,0.1); width:36px; height:36px; border-radius:50%;">🔊</button>
                     <button class="btn" onclick="window.removeFav('${wEn}')" style="background:rgba(239,68,68,0.1); color:var(--neon-red); width:36px; height:36px; border-radius:50%;">✕</button>
                 </div>`;
             list.appendChild(div);

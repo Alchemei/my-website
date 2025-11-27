@@ -17,12 +17,7 @@
 
         // Bind global events for HTML onclick attributes
         window.flipCard = flipCard;
-        window.playTTS = function () {
-            const text = window.words[window.store.state.wordIndex].en;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            window.speechSynthesis.speak(utterance);
-        };
+
         window.toggleFav = toggleFav;
 
         window.vote = vote;

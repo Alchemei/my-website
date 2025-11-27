@@ -57,11 +57,4 @@ window.confetti = function () {
     animate();
 }
 
-window.playTTS = function (text) {
-    if ('speechSynthesis' in window) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US';
-        u.rate = 0.9;
-        window.speechSynthesis.speak(u);
-    }
-}
+
