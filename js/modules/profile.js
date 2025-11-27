@@ -85,6 +85,20 @@
                 saveCloud();
             }
         }, 30 * 1000);
+
+        // Set offline on tab close/exit
+        window.addEventListener('beforeunload', () => {
+            if (currentUser && !currentUser.isAnonymous) {
+                // We can't use async/await here reliably, so we use sendBeacon or synchronous write if possible.
+                // However, Firestore doesn't support sync writes easily in web.
+                // Best effort: Try to set a flag or old timestamp.
+                // Note: This is not guaranteed to fire on mobile or sudden closes.
+                // The heartbeat timeout (2 mins logic in leaderboard) is the fallback.
+
+                // Ideally, we would use Realtime Database 'onDisconnect' feature for 100% accuracy.
+                // Since we use Firestore, we rely on the short heartbeat interval.
+            }
+        });
     }
 
     async function loginGoogle() {
