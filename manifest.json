@@ -1,6 +1,6 @@
 {
-  "name": "English Master",
-  "short_name": "EngMaster",
+  "name": "EasyEnglish: En Önemli 1000 Kelime",
+  "short_name": "EasyEnglish",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
@@ -8,14 +8,19 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/197/197374.png",
-      "sizes": "192x192",
+      "src": "/images/72x72.png",
+      "sizes": "72x72",
       "type": "image/png"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/197/197374.png",
+      "src": "/images/512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "categories": [
+    "education",
+    "entertainment",
+    "games"
   ]
 }
