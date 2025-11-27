@@ -482,12 +482,22 @@ main::-webkit-scrollbar { display: none; }
 .reward-amount { font-size: 1.2rem; font-weight: 700; color: white; }
 
 .result-actions .btn-primary {
-    background: var(--primary); color: white; padding: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white; padding: 18px;
     font-size: 1.1rem; border-radius: var(--radius-lg);
-    box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     gap: 10px; width: 100%;
+    transition: all 0.3s ease;
 }
-.result-actions .btn-primary:active { transform: scale(0.96); }
+.result-actions .btn-primary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+}
+.result-actions .btn-primary:active { transform: scale(0.98); }
 
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }
