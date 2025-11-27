@@ -116,20 +116,16 @@
         window.store.update('favs', newFavs);
         loadCard();
     }
-
     function vote(known, isSpeaking = false) {
         const w = window.words[window.store.state.wordIndex].en;
         let gainedXp = 10;
 
         if (known) {
+            window.playSound('success');
             if (window.store.state.activeItems.doubleXP > 0) {
                 gainedXp *= 2;
                 window.store.update('activeItems', { ...window.store.state.activeItems, doubleXP: window.store.state.activeItems.doubleXP - 1 });
             }
-
-
-
-
 
             window.store.update('xp', window.store.state.xp + gainedXp);
             window.store.update('coins', window.store.state.coins + 5);
@@ -147,7 +143,6 @@
 
             window.toast(msg);
             window.confetti();
-            window.playSound('success');
         } else {
             window.playSound('error');
         }

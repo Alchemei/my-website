@@ -9,15 +9,42 @@ const sounds = {
 // Preload sounds
 Object.values(sounds).forEach(s => s.load());
 
+let soundEnabled = true;
+let soundVolume = 1.0;
+
+// Load settings from localStorage
+if (localStorage.getItem('soundEnabled') !== null) {
+    soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+}
+if (localStorage.getItem('soundVolume') !== null) {
+    soundVolume = parseFloat(localStorage.getItem('soundVolume'));
+}
+
 window.playSound = function (type) {
-    if (sounds[type]) {
+    if (soundEnabled && sounds[type]) {
         sounds[type].currentTime = 0;
+        sounds[type].volume = soundVolume;
         sounds[type].play().catch(e => console.log("Audio play failed:", e));
     }
 }
 
-window.toggleSound = function () {
-    // Toggle logic if needed, currently always on for UI sounds
+window.toggleSound = function (enabled) {
+    soundEnabled = enabled;
+    localStorage.setItem('soundEnabled', enabled);
+}
+
+window.setVolume = function (vol) {
+    soundVolume = parseFloat(vol);
+    localStorage.setItem('soundVolume', vol);
+}
+
+window.openSettings = function () {
+    const modal = document.getElementById('settings-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('fade-in');
+    // Sync UI with state
+    document.getElementById('sound-toggle').checked = soundEnabled;
+    document.getElementById('volume-slider').value = soundVolume;
 }
 
 // --- UTILS ---
