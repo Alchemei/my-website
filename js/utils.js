@@ -1,11 +1,23 @@
 // --- AUDIO SYSTEM ---
-// Sounds disabled by user request
+const sounds = {
+    'click': new Audio('sounds/click.mp3'),
+    'success': new Audio('sounds/success.mp3'),
+    'error': new Audio('sounds/error.mp3'),
+    'sword': new Audio('sounds/sword.mp3')
+};
+
+// Preload sounds
+Object.values(sounds).forEach(s => s.load());
+
 window.playSound = function (type) {
-    // No-op
+    if (sounds[type]) {
+        sounds[type].currentTime = 0;
+        sounds[type].play().catch(e => console.log("Audio play failed:", e));
+    }
 }
 
 window.toggleSound = function () {
-    // No-op
+    // Toggle logic if needed, currently always on for UI sounds
 }
 
 // --- UTILS ---

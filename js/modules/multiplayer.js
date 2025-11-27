@@ -39,6 +39,7 @@
                             const created = data.createdAt?.toMillis() || 0;
                             if (now - created < 60000) { // 1 min expiry for notification
                                 showChallengeModal(change.doc.id, data);
+                                window.playSound('sword');
                             }
                         }
                     });
@@ -94,6 +95,7 @@
                 this.bet = BET_AMOUNT;
 
                 window.toast(`${targetName} kişisine meydan okundu! Yanıt bekleniyor...`);
+                window.playSound('sword');
 
                 // Listen for acceptance
                 activeListener = docRef.onSnapshot(doc => {
