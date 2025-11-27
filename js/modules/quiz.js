@@ -7,7 +7,7 @@
         window.startMatch = startMatch;
         window.startHangman = startHangman;
         window.showGamesMenu = showGamesMenu;
-        window.resetQuiz = startQuiz;
+        window.resetQuiz = showGamesMenu;
         window.handleQuizAns = handleQuizAns;
     }
 
