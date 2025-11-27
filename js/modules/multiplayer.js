@@ -65,6 +65,13 @@
             const myId = window.store.state.userId;
             const myName = window.store.state.username;
 
+            // Generate 10 random questions (indices)
+            const questions = [];
+            const totalWords = window.words.length;
+            for (let i = 0; i < 10; i++) {
+                questions.push(Math.floor(Math.random() * totalWords));
+            }
+
             try {
                 const docRef = await db.collection('challenges').add({
                     senderId: myId,
@@ -74,6 +81,7 @@
                     status: 'pending',
                     betAmount: BET_AMOUNT,
                     createdAt: window.Firebase.firestore.FieldValue.serverTimestamp(),
+                    questions: questions, // Save questions
                     progress: {
                         [myId]: { score: 0, total: 10, finished: false },
                         [targetId]: { score: 0, total: 10, finished: false }
@@ -149,20 +157,32 @@
         },
 
         // Start the game logic & Listen for progress
-        startDuel(challengeId) {
+        async startDuel(challengeId) {
             if (activeListener) activeListener();
 
             // Close modals
             document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
 
+            // Fetch questions from the challenge document
+            const db = window.Firebase.db;
+            let questions = [];
+            try {
+                const doc = await db.collection('challenges').doc(challengeId).get();
+                if (doc.exists) {
+                    questions = doc.data().questions || [];
+                }
+            } catch (e) {
+                console.error("Error fetching questions:", e);
+            }
+
             // Switch to quiz tab
             window.switchTab('quiz');
             if (window.startDuelMode) {
-                window.startDuelMode(this.opponent);
+                window.startDuelMode(this.opponent, questions);
             }
 
             // Listen for game progress
-            const db = window.Firebase.db;
+            // const db = window.Firebase.db; // Removed redeclaration
             const myId = window.store.state.userId;
 
             progressListener = db.collection('challenges').doc(challengeId).onSnapshot(doc => {

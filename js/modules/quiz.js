@@ -296,7 +296,7 @@
         document.getElementById('tab-quiz').appendChild(qArea);
     }
 
-    function startDuelMode(opponent) {
+    function startDuelMode(opponent, questions = []) {
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
 
@@ -309,13 +309,22 @@
 
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
-        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel' };
+        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel', questions: questions };
         renderQuizQ();
     }
 
     function renderQuizQ() {
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
-        const target = window.words[Math.floor(Math.random() * window.words.length)];
+
+        let target;
+        if (quizState.mode === 'duel' && quizState.questions && quizState.questions.length > 0) {
+            // Use pre-selected question
+            const qIndex = quizState.questions[quizState.currentQ - 1];
+            target = window.words[qIndex];
+        } else {
+            // Random fallback
+            target = window.words[Math.floor(Math.random() * window.words.length)];
+        }
 
         const wordEl = document.getElementById('q-word');
         wordEl.innerText = target.en;
