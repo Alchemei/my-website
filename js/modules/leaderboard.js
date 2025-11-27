@@ -80,9 +80,9 @@
                             <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
                             <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
                         </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; color:var(--neon-green);">${data.xp || 0} XP</div>
-                            ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" style="background:var(--neon-purple); border:none; color:white; font-size:0.7rem; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer;">⚔️ Meydan Oku</button>` : ''}
+                        <div class="leaderboard-row-right">
+                            <div class="leaderboard-xp">${data.xp || 0} XP</div>
+                            ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️ Meydan Oku</button>` : ''}
                         </div>
                     </div>
                 `;

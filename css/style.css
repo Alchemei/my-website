@@ -704,6 +704,27 @@ main::-webkit-scrollbar { display: none; }
 /* Leaderboard */
 .leaderboard-loading { padding: 20px; text-align: center; color: var(--text-muted); }
 .leaderboard-footer { margin-top: 20px; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+.leaderboard-row-right { text-align: right; }
+.leaderboard-xp { font-weight: 800; color: var(--neon-green); }
+.btn-mini-challenge {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: white;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-top: 6px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.btn-mini-challenge:hover {
+    background: rgba(139, 92, 246, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}
 
 /* --- JS DYNAMIC ELEMENTS --- */
 
