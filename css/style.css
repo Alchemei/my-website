@@ -297,12 +297,17 @@ main::-webkit-scrollbar { display: none; }
 .nav-item { 
     background: none; border: none; padding: 0; cursor: pointer; 
     color: var(--text-muted); position: relative; 
-    display: flex; align-items: center; justify-content: center; 
-    transition: all 0.3s; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    transition: all 0.3s; gap: 0;
 }
-.nav-item svg { width: 26px; height: 26px; stroke-width: 2.2; }
-.nav-item.active { color: var(--primary); }
-.nav-item.active svg { fill: rgba(10, 132, 255, 0.15); }
+.nav-item svg { width: 24px; height: 24px; stroke-width: 2.2; transition: all 0.3s; }
+.nav-label { 
+    font-size: 0; opacity: 0; font-weight: 600; letter-spacing: 0.3px; 
+    transition: all 0.3s; height: 0; overflow: hidden;
+}
+.nav-item.active { color: var(--primary); gap: 4px; }
+.nav-item.active svg { fill: rgba(10, 132, 255, 0.15); transform: translateY(-2px); }
+.nav-item.active .nav-label { font-size: 0.7rem; opacity: 1; height: auto; }
 
 /* --- TOAST --- */
 #toast {
