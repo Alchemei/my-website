@@ -588,12 +588,23 @@ main::-webkit-scrollbar { display: none; }
 .game-btn-title { font-weight: 700; }
 .game-btn-sub { font-size: 0.8rem; color: var(--text-muted); }
 .btn-challenge { 
-    border: 1px solid rgba(139, 92, 246, 0.4); 
-    background: rgba(139, 92, 246, 0.1); 
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.5); 
+    background: rgba(139, 92, 246, 0.15); 
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), inset 0 0 20px rgba(139, 92, 246, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    aspect-ratio: 1; /* Make it square-ish if possible, or just fill height */
 }
-.btn-challenge .game-btn-icon { color: var(--neon-purple); }
-.game-btn-title-challenge { font-weight: 700; color: var(--neon-purple); }
+.btn-challenge:hover {
+    background: rgba(139, 92, 246, 0.25);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.4), inset 0 0 20px rgba(139, 92, 246, 0.2);
+    transform: scale(1.02);
+}
+.btn-challenge .game-btn-icon { 
+    color: var(--neon-purple); 
+    font-size: 3rem; /* Larger icon since it's alone */
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+}
 .btn-span-2 { grid-column: span 2; }
 
 /* Quiz Play Area */
@@ -693,21 +704,20 @@ main::-webkit-scrollbar { display: none; }
 }
 
 /* Duel Result */
-.duel-result-table { padding: 15px; margin-bottom: 20px; }
+.duel-result-table { 
+padding: 15px;
+margin-bottom: 0;
+margin-top: 29px; }
 .duel-result-header { color: var(--text-muted); margin-bottom: 15px; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px; }
 .font-bold { font-weight: 700; }
 .btn-rematch {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: var(--glass-surface);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px);
-    color: var(--text-main);
-    display: flex; align-items: center; justify-content: center;
-    margin: 10px auto 0 auto;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    transition: transform 0.2s;
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    margin-top: 10px; padding: 15px;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
 }
-.btn-rematch:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
 
 /* Multiplayer Challenge Modal */
 .challenge-modal-content { text-align: center; border: 1px solid rgba(139, 92, 246, 0.3); }
