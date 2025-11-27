@@ -58,13 +58,31 @@
             }
         }
 
-        // If all words are learned (foundIndex is still -1), pick a random one to review
+        // If all words are learned
         if (foundIndex === -1) {
+            // Show completion modal
+            const modal = document.getElementById('completion-modal');
+            if (modal && modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                window.confetti();
+                window.playSound('success');
+            }
+            // Pick a random one to review in background
             foundIndex = Math.floor(Math.random() * totalWords);
         }
 
         window.store.update('wordIndex', foundIndex);
         loadCard();
+    }
+
+    window.resetLearnedWords = function () {
+        if (confirm("Öğrenilen kelimeler sıfırlanacak (XP ve Seviye kalacak). Emin misin?")) {
+            window.store.update('learned', []);
+            window.store.update('wordIndex', 0);
+            document.getElementById('completion-modal').classList.add('hidden');
+            window.toast("Kelimeler sıfırlandı! Başarılar.");
+            findNextWord();
+        }
     }
 
     function loadCard() {

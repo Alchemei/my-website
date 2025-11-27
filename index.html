@@ -29,6 +29,20 @@
         </div>
     </div>
 
+    <!-- Completion Modal -->
+    <div id="completion-modal" class="modal-overlay hidden">
+        <div class="modal-content level-up-content">
+            <div class="level-up-emoji">🎓</div>
+            <h2 class="level-up-title">TEBRİKLER!</h2>
+            <div class="level-up-subtitle">Tüm kelime havuzunu tamamladın!</div>
+            <div style="color:var(--text-muted); margin-bottom:20px;">
+                Tüm kelimeleri öğrendin. İstersen öğrenilen kelimeleri sıfırlayıp (XP ve Seviyen korunarak) tekrar başlayabilirsin.
+            </div>
+            <button class="btn w-full level-up-btn" onclick="window.resetLearnedWords()" style="background:var(--neon-green); margin-bottom:10px;">🔄 Kelimeleri Sıfırla ve Başla</button>
+            <button class="btn w-full level-up-btn" onclick="document.getElementById('completion-modal').classList.add('hidden')" style="background:rgba(255,255,255,0.1);">Kapat</button>
+        </div>
+    </div>
+
     <!-- Favorites Modal -->
     <div id="favs-modal" class="modal-overlay hidden">
         <div class="modal-content modal-content-full">
