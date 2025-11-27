@@ -456,6 +456,7 @@ main::-webkit-scrollbar { display: none; }
     padding: 30px; text-align: center;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
 }
 .score-label { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 8px; }
 .score-value { 
@@ -469,6 +470,7 @@ main::-webkit-scrollbar { display: none; }
 .reward-item {
     display: flex; align-items: center; gap: 16px; padding: 16px;
     background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
 }
 .reward-icon { 
     width: 44px; height: 44px; border-radius: 12px; 
@@ -481,9 +483,9 @@ main::-webkit-scrollbar { display: none; }
 
 .result-actions .btn-primary {
     background: var(--primary); color: white; padding: 18px;
-    font-size: 1.1rem; border-radius: 16px;
+    font-size: 1.1rem; border-radius: var(--radius-lg);
     box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3);
-    gap: 10px;
+    gap: 10px; width: 100%;
 }
 .result-actions .btn-primary:active { transform: scale(0.96); }
 
@@ -517,10 +519,10 @@ main::-webkit-scrollbar { display: none; }
 }
 
 .center-modal .modal-content {
-    border-radius: 28px !important;
+    border-radius: var(--radius-xl) !important;
     padding: 30px !important;
     max-width: 340px;
-    background: rgba(25, 25, 25, 0.65) !important;
+    background: rgba(25, 25, 25, 0.85) !important;
     backdrop-filter: blur(50px) saturate(180%);
     box-shadow: 0 40px 80px rgba(0,0,0,0.6);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -546,7 +548,7 @@ main::-webkit-scrollbar { display: none; }
     -webkit-background-clip: text; background-clip: text; 
     -webkit-text-fill-color: transparent; 
 }
-.level-up-btn { padding: 15px; background: var(--neon-purple); color: white; border-radius: 16px; font-size: 1.1rem; }
+.level-up-btn { padding: 15px; background: var(--neon-purple); color: white; border-radius: var(--radius-lg); font-size: 1.1rem; }
 
 /* Modals (Favs, Dict) */
 .modal-content-full { height: 80vh; display: flex; flex-direction: column; padding: 0; }
@@ -585,8 +587,13 @@ main::-webkit-scrollbar { display: none; }
 .game-btn-icon { font-size: 2rem; }
 .game-btn-title { font-weight: 700; }
 .game-btn-sub { font-size: 0.8rem; color: var(--text-muted); }
-.btn-challenge { border: 1px solid var(--neon-red); background: rgba(255, 69, 58, 0.1); }
-.game-btn-title-challenge { font-weight: 700; color: var(--neon-red); }
+.btn-challenge { 
+    border: 1px solid rgba(139, 92, 246, 0.4); 
+    background: rgba(139, 92, 246, 0.1); 
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.1);
+}
+.btn-challenge .game-btn-icon { color: var(--neon-purple); }
+.game-btn-title-challenge { font-weight: 700; color: var(--neon-purple); }
 .btn-span-2 { grid-column: span 2; }
 
 /* Quiz Play Area */
@@ -694,6 +701,8 @@ main::-webkit-scrollbar { display: none; }
     border: 1px solid var(--neon-purple);
     color: var(--neon-purple);
     margin-top: 10px; padding: 15px;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
 }
 
 /* Multiplayer Challenge Modal */
@@ -717,9 +726,11 @@ main::-webkit-scrollbar { display: none; }
 .btn-reject {
     background: rgba(255, 69, 58, 0.15); color: var(--danger);
     padding: 16px; border: 1px solid rgba(255, 69, 58, 0.3);
+    border-radius: var(--radius-lg); font-weight: 700;
 }
 .btn-accept {
     background: var(--neon-green); color: black; font-weight: bold;
     padding: 16px; box-shadow: 0 0 20px rgba(48, 209, 88, 0.4);
+    border-radius: var(--radius-lg);
 }
 .sender-name-bold { color: white; font-weight: bold; }
