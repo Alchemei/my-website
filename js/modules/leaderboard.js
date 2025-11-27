@@ -83,7 +83,7 @@
                         <div class="leaderboard-row-right">
                             <div class="leaderboard-xp">${data.xp || 0} XP</div>
                             ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️ Meydan Oku</button>` : ''}
-                            <div class="status-dot ${data.isOnline ? 'online' : 'offline'}" title="${data.isOnline ? 'Çevrimiçi' : 'Çevrimdışı'}"></div>
+                            <div class="status-dot ${data.isOnline === true ? 'online' : 'offline'}" title="${data.isOnline === true ? 'Çevrimiçi' : 'Çevrimdışı'}"></div>
                         </div>
                     </div>
                 `;
