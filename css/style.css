@@ -725,14 +725,22 @@ main::-webkit-scrollbar { display: none; }
     transform: scale(1.05);
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
-.online-dot {
+.status-dot {
     width: 10px; height: 10px;
-    background: var(--neon-green);
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--neon-green);
     display: inline-block;
     margin-left: 8px;
+    vertical-align: middle; /* Ensure alignment */
+}
+.status-dot.online {
+    background: var(--neon-green);
+    box-shadow: 0 0 8px var(--neon-green);
     animation: pulseDot 2s infinite;
+}
+.status-dot.offline {
+    background: var(--neon-red);
+    box-shadow: 0 0 5px var(--neon-red);
+    opacity: 0.6;
 }
 @keyframes pulseDot {
     0% { opacity: 0.6; transform: scale(0.9); }
