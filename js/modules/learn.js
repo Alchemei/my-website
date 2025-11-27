@@ -29,17 +29,29 @@
     }
 
     function findNextWord() {
+        // Ensure wordIndex is valid
+        if (typeof window.store.state.wordIndex !== 'number' || isNaN(window.store.state.wordIndex)) {
+            window.store.update('wordIndex', 0);
+        }
+
         let foundIndex = -1;
-        for (let i = 0; i < window.words.length; i++) {
-            let idx = (window.store.state.wordIndex + i) % window.words.length;
-            if (!window.store.state.learned.includes(window.words[idx].en)) {
+        const totalWords = window.words.length;
+        const startIndex = window.store.state.wordIndex;
+
+        // Search for the next unlearned word
+        for (let i = 0; i < totalWords; i++) {
+            let idx = (startIndex + i) % totalWords;
+            if (window.words[idx] && !window.store.state.learned.includes(window.words[idx].en)) {
                 foundIndex = idx;
                 break;
             }
         }
+
+        // If all words are learned (foundIndex is still -1), pick a random one to review
         if (foundIndex === -1) {
-            foundIndex = Math.floor(Math.random() * window.words.length);
+            foundIndex = Math.floor(Math.random() * totalWords);
         }
+
         window.store.update('wordIndex', foundIndex);
         loadCard();
     }
