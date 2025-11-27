@@ -231,8 +231,9 @@
         document.getElementById('quiz-result-area').classList.remove('hidden');
 
         document.getElementById('res-title').innerText = title;
-        document.getElementById('res-score').innerText = xp > 0 ? 'Win' : 'Fail';
+        document.getElementById('res-score').innerText = xp > 0 ? 'WIN' : 'FAIL';
         document.getElementById('res-xp').innerText = '+' + xp;
+        document.getElementById('result-custom-content').innerHTML = ''; // Clear custom content
 
         if (xp > 0) {
             window.store.update('xp', window.store.state.xp + xp);
@@ -256,36 +257,30 @@
         const oppData = progress[opponentId];
 
         const isMe = winnerId === myId;
-        const title = isMe ? "KAZANDIN! 🏆" : "KAYBETTİN 💀";
+        const title = isMe ? "KAZANDIN!" : "KAYBETTİN";
         const xp = isMe ? 100 : 20;
         const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
-
-        // Calculate times (approximate if not stored precisely, but we send Date.now())
-        // Note: We sent Date.now() as 'time'. To get duration, we'd need start time.
-        // For now, let's just show score. If we want duration, we need to store startTime in challenge.
-        // Assuming 'time' in progress is the timestamp of completion.
-        // Let's just show Score for now to be safe, or if we have startTime in challenge data (we do), we can diff.
-        // But 'progress' passed here might just be the progress object.
-        // Let's just show Score & Correct/Total.
 
         finishGame(xp, title);
 
         // Hide Duel Container explicitly
         document.getElementById('duel-container').classList.add('hidden');
-        document.getElementById('quiz-play-area').classList.add('hidden'); // Ensure this is hidden too
+        document.getElementById('quiz-play-area').classList.add('hidden');
 
-        // Custom Result Message for Duel
-        const resScore = document.getElementById('res-score');
-        resScore.innerHTML = ''; // Clear previous text
+        // Set Score
+        document.getElementById('res-score').innerText = myData.score;
 
-        // Create Comparison Table
+        // Create Comparison Table in Custom Content Area
+        const customArea = document.getElementById('result-custom-content');
+        customArea.innerHTML = '';
+
         const table = document.createElement('div');
-        table.className = 'result-card';
-        table.style.marginTop = '20px';
+        table.className = 'glass-panel';
+        table.style.padding = '15px';
+        table.style.marginBottom = '20px';
 
         table.innerHTML = `
-            <div class="result-score-big">${myData.score}</div>
-            <div style="color:var(--text-muted); margin-bottom:20px; font-weight:600;">DOĞRU CEVAP</div>
+            <div style="color:var(--text-muted); margin-bottom:15px; font-weight:600; font-size:0.9rem; letter-spacing:1px;">SONUÇLAR</div>
             
             <div class="result-row ${isMe ? 'winner' : 'loser'}">
                 <span style="font-weight:700;">Sen</span>
@@ -297,23 +292,24 @@
             </div>
         `;
 
-        resScore.appendChild(table);
+        customArea.appendChild(table);
         document.getElementById('res-xp').innerText = `${gold} | +${xp} XP`;
 
         // Add Rematch Button
-        const resArea = document.getElementById('quiz-result-area');
         let btn = document.getElementById('btn-rematch');
         if (!btn) {
             btn = document.createElement('button');
             btn.id = 'btn-rematch';
-            btn.className = 'btn';
-            btn.style.background = 'var(--neon-purple)';
+            btn.className = 'btn w-full';
+            btn.style.background = 'rgba(139, 92, 246, 0.2)';
+            btn.style.border = '1px solid var(--neon-purple)';
+            btn.style.color = 'var(--neon-purple)';
             btn.style.marginTop = '10px';
-            btn.style.width = '100%';
+            btn.style.padding = '15px';
             btn.innerText = '🔄 Rövanş İste';
             btn.onclick = () => window.multiplayer.requestRematch();
-            const content = resArea.querySelector('.glass-panel') || resArea;
-            content.appendChild(btn);
+            // Append to actions area if possible, or custom area
+            document.querySelector('.result-actions').insertBefore(btn, document.querySelector('.result-actions').firstChild);
         } else {
             btn.style.display = 'block';
         }
@@ -457,7 +453,12 @@
         window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'xp', amount: finalXP } }));
         window.dispatchEvent(new CustomEvent('task-update', { detail: { type: 'quiz', amount: 1 } }));
 
-        document.getElementById('res-score').innerText = `${quizState.score} Doğru`;
+        document.getElementById('res-score').innerText = quizState.score;
         document.getElementById('res-xp').innerText = `+${finalXP}`;
+        document.getElementById('result-custom-content').innerHTML = ''; // Clear custom content
+
+        // Hide rematch button if exists
+        const btn = document.getElementById('btn-rematch');
+        if (btn) btn.style.display = 'none';
     }
 })();
