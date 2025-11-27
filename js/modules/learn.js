@@ -6,6 +6,17 @@
         return { en: parts[0], tr: parts[1], ctx: parts[2] };
     });
 
+    // Dedup words based on 'en' property
+    const uniqueWords = [];
+    const seenWords = new Set();
+    window.words.forEach(w => {
+        if (!seenWords.has(w.en)) {
+            seenWords.add(w.en);
+            uniqueWords.push(w);
+        }
+    });
+    window.words = uniqueWords;
+
 
 
 
