@@ -420,54 +420,289 @@ main::-webkit-scrollbar { display: none; }
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.4); /* Lighter overlay */
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    z-index: 2000; /* Increased z-index */
+    z-index: 200;
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
     opacity: 1; transition: opacity 0.3s;
 }
+.result-screen.hidden { opacity: 0; pointer-events: none; }
 
-/* ... existing styles ... */
-
-.result-actions {
-    display: flex; flex-direction: column; gap: 15px; width: 100%;
+.result-content {
+    width: 100%; max-width: 400px;
+    display: flex; flex-direction: column; gap: 24px;
+    animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+@keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.result-header { text-align: center; }
+.result-header h2 { font-size: 2rem; margin: 0; background: linear-gradient(to right, #fff, #c4b5fd); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+.result-icon-container {
+    position: relative; width: 100px; height: 100px; margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+}
+.result-icon { font-size: 4rem; z-index: 2; position: relative; animation: bounce 2s infinite; }
+.result-glow {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 120px; height: 120px; background: radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%);
+    filter: blur(20px); animation: pulse 3s infinite;
+}
+
+.result-score-card {
+    padding: 30px; text-align: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+}
+.score-label { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 8px; }
+.score-value { 
+    font-size: 4.5rem; font-weight: 800; line-height: 1;
+    background: linear-gradient(180deg, #fff 0%, #a78bfa 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+}
+
+.result-rewards { display: flex; flex-direction: column; gap: 10px; }
+.reward-item {
+    display: flex; align-items: center; gap: 16px; padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+}
+.reward-icon { 
+    width: 44px; height: 44px; border-radius: 12px; 
+    background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+}
+.reward-info { display: flex; flex-direction: column; flex: 1; }
+.reward-label { font-size: 0.85rem; color: var(--text-muted); }
+.reward-amount { font-size: 1.2rem; font-weight: 700; color: white; }
 
 .result-actions .btn-primary {
-    background: var(--neon-purple); /* Updated to purple */
-    color: white; padding: 18px;
+    background: var(--primary); color: white; padding: 18px;
     font-size: 1.1rem; border-radius: var(--radius-lg);
-    box-shadow: 0 8px 20px rgba(191, 90, 242, 0.3); /* Purple shadow */
+    box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3);
     gap: 10px; width: 100%;
 }
+.result-actions .btn-primary:active { transform: scale(0.96); }
 
-/* ... existing styles ... */
-
-.btn-rematch {
-    background: rgba(139, 92, 246, 0.2);
-    border: 1px solid var(--neon-purple);
-    color: var(--neon-purple);
-    padding: 15px; /* Removed margin-top, handled by gap */
-    border-radius: var(--radius-lg);
-    font-weight: 700;
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
-/* Updated Challenge Button (Icon Only) */
+.result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px; margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+}
+
+.result-row.winner {
+    background: rgba(48, 209, 88, 0.15);
+    border-color: rgba(48, 209, 88, 0.3);
+}
+
+.result-row.loser {
+    background: rgba(255, 69, 58, 0.15);
+    border-color: rgba(255, 69, 58, 0.3);
+}
+
+/* --- CENTERED MODAL (Challenge) --- */
+.center-modal {
+    align-items: center !important;
+    padding: 20px;
+}
+
+.center-modal .modal-content {
+    border-radius: var(--radius-xl) !important;
+    padding: 30px !important;
+    max-width: 340px;
+    background: rgba(25, 25, 25, 0.65) !important;
+    backdrop-filter: blur(50px) saturate(180%);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transform: scale(1);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.hidden.center-modal .modal-content {
+    transform: scale(0.9);
+    opacity: 0;
+}
+
+/* --- REFACTORED STYLES --- */
+
+/* Level Up Modal */
+.level-up-content { text-align: center; padding: 40px; }
+.level-up-emoji { font-size: 4rem; margin-bottom: 10px; }
+.level-up-title { font-size: 2.5rem; margin: 0; color: var(--neon-purple); text-shadow: 0 0 20px rgba(139,92,246,0.5); }
+.level-up-subtitle { font-size: 1.2rem; margin: 20px 0; color: var(--text-muted); }
+.new-level-display { 
+    font-size: 5rem; font-weight: 800; line-height: 1; margin-bottom: 30px; 
+    background: linear-gradient(to bottom, #fff, #a78bfa); 
+    -webkit-background-clip: text; background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+}
+.level-up-btn { padding: 15px; background: var(--neon-purple); color: white; border-radius: var(--radius-lg); font-size: 1.1rem; }
+
+/* Modals (Favs, Dict) */
+.modal-content-full { height: 80vh; display: flex; flex-direction: column; padding: 0; }
+.modal-header { padding: 20px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+.modal-title-text { margin: 0; font-size: 1.5rem; }
+.modal-close-btn { background: transparent; font-size: 1.5rem; }
+.modal-body-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* Dictionary Specific */
+.dict-header { padding: 20px; border-bottom: 1px solid var(--glass-border); }
+.dict-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.dict-search-input { 
+    width: 100%; padding: 12px; border-radius: 12px; 
+    background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); 
+    color: white; outline: none; 
+}
+
+/* Header & HUD */
+.hud-badge-level { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+.header-right { display: flex; gap: 10px; align-items: center; }
+.page-header-title { margin: 0; font-size: 1.8rem; font-weight: 300; }
+
+/* Flashcard */
+.flashcard-reveal-text { margin-top: auto; font-size: 0.75rem; letter-spacing: 2px; font-weight: 600; text-transform: uppercase; opacity: 0.6; }
+
+/* Duel */
+.duel-question-area { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.duel-name-user { color: var(--neon-blue); }
+.duel-name-opponent { color: var(--neon-red); }
+.duel-bar-user { width: 0%; background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
+.duel-bar-opponent { width: 0%; background: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+
+/* Games Menu */
+.games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+.game-btn-content { padding: 20px; text-align: center; }
+.game-btn-icon { font-size: 2rem; }
+.game-btn-title { font-weight: 700; }
+.game-btn-sub { font-size: 0.8rem; color: var(--text-muted); }
 .btn-challenge { 
     border: 1px solid rgba(139, 92, 246, 0.4); 
     background: rgba(139, 92, 246, 0.1); 
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.1);
-    display: flex; align-items: center; justify-content: center;
-    padding: 0; /* Reset padding for icon centering */
 }
-.btn-challenge .game-btn-icon { 
-    color: var(--neon-purple); 
-    font-size: 3rem; /* Larger icon */
-    margin: 0;
+.btn-challenge .game-btn-icon { color: var(--neon-purple); }
+.game-btn-title-challenge { font-weight: 700; color: var(--neon-purple); }
+.btn-span-2 { grid-column: span 2; }
+
+/* Quiz Play Area */
+.quiz-play-area { padding: 20px; text-align: center; }
+.quiz-header-info { display: flex; justify-content: space-between; margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; }
+.quiz-timer-text { color: var(--neon-red); font-weight: bold; }
+.quiz-word { font-size: 2.5rem; font-weight: 800; margin-bottom: 30px; }
+.quiz-options-grid { display: grid; gap: 10px; }
+
+/* Match & Hangman Games */
+.match-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+.btn-back { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 10px; }
+.match-score-text { font-weight: 800; color: var(--neon-yellow); }
+.match-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.hangman-area { padding: 20px; text-align: center; }
+.hangman-lives-text { color: var(--neon-red); }
+.hangman-word-display { font-size: 2rem; letter-spacing: 5px; margin: 30px 0; font-family: monospace; font-weight: 700; }
+.hangman-hint { color: var(--text-muted); margin-bottom: 30px; font-style: italic; }
+.hangman-keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+
+/* Shop */
+.shop-section-header { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
+.shop-section-header-margin { margin: 30px 0 10px 0; }
+.active-buffs-area { margin-bottom: 20px; }
+.shop-item-content { display: flex; gap: 15px; align-items: center; }
+.shop-icon-blue { color: var(--neon-blue); }
+.shop-icon-purple { color: var(--neon-purple); }
+.shop-item-title { font-weight: 700; font-size: 1.1rem; }
+.shop-item-desc { font-size: 0.9rem; color: var(--text-muted); }
+
+/* Profile */
+.profile-header-center { text-align: center; margin-bottom: 30px; margin-top: 20px; }
+.mastery-pct-text { font-size: 1.5rem; font-weight: 800; color: var(--neon-green); }
+.mastery-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 1px; }
+.profile-title { margin: 0; font-size: 1.5rem; }
+.career-badge { color: var(--neon-blue); font-family: monospace; margin-top: 5px; font-size: 1.1rem; }
+.user-email-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; opacity: 0; }
+.profile-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+.stat-panel { padding: 20px; text-align: center; }
+.stat-value-blue { font-size: 1.8rem; font-weight: 800; color: var(--neon-blue); }
+.stat-value-green { font-size: 1.8rem; font-weight: 800; color: var(--neon-green); }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); }
+.chart-header { font-weight: 300; margin-bottom: 15px; }
+.chart-panel { padding: 15px; margin-bottom: 30px; }
+.profile-action-btn { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.achievements-header { font-weight: 300; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 15px; }
+.achievements-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 30px; }
+.btn-reset-data { 
+    padding: 15px; background: rgba(255, 69, 58, 0.15); color: var(--danger); 
+    border: 1px solid rgba(255, 69, 58, 0.3); border-radius: 16px; margin-top: 20px; 
 }
-/* Hide title and sub for challenge button if present in HTML, or we remove them in HTML */
-.btn-challenge .game-btn-title-challenge,
-.btn-challenge .game-btn-sub {
-    display: none;
+
+/* Leaderboard */
+.leaderboard-loading { padding: 20px; text-align: center; color: var(--text-muted); }
+.leaderboard-footer { margin-top: 20px; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+/* --- JS DYNAMIC ELEMENTS --- */
+
+/* Match Game */
+.match-card-btn {
+    padding: 20px 10px; font-size: 0.9rem; font-weight: 700;
+    min-height: 80px; display: flex; align-items: center; justify-content: center;
+}
+.match-card-selected {
+    background: rgba(255,255,255,0.2) !important;
+    border: 1px solid var(--neon-blue) !important;
+}
+.match-card-matched {
+    background: rgba(34, 197, 94, 0.2) !important;
+    border: 1px solid var(--neon-green) !important;
+    opacity: 0.5;
+}
+
+/* Hangman Game */
+.hangman-key-btn {
+    width: 36px; height: 40px; margin: 2px;
+    background: rgba(255,255,255,0.1); border-radius: 8px;
+}
+.hangman-key-disabled { opacity: 0.3; }
+.hangman-key-correct { background: var(--neon-green) !important; color: black !important; }
+.hangman-key-wrong { background: var(--neon-red) !important; }
+
+/* Listening Game */
+.listening-btn {
+    background: var(--neon-blue); width: 80px; height: 80px; 
+    border-radius: 50%; font-size: 2rem;
+}
+
+/* Quiz Options */
+.quiz-opt-correct {
+    background: rgba(16, 185, 129, 0.4) !important;
+    border-color: var(--neon-green) !important;
+}
+.quiz-opt-wrong {
+    background: rgba(239, 68, 68, 0.4) !important;
+    border-color: var(--neon-red) !important;
+}
+
+/* Duel Result */
+.duel-result-table { padding: 15px; margin-bottom: 20px; }
+.duel-result-header { color: var(--text-muted); margin-bottom: 15px; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px; }
+.font-bold { font-weight: 700; }
+.btn-rematch {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    margin-top: 10px; padding: 15px;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
 }
 
 /* Multiplayer Challenge Modal */
