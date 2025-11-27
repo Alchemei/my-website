@@ -59,36 +59,16 @@
                     const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === data.id;
 
                     let rankBadge = `<span style="font-weight:700; width:24px; text-align:center; color:var(--text-muted);">${rank}</span>`;
-                    if (rank === 1) rankBadge = '🥇';
-                    if (rank === 2) rankBadge = '🥈';
-                    if (rank === 3) rankBadge = '🥉';
-
-                    // Determine league if not saved
-                    let league = data.league;
-                    if (!league) {
-                        if (data.xp >= 10000) league = '💎';
-                        else if (data.xp >= 5000) league = '🥇';
-                        else if (data.xp >= 1000) league = '🥈';
-                        else league = '🥉';
-                    } else {
-                        league = league.split(' ')[0];
-                    }
-
-                    // Check online status based on lastActive (within 20 seconds)
-                    let isOnline = false;
-                    if (data.lastActive) {
-                        const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
-                        const diffSeconds = (new Date() - lastActiveDate) / 1000;
-                        if (diffSeconds < 20) isOnline = true;
-                    }
+                    if (rank === 1) rankBadge = `<span style="font-weight:900; color:#FFD700;">1</span>`;
+                    if (rank === 2) rankBadge = `<span style="font-weight:900; color:#C0C0C0;">2</span>`;
+                    if (rank === 3) rankBadge = `<span style="font-weight:900; color:#CD7F32;">3</span>`;
 
                     html += `
-                        <div style="display:flex; align-items:center; padding:15px 20px; border-bottom:1px solid var(--glass-border); ${isMe ? 'background:rgba(139, 92, 246, 0.1);' : ''}">
-                            <div style="font-size:1.2rem; margin-right:15px;">${rankBadge}</div>
-                            <div style="margin-right:10px; font-size:1.2rem;">${league}</div>
-                            <div style="flex:1;">
-                                <div style="font-weight:700; color:${isMe ? 'var(--neon-blue)' : 'white'}">${data.name || 'İsimsiz'}</div>
-                                <div style="font-size:0.8rem; color:var(--text-muted);">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
+                        <div class="leaderboard-row ${isMe ? 'me' : ''}">
+                            <div class="rank-num">${rankBadge}</div>
+                            <div style="flex:1; min-width:0;">
+                                <div class="player-name ${isMe ? 'me-text' : ''}">${data.name || 'İsimsiz'}</div>
+                                <div class="player-lvl">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
                             </div>
                             <div class="leaderboard-row-right">
                                 <div class="leaderboard-xp">${data.xp || 0} XP</div>

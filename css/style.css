@@ -704,34 +704,43 @@ main::-webkit-scrollbar { display: none; }
 /* Leaderboard */
 .leaderboard-loading { padding: 20px; text-align: center; color: var(--text-muted); }
 .leaderboard-footer { margin-top: 20px; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
-.leaderboard-row-right { text-align: right; }
-.leaderboard-xp { font-weight: 800; color: var(--neon-green); }
+.leaderboard-row {
+    display: flex; align-items: center; padding: 12px 15px;
+    border-bottom: 1px solid var(--glass-border);
+    gap: 12px;
+}
+.leaderboard-row.me { background: rgba(139, 92, 246, 0.1); }
+.rank-num { font-size: 1.1rem; width: 20px; text-align: center; flex-shrink: 0; }
+.player-name { font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem; }
+.player-name.me-text { color: var(--neon-blue); }
+.player-lvl { font-size: 0.75rem; color: var(--text-muted); }
+
+.leaderboard-row-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.leaderboard-xp { font-weight: 800; color: var(--neon-green); font-size: 0.9rem; }
 .btn-mini-challenge {
     background: rgba(139, 92, 246, 0.15);
     border: 1px solid rgba(139, 92, 246, 0.3);
     color: white;
-    font-size: 0.75rem;
-    padding: 6px 12px;
+    font-size: 0.7rem;
+    padding: 4px 10px;
     border-radius: 100px;
-    margin-top: 6px;
     cursor: pointer;
     backdrop-filter: blur(5px);
     transition: all 0.2s;
     font-weight: 600;
     display: inline-flex; align-items: center; gap: 4px;
-}
-.btn-mini-challenge:hover {
-    background: rgba(139, 92, 246, 0.3);
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+    white-space: nowrap;
 }
 .status-dot {
-    width: 10px; height: 10px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     display: inline-block;
-    margin-left: 8px;
-    vertical-align: middle; /* Ensure alignment */
+    margin-left: 0; /* Handled by flex gap if needed, or absolute */
+    position: absolute;
+    top: 50%; right: 10px; transform: translateY(-50%);
 }
+/* Adjust row relative for absolute dot if desired, or keep it simple */
+.leaderboard-row { position: relative; padding-right: 25px; } /* Space for dot */
 .status-dot.online {
     background: var(--neon-green);
     box-shadow: 0 0 8px var(--neon-green);
