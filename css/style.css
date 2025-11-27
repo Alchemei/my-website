@@ -725,6 +725,20 @@ main::-webkit-scrollbar { display: none; }
     transform: scale(1.05);
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
+.online-dot {
+    width: 10px; height: 10px;
+    background: var(--neon-green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--neon-green);
+    display: inline-block;
+    margin-left: 8px;
+    animation: pulseDot 2s infinite;
+}
+@keyframes pulseDot {
+    0% { opacity: 0.6; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.6; transform: scale(0.9); }
+}
 
 /* --- JS DYNAMIC ELEMENTS --- */
 
