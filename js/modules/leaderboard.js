@@ -72,6 +72,14 @@
                     league = league.split(' ')[0];
                 }
 
+                // Check online status based on lastActive (within 5 mins)
+                let isOnline = false;
+                if (data.lastActive) {
+                    const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
+                    const diffMinutes = (new Date() - lastActiveDate) / 1000 / 60;
+                    if (diffMinutes < 5) isOnline = true;
+                }
+
                 html += `
                     <div style="display:flex; align-items:center; padding:15px 20px; border-bottom:1px solid var(--glass-border); ${isMe ? 'background:rgba(139, 92, 246, 0.1);' : ''}">
                         <div style="font-size:1.2rem; margin-right:15px;">${rankBadge}</div>
@@ -83,7 +91,7 @@
                         <div class="leaderboard-row-right">
                             <div class="leaderboard-xp">${data.xp || 0} XP</div>
                             ${!isMe ? `<button onclick="window.multiplayer.challengeUser('${data.id}', '${data.name}')" class="btn-mini-challenge">⚔️ Meydan Oku</button>` : ''}
-                            <div class="status-dot ${data.isOnline === true ? 'online' : 'offline'}" title="${data.isOnline === true ? 'Çevrimiçi' : 'Çevrimdışı'}"></div>
+                            <div class="status-dot ${isOnline ? 'online' : 'offline'}" title="${isOnline ? 'Çevrimiçi' : 'Son Görülme: ' + (data.lastActive ? new Date(data.lastActive.toDate ? data.lastActive.toDate() : data.lastActive).toLocaleTimeString() : 'Bilinmiyor')}"></div>
                         </div>
                     </div>
                 `;

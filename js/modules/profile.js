@@ -78,6 +78,13 @@
                 auth.signInAnonymously().catch(console.error);
             }
         });
+
+        // Heartbeat to keep online status active (every 2 minutes)
+        setInterval(() => {
+            if (currentUser && !currentUser.isAnonymous) {
+                saveCloud();
+            }
+        }, 2 * 60 * 1000);
     }
 
     async function loginGoogle() {
@@ -152,6 +159,7 @@
                     name: currentUser.displayName || 'Anonim',
                     photo: currentUser.photoURL || null,
                     updatedAt: timestamp,
+                    lastActive: timestamp, // Track activity for online status
                     league: getLeague(window.store.state.xp) // Save league info
                 });
             }
