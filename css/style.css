@@ -96,6 +96,7 @@ body {
     display: inline-flex; align-items: center; justify-content: center;
     position: relative; overflow: hidden;
     border-radius: var(--radius-md);
+    color: white;
 }
 .btn:active { transform: scale(0.95); opacity: 0.8; }
 
