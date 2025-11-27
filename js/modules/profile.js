@@ -79,12 +79,12 @@
             }
         });
 
-        // Heartbeat to keep online status active (every 2 minutes)
+        // Heartbeat to keep online status active (every 30 seconds)
         setInterval(() => {
             if (currentUser && !currentUser.isAnonymous) {
                 saveCloud();
             }
-        }, 2 * 60 * 1000);
+        }, 30 * 1000);
     }
 
     async function loginGoogle() {
