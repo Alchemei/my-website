@@ -671,7 +671,20 @@ main::-webkit-scrollbar { display: none; }
 .mastery-pct-text { font-size: 1.5rem; font-weight: 800; color: var(--neon-green); }
 .mastery-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 1px; }
 .profile-title { margin: 0; font-size: 1.5rem; }
-.career-badge { color: var(--neon-blue); font-family: monospace; margin-top: 5px; font-size: 1.1rem; }
+.career-badge {
+    color: var(--neon-blue);
+    font-family: -apple-system, monospace;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    background: rgba(10, 132, 255, 0.15);
+    border: 1px solid rgba(10, 132, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 100px;
+    display: inline-block;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(10, 132, 255, 0.1);
+}
 .user-email-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; opacity: 0; }
 .profile-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
 .stat-panel { padding: 20px; text-align: center; }
