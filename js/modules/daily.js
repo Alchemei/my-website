@@ -59,7 +59,7 @@ window.openDailyStatus = function () {
     modal.className = 'modal-overlay fade-in';
     modal.style.zIndex = '1000';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width:320px; text-align:center; padding:30px; border-radius:30px; background:rgba(20,20,20,0.9); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div class="modal-content" style="max-width:320px; text-align:center; padding:30px; border-radius:30px; background:rgba(20,20,20,0.8); backdrop-filter:blur(30px); border:1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
             <button class="btn" onclick="this.closest('.modal-overlay').remove()" style="position:absolute; right:15px; top:15px; background:transparent; font-size:1.2rem; color:var(--text-muted);">✕</button>
             
             <div style="font-size:4rem; margin-bottom:10px; filter:drop-shadow(0 0 20px rgba(255,165,0,0.5));">🔥</div>
@@ -99,7 +99,7 @@ function showDailyReward(streakDay) {
     modal.className = 'modal-overlay fade-in';
     modal.style.zIndex = '1000';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width:320px; text-align:center; padding:30px; border-radius:30px; background:rgba(20,20,20,0.9); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div class="modal-content" style="max-width:320px; text-align:center; padding:30px; border-radius:30px; background:rgba(20,20,20,0.8); backdrop-filter:blur(30px); border:1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
             <div style="font-size:4rem; margin-bottom:15px; animation: bounce 2s infinite;">🎁</div>
             <h2 style="margin:0 0 10px 0; color:white; font-size:1.8rem;">Günlük Ödül!</h2>
             <p style="color:var(--text-muted); margin:0 0 25px 0;">${streakDay}. Gün Serisi</p>

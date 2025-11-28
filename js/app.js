@@ -19,9 +19,6 @@ function init() {
 }
 
 function switchTab(id, btn) {
-    // Stop any active quiz/timer immediately when switching tabs
-    if (window.resetQuiz) window.resetQuiz();
-
     document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
     const tab = document.getElementById('tab-' + id);
     if (tab) tab.classList.remove('hidden');
@@ -30,7 +27,7 @@ function switchTab(id, btn) {
     if (btn) btn.classList.add('active');
 
     if (id === 'quiz') window.resetQuiz();
-    if (id === 'profile' && window.renderProfile) window.renderProfile();
+    // Profile chart render is handled by event listener in profile.js
 }
 
 // Expose globally immediately

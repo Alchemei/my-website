@@ -98,34 +98,6 @@
                 saveCloud();
             }
         });
-
-        startHeartbeat();
-    }
-
-    function startHeartbeat() {
-        // Initial ping
-        setTimeout(() => touchOnlineStatus(), 2000);
-
-        // Periodic ping every 30 seconds
-        setInterval(() => {
-            if (document.visibilityState === 'visible' && currentUser && !currentUser.isAnonymous) {
-                touchOnlineStatus();
-            }
-        }, 30000);
-    }
-
-    async function touchOnlineStatus() {
-        if (!currentUser || !window.Firebase || !window.Firebase.db) return;
-        try {
-            const db = window.Firebase.db;
-            const lbRef = db.collection('artifacts').doc(appId).collection('leaderboard').doc(currentUser.uid);
-            const timestamp = window.Firebase.firestore ? window.Firebase.firestore.FieldValue.serverTimestamp() : new Date();
-
-            // Only update the timestamp field to save bandwidth
-            await lbRef.set({ lastActive: timestamp }, { merge: true });
-        } catch (e) {
-            console.error("Heartbeat failed:", e);
-        }
     }
 
     window.loginGoogle = async function () {
@@ -330,74 +302,39 @@
         modal.className = 'modal-overlay fade-in';
         modal.style.zIndex = '1000';
 
-        // Pre-sort words once
-        const allWords = [...window.words].sort((a, b) => a.en.localeCompare(b.en));
+        const sorted = [...window.words].sort((a, b) => a.en.localeCompare(b.en));
+
+        let listHtml = '';
+        sorted.forEach(w => {
+            listHtml += `
+                <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
+                    <span style="color:white; font-weight:600;">${w.en}</span>
+                    <span style="color:var(--text-muted);">${w.tr}</span>
+                </div>
+            `;
+        });
 
         modal.innerHTML = `
             <div class="modal-content" style="max-height:80vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
                 <div style="padding:20px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02);">
                     <h2 style="margin:0; font-size:1.4rem;">Sözlük 📚</h2>
-                    <button class="btn" id="close-dict-btn" style="background:transparent; font-size:1.2rem; padding:5px;">✕</button>
+                    <button class="btn" onclick="this.closest('.modal-overlay').remove()" style="background:transparent; font-size:1.2rem; padding:5px;">✕</button>
                 </div>
                 <div style="padding:15px; background:rgba(0,0,0,0.2);">
-                    <input type="text" id="dict-search-input" placeholder="Kelime ara..." class="w-full" style="padding:12px; border-radius:12px; background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); color:white; outline:none;">
+                    <input type="text" placeholder="Kelime ara..." class="w-full" style="padding:12px; border-radius:12px; background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); color:white; outline:none;" onkeyup="
+                        const val = this.value.toLowerCase();
+                        const items = this.parentElement.nextElementSibling.children;
+                        for(let item of items) {
+                            item.style.display = item.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+                        }
+                    ">
                 </div>
-                <div id="dict-list-container" style="overflow-y:auto; flex:1; padding:0 20px 20px 20px;">
-                    <!-- Items injected here -->
+                <div style="overflow-y:auto; flex:1; padding:0 20px 20px 20px;">
+                    ${listHtml}
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
-
-        const container = document.getElementById('dict-list-container');
-        const input = document.getElementById('dict-search-input');
-        const closeBtn = document.getElementById('close-dict-btn');
-
-        closeBtn.onclick = () => modal.remove();
-
-        // Optimized Render Function
-        function renderList(filterText = '') {
-            container.innerHTML = '';
-            const lowerFilter = filterText.toLowerCase();
-
-            let count = 0;
-            const maxItems = 50; // Render limit for performance
-
-            let html = '';
-            for (const w of allWords) {
-                if (count >= maxItems) break;
-
-                if (!lowerFilter || w.en.toLowerCase().includes(lowerFilter) || w.tr.toLowerCase().includes(lowerFilter)) {
-                    html += `
-                        <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
-                            <span style="color:white; font-weight:600;">${w.en}</span>
-                            <span style="color:var(--text-muted);">${w.tr}</span>
-                        </div>
-                    `;
-                    count++;
-                }
-            }
-
-            if (count === 0) {
-                html = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Sonuç bulunamadı.</div>';
-            } else if (count >= maxItems && !lowerFilter) {
-                html += '<div style="padding:10px; text-align:center; color:var(--text-muted); font-size:0.8rem;">Daha fazla sonuç için arama yapın...</div>';
-            }
-
-            container.innerHTML = html;
-        }
-
-        // Initial Render
-        renderList();
-
-        // Debounced Search
-        let timeout;
-        input.onkeyup = (e) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                renderList(e.target.value);
-            }, 150);
-        };
     }
 
     function getLeague(xp) {
@@ -408,7 +345,6 @@
     }
 
     window.renderProfile = function () {
-        // Always update global HUD elements
         const streakEl = document.getElementById('streak-display');
         const coinEl = document.getElementById('coin-display');
         const levelEl = document.getElementById('level-display');
@@ -418,12 +354,6 @@
         if (coinEl) coinEl.innerText = window.store.state.coins;
         if (levelEl) levelEl.innerText = window.store.state.level || 1;
         if (xpBar) xpBar.style.width = (window.store.state.xp % 100) + "%";
-
-        // Check if profile tab is visible
-        const profileTab = document.getElementById('tab-profile');
-        if (profileTab && profileTab.classList.contains('hidden')) {
-            return; // Skip heavy rendering if not visible
-        }
 
         const totalWords = window.words.length;
         const learnedWords = window.store.state.learned.length;
