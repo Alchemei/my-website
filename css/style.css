@@ -69,15 +69,20 @@ body {
     background: radial-gradient(circle at 50% 0%, #2c2c2e 0%, #000 100%);
 }
 .orb {
-    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4;
+    position: absolute; border-radius: 50%; 
+    /* Reduced blur for performance */
+    filter: blur(40px); 
+    opacity: 0.3;
+    will-change: transform;
+    transform: translate3d(0,0,0);
     animation: float 20s infinite ease-in-out;
 }
-.orb-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -50px; animation-delay: 0s; }
-.orb-2 { width: 350px; height: 350px; background: var(--purple); bottom: 10%; right: -100px; animation-delay: -8s; }
+.orb-1 { width: 300px; height: 300px; background: var(--primary); top: -50px; left: -20px; animation-delay: 0s; }
+.orb-2 { width: 250px; height: 250px; background: var(--purple); bottom: 10%; right: -50px; animation-delay: -8s; }
 
 @keyframes float {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(20px, 40px) scale(1.1); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(20px, 40px, 0) scale(1.1); }
 }
 
 /* --- UTILITIES --- */
@@ -110,13 +115,13 @@ header {
 .hud-group { display: flex; gap: 10px; align-items: center; }
 
 .hud-badge {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15); /* Increased opacity */
     border: 0.5px solid rgba(255, 255, 255, 0.2);
     padding: 0 12px;
     border-radius: 100px;
     font-size: 0.9rem; font-weight: 600;
     display: flex; align-items: center; gap: 6px;
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); /* Reduced blur */
     height: 38px;
     color: var(--text-main);
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
@@ -132,7 +137,7 @@ header {
     background: rgba(255, 255, 255, 0.1); border: 0.5px solid rgba(255, 255, 255, 0.2);
     color: var(--text-muted); transition: all 0.3s;
     cursor: pointer;
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .sync-active { color: var(--primary); animation: pulseSync 2s infinite; }
 .sync-done { color: var(--accent); }
@@ -159,8 +164,8 @@ main {
 main::-webkit-scrollbar { display: none; }
 
 .glass-panel {
-    background: var(--glass-surface);
-    backdrop-filter: blur(30px) saturate(160%); -webkit-backdrop-filter: blur(30px) saturate(160%);
+    background: rgba(30, 30, 30, 0.4); /* Darker background for better contrast without heavy blur */
+    backdrop-filter: blur(15px) saturate(160%); -webkit-backdrop-filter: blur(15px) saturate(160%); /* Reduced blur */
     border: 1px solid var(--glass-border);
     border-top: 1px solid rgba(255, 255, 255, 0.25); /* Highlight top edge */
     border-radius: var(--radius-lg);

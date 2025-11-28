@@ -90,6 +90,11 @@ window.confetti = function () {
         });
     }
 
+    // Cancel previous animation if active
+    if (window.confettiFrameId) {
+        cancelAnimationFrame(window.confettiFrameId);
+    }
+
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         let active = false;
@@ -106,7 +111,12 @@ window.confetti = function () {
                 ctx.fill();
             }
         });
-        if (active) requestAnimationFrame(animate);
+        if (active) {
+            window.confettiFrameId = requestAnimationFrame(animate);
+        } else {
+            window.confettiFrameId = null;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
     }
     animate();
 }

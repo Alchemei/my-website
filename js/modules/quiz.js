@@ -348,10 +348,14 @@
         // Allow clicking to hear again
         wordEl.onclick = () => window.speakWord(target.en);
 
-        let opts = window.words.filter(w => w.en !== target.en)
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 3)
-            .map(w => w.tr);
+        // Efficient random selection
+        let opts = [];
+        while (opts.length < 3) {
+            const rand = window.words[Math.floor(Math.random() * window.words.length)];
+            if (rand.en !== target.en && !opts.includes(rand.tr)) {
+                opts.push(rand.tr);
+            }
+        }
 
         opts.push(target.tr);
         opts.sort(() => 0.5 - Math.random());

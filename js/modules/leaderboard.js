@@ -46,47 +46,11 @@
                     players.push({ id: doc.id, ...data });
                 });
 
-                // Add Fake Bots if players < 10
-                const botNames = ['Ahmet Y.', 'Ayşe K.', 'Mehmet D.', 'Elif S.', 'Can B.', 'Zeynep T.', 'Murat Ö.', 'Selin A.', 'Burak Ç.', 'Gizem E.'];
-                const userXp = window.store.state.xp || 0;
-
-                // Ensure we have at least 10 players total
-                while (players.length < 10) {
-                    const name = botNames[Math.floor(Math.random() * botNames.length)];
-                    // Generate random XP around user's XP (0.5x to 1.5x) or random 100-5000 if user is 0
-                    let botXp = 0;
-                    if (userXp > 100) {
-                        botXp = Math.floor(userXp * (0.5 + Math.random()));
-                    } else {
-                        botXp = Math.floor(Math.random() * 2000) + 100;
-                    }
-
-                    // Avoid duplicate names if possible (simple check)
-                    if (!players.find(p => p.name === name)) {
-                        players.push({
-                            id: 'bot_' + Math.random(),
-                            name: name,
-                            xp: botXp,
-                            isBot: true,
-                            lastActive: new Date() // Bots are always "active" recently
-                        });
-                    } else {
-                        // If name exists, just add a number
-                        players.push({
-                            id: 'bot_' + Math.random(),
-                            name: name + ' ' + Math.floor(Math.random() * 10),
-                            xp: botXp,
-                            isBot: true,
-                            lastActive: new Date()
-                        });
-                    }
-                }
-
                 // Sort by XP descending
                 players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
 
-                // Take only top 20
-                players = players.slice(0, 20);
+                // Take only top 50
+                players = players.slice(0, 50);
 
                 let html = '';
                 let rank = 1;
