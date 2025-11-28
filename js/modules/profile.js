@@ -1,22 +1,17 @@
 (function () {
-    // Global App ID for sync
-    const APP_ID_KEY = 'english-master-global';
-    const appId = window.__app_id || APP_ID_KEY;
-
+    const appId = 'engApp_v60';
     let currentUser = null;
     let syncTimeout = null;
 
+    // Initialize Profile Module
     window.initProfile = function () {
+        console.log("Profile Module Initialized");
         renderProfile();
         waitForFirebase();
 
-        window.loginGoogle = loginGoogle;
-        window.logoutGoogle = logoutGoogle;
-        window.resetData = resetData;
-        window.retrySync = () => saveCloud();
-        window.removeFav = removeFav;
-
-        window.addEventListener('state-updated', renderProfile);
+        window.addEventListener('state-updated', (e) => {
+            renderProfile();
+        });
 
         window.addEventListener('level-up', (e) => {
             const modal = document.getElementById('level-up-modal');
@@ -62,7 +57,6 @@
                         emailEl.style.opacity = 1;
                     }
 
-                    // Sync Auth User to Store for Multiplayer
                     window.store.state.userId = u.uid;
                     window.store.state.username = u.displayName || 'Kullanıcı';
                     window.store.save();
@@ -75,44 +69,98 @@
                     if (btnLogout) btnLogout.classList.add('hidden');
                 }
             } else {
-                auth.signInAnonymously().catch(console.error);
+                console.log("No user, attempting anonymous login...");
+                auth.signInAnonymously().catch(err => {
+                    console.error("Anonymous Login Error:", err);
+                });
             }
         });
 
-        // Heartbeat to keep online status active (every 10 seconds)
-        setInterval(() => {
-            if (currentUser && !currentUser.isAnonymous) {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
                 saveCloud();
             }
-        }, 10 * 1000);
+        });
 
-        // Set offline on tab close/exit
+        if (window.Capacitor) {
+            const App = window.Capacitor.App || (window.Capacitor.Plugins && window.Capacitor.Plugins.App);
+            if (App) {
+                App.addListener('appStateChange', ({ isActive }) => {
+                    if (!isActive) {
+                        saveCloud();
+                    }
+                });
+            }
+        }
+
         window.addEventListener('beforeunload', () => {
             if (currentUser && !currentUser.isAnonymous) {
-                // We can't use async/await here reliably, so we use sendBeacon or synchronous write if possible.
-                // However, Firestore doesn't support sync writes easily in web.
-                // Best effort: Try to set a flag or old timestamp.
-                // Note: This is not guaranteed to fire on mobile or sudden closes.
-                // The heartbeat timeout (2 mins logic in leaderboard) is the fallback.
-
-                // Ideally, we would use Realtime Database 'onDisconnect' feature for 100% accuracy.
-                // Since we use Firestore, we rely on the short heartbeat interval.
+                saveCloud();
             }
         });
     }
 
-    async function loginGoogle() {
+    window.loginGoogle = async function () {
         try {
+            const isNative = window.Capacitor && window.Capacitor.isNativePlatform();
+
+            if (isNative) {
+                try {
+                    console.log("Starting Native Login...");
+                    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle();
+
+                    if (!result) throw new Error("No result received from native login");
+
+                    let idToken = null;
+                    if (result.credential && result.credential.idToken) {
+                        idToken = result.credential.idToken;
+                    } else if (result.idToken) {
+                        idToken = result.idToken;
+                    } else {
+                        throw new Error("No identity token found in native login result");
+                    }
+
+                    if (!window.Firebase.GoogleAuthProvider) {
+                        if (window.firebase && window.firebase.auth && window.firebase.auth.GoogleAuthProvider) {
+                            window.Firebase.GoogleAuthProvider = window.firebase.auth.GoogleAuthProvider;
+                        } else {
+                            throw new Error("Firebase GoogleAuthProvider class is missing");
+                        }
+                    }
+
+                    const credential = window.Firebase.GoogleAuthProvider.credential(idToken);
+                    await window.Firebase.auth.signInWithCredential(credential);
+                    window.toast("Giriş Başarılı (Native)");
+                    return;
+                } catch (nativeError) {
+                    console.error("Native Login Error Full:", nativeError);
+                    window.toast("Native Giriş Hatası: " + (nativeError.message || nativeError));
+                    return;
+                }
+            }
+
             const auth = window.Firebase.auth;
             const provider = window.Firebase.googleProvider;
-            await auth.signInWithPopup(provider);
+
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (popupError) {
+                console.warn("Popup login failed:", popupError);
+                if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+                    window.toast("Giriş iptal edildi.");
+                } else if (popupError.code === 'auth/popup-blocked') {
+                    window.toast("Pop-up engellendi. Lütfen izin verin.");
+                } else {
+                    window.toast("Giriş yapılamadı. Hata: " + popupError.message);
+                }
+            }
         } catch (error) {
-            console.error(error);
+            console.error("Login Error:", error);
             window.toast("Giriş Hatası: " + error.message);
         }
     }
 
-    async function logoutGoogle() {
+    window.logoutGoogle = async function () {
         try {
             await window.Firebase.auth.signOut();
             location.reload();
@@ -125,7 +173,6 @@
         if (!currentUser) return;
         try {
             const db = window.Firebase.db;
-            // Compat API: db.collection(...).doc(...)
             const docRef = db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('data').doc('profile');
             const docSnap = await docRef.get();
 
@@ -138,7 +185,12 @@
                 } else if (window.store.state.xp > (cloudData.xp || 0)) {
                     saveCloud();
                 }
+
+                if (window.renderProfile) window.renderProfile();
+                if (window.checkDailyLogin) window.checkDailyLogin();
+
             } else {
+                console.log("No cloud data found.");
                 saveCloud();
             }
             updateSyncStatus('done');
@@ -152,7 +204,7 @@
     function save() {
         clearTimeout(syncTimeout);
         updateSyncStatus('active');
-        syncTimeout = setTimeout(saveCloud, 2000);
+        syncTimeout = setTimeout(saveCloud, 5000);
     }
 
     async function saveCloud() {
@@ -162,10 +214,8 @@
             const docRef = db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('data').doc('profile');
             await docRef.set(window.store.state);
 
-            // Sync to Leaderboard ONLY if not anonymous (Google Login)
             if (!currentUser.isAnonymous && window.store.state.xp > 0) {
                 const lbRef = db.collection('artifacts').doc(appId).collection('leaderboard').doc(currentUser.uid);
-                // Ensure we have the namespace before calling
                 const timestamp = window.Firebase.firestore ? window.Firebase.firestore.FieldValue.serverTimestamp() : new Date();
 
                 await lbRef.set({
@@ -173,8 +223,8 @@
                     name: currentUser.displayName || 'Anonim',
                     photo: currentUser.photoURL || null,
                     updatedAt: timestamp,
-                    lastActive: timestamp, // Track activity for online status
-                    league: getLeague(window.store.state.xp) // Save league info
+                    lastActive: timestamp,
+                    league: getLeague(window.store.state.xp)
                 });
             }
 
@@ -195,16 +245,96 @@
         if (state === 'error') icon.classList.add('sync-error');
     }
 
-    function resetData() {
+    window.resetData = function () {
         if (confirm("Tüm verileri sıfırla?")) {
             localStorage.removeItem('engApp_v60');
             location.reload();
         }
     }
 
-    function removeFav(w) {
+    window.removeFav = function (w) {
         const newFavs = window.store.state.favs.filter(x => x !== w);
         window.store.update('favs', newFavs);
+    }
+
+    window.openFavs = function () {
+        const favs = window.store.state.favs || [];
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay fade-in';
+        modal.style.zIndex = '1000';
+
+        let listHtml = '';
+        if (favs.length === 0) {
+            listHtml = '<div style="color:var(--text-muted); padding:40px; text-align:center;">Henüz favori kelimen yok. <br><br> Kelime kartlarındaki ❤️ ikonuna basarak ekleyebilirsin.</div>';
+        } else {
+            favs.forEach(wordEn => {
+                const w = window.words.find(x => x.en === wordEn);
+                if (w) {
+                    listHtml += `
+                        <div class="glass-panel" style="margin-bottom:10px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:800; font-size:1.1rem; color:white;">${w.en}</div>
+                                <div style="font-size:0.9rem; color:var(--text-muted); margin-top:2px;">${w.tr}</div>
+                            </div>
+                            <button class="btn-icon" onclick="window.removeFav('${w.en}'); this.parentElement.remove();" style="color:#ef4444; background:rgba(255,255,255,0.1); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:none;">✕</button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-height:80vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+                <div style="padding:20px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02);">
+                    <h2 style="margin:0; font-size:1.4rem;">Favoriler ❤️</h2>
+                    <button class="btn" onclick="this.closest('.modal-overlay').remove()" style="background:transparent; font-size:1.2rem; padding:5px;">✕</button>
+                </div>
+                <div style="overflow-y:auto; flex:1; padding:20px;">
+                    ${listHtml}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    window.openDictionary = function () {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay fade-in';
+        modal.style.zIndex = '1000';
+
+        const sorted = [...window.words].sort((a, b) => a.en.localeCompare(b.en));
+
+        let listHtml = '';
+        sorted.forEach(w => {
+            listHtml += `
+                <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
+                    <span style="color:white; font-weight:600;">${w.en}</span>
+                    <span style="color:var(--text-muted);">${w.tr}</span>
+                </div>
+            `;
+        });
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-height:80vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+                <div style="padding:20px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02);">
+                    <h2 style="margin:0; font-size:1.4rem;">Sözlük 📚</h2>
+                    <button class="btn" onclick="this.closest('.modal-overlay').remove()" style="background:transparent; font-size:1.2rem; padding:5px;">✕</button>
+                </div>
+                <div style="padding:15px; background:rgba(0,0,0,0.2);">
+                    <input type="text" placeholder="Kelime ara..." class="w-full" style="padding:12px; border-radius:12px; background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); color:white; outline:none;" onkeyup="
+                        const val = this.value.toLowerCase();
+                        const items = this.parentElement.nextElementSibling.children;
+                        for(let item of items) {
+                            item.style.display = item.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+                        }
+                    ">
+                </div>
+                <div style="overflow-y:auto; flex:1; padding:0 20px 20px 20px;">
+                    ${listHtml}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
 
     function getLeague(xp) {
@@ -214,7 +344,7 @@
         return '🥉 Bronz';
     }
 
-    function renderProfile() {
+    window.renderProfile = function () {
         const streakEl = document.getElementById('streak-display');
         const coinEl = document.getElementById('coin-display');
         const levelEl = document.getElementById('level-display');
@@ -265,58 +395,43 @@
         // Apply Profile Styles
         const style = window.store.state.profileStyle || { frame: null, theme: 'default' };
 
-        // Apply Theme (Global Variables & Background)
+        // Apply Theme
         const root = document.documentElement;
         const appBg = document.querySelector('.aurora-bg');
 
         if (style.theme === 'theme_ocean') {
-            // Ocean Theme
-            root.style.setProperty('--bg-dark', '#0f172a'); // Slate 900
-            root.style.setProperty('--glass-surface', 'rgba(30, 58, 138, 0.6)'); // Blue 900
-            root.style.setProperty('--neon-blue', '#38bdf8'); // Sky 400
-            root.style.setProperty('--neon-purple', '#818cf8'); // Indigo 400
-
-            // Card Theme
+            root.style.setProperty('--bg-dark', '#0f172a');
+            root.style.setProperty('--glass-surface', 'rgba(30, 58, 138, 0.6)');
+            root.style.setProperty('--neon-blue', '#38bdf8');
+            root.style.setProperty('--neon-purple', '#818cf8');
             root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #1e40af, #0f172a)');
             root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #2563eb, #1e3a8a)');
-
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #0369a1, #0f172a)';
         }
         else if (style.theme === 'theme_sunset') {
-            // Sunset Theme
-            root.style.setProperty('--bg-dark', '#2a0a18'); // Dark Rose
-            root.style.setProperty('--glass-surface', 'rgba(88, 28, 135, 0.6)'); // Purple 900
-            root.style.setProperty('--neon-blue', '#fb7185'); // Rose 400 (Replaces Blue accent)
-            root.style.setProperty('--neon-purple', '#c084fc'); // Purple 400
-
-            // Card Theme
+            root.style.setProperty('--bg-dark', '#2a0a18');
+            root.style.setProperty('--glass-surface', 'rgba(88, 28, 135, 0.6)');
+            root.style.setProperty('--neon-blue', '#fb7185');
+            root.style.setProperty('--neon-purple', '#c084fc');
             root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #9d174d, #4a044e)');
             root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #db2777, #831843)');
-
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #be123c, #2a0a18)';
         }
         else {
-            // Default Theme (Reset to iOS Dark Glass)
             root.style.setProperty('--bg-dark', '#000000');
             root.style.setProperty('--glass-surface', 'rgba(255, 255, 255, 0.08)');
             root.style.setProperty('--neon-blue', '#0A84FF');
             root.style.setProperty('--neon-purple', '#BF5AF2');
-
-            // Card Theme (Reset)
             root.style.setProperty('--card-bg-front', 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%)');
             root.style.setProperty('--card-bg-back', 'linear-gradient(135deg, #5e5ce6 0%, #4744ca 100%)');
-
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #2c2c2e 0%, #000 100%)';
         }
 
-        // Apply Frame (to avatar/icon)
-        // 1. Header Level Badge (The whole badge, not just the text)
+        // Apply Frame
         const levelBadge = document.querySelector('.level-badge');
         if (levelBadge) {
-            // Reset styles to default CSS
             levelBadge.style.border = '1px solid var(--glass-border)';
             levelBadge.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-
             if (style.frame === 'frame_gold') {
                 levelBadge.style.border = '2px solid gold';
                 levelBadge.style.boxShadow = '0 0 15px gold, inset 0 0 5px gold';
@@ -329,15 +444,11 @@
             }
         }
 
-        // 2. Profile Tab Mastery Ring
         const profileRing = document.querySelector('.progress-ring-container');
         if (profileRing) {
-            // Reset
             profileRing.style.border = 'none';
-            profileRing.style.borderRadius = '50%'; // Ensure circular border
+            profileRing.style.borderRadius = '50%';
             profileRing.style.boxShadow = 'none';
-            // profileRing.style.padding = '5px'; // Removed to prevent SVG scaling issues without viewBox
-
             if (style.frame === 'frame_gold') {
                 profileRing.style.border = '4px solid gold';
                 profileRing.style.boxShadow = '0 0 25px gold';
@@ -350,124 +461,38 @@
             }
         }
 
-        renderChart();
-        renderFavs();
-    }
+        // Render Weekly Chart
+        const chartContainer = document.getElementById('weekly-chart');
+        if (chartContainer) {
+            chartContainer.innerHTML = '';
+            const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+            const activity = window.store.state.weeklyActivity || [0, 0, 0, 0, 0, 0, 0];
+            const max = Math.max(...activity, 10);
 
-    function renderChart() {
-        const container = document.getElementById('weekly-chart');
-        if (!container) return;
+            activity.forEach((val, idx) => {
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'chart-bar-wrapper';
 
-        container.innerHTML = '';
-        const days = [];
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            days.push({
-                key: window.store.getLocalKey(d),
-                label: d.toLocaleDateString('tr-TR', { weekday: 'short' })
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                const height = (val / max) * 100;
+                bar.style.height = `${height}%`;
+
+                const todayIdx = (new Date().getDay() + 6) % 7;
+                if (idx === todayIdx) {
+                    bar.style.background = 'var(--neon-blue)';
+                    bar.style.boxShadow = '0 0 10px var(--neon-blue)';
+                }
+
+                const label = document.createElement('div');
+                label.className = 'chart-label';
+                label.innerText = days[idx];
+
+                barWrapper.appendChild(bar);
+                barWrapper.appendChild(label);
+                chartContainer.appendChild(barWrapper);
             });
         }
-
-        let maxVal = 10;
-        days.forEach(d => {
-            const val = window.store.state.history[d.key] || 0;
-            if (val > maxVal) maxVal = val;
-        });
-
-        days.forEach(d => {
-            const val = window.store.state.history[d.key] || 0;
-            const heightPct = (val / maxVal) * 80;
-            const isToday = d.key === window.store.getLocalKey(new Date());
-            const barColor = isToday ? 'var(--neon-green)' : 'var(--neon-blue)';
-            container.innerHTML += `<div class="chart-bar-wrapper"><div class="chart-bar" style="height:${Math.max(5, heightPct)}%; background:${barColor}"></div><div class="chart-label" style="${isToday ? 'color:white; font-weight:bold' : ''}">${d.label}</div></div>`;
-        });
     }
 
-    window.openFavs = function () {
-        document.getElementById('favs-modal').classList.remove('hidden');
-        renderFavs();
-    }
-
-    window.openDictionary = function () {
-        document.getElementById('dict-modal').classList.remove('hidden');
-        renderDictionary();
-    }
-
-    window.filterDictionary = function () {
-        const q = document.getElementById('dict-search').value.toLowerCase();
-        renderDictionary(q);
-    }
-
-    function renderFavs() {
-        const list = document.getElementById('favorites-list-modal');
-        if (!list) return;
-
-        list.innerHTML = '';
-        if (window.store.state.favs.length === 0) {
-            list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; margin-top:50px;">Henüz favori kelimen yok.</div>';
-            return;
-        }
-
-        window.store.state.favs.forEach(wEn => {
-            const wObj = window.words.find(x => x.en === wEn);
-            if (!wObj) return;
-            const div = document.createElement('div');
-            div.className = 'glass-panel';
-            div.style.padding = '15px';
-            div.style.marginBottom = '10px';
-            div.style.display = 'flex';
-            div.style.justifyContent = 'space-between';
-            div.style.alignItems = 'center';
-            div.innerHTML = `
-                <div>
-                    <div style="font-weight:700; font-size:1.1rem;">${wObj.en}</div>
-                    <div style="font-size:0.9rem; color:var(--text-muted);">${wObj.tr}</div>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn" onclick="window.removeFav('${wEn}')" style="background:rgba(239,68,68,0.1); color:var(--neon-red); width:36px; height:36px; border-radius:50%;">✕</button>
-                </div>`;
-            list.appendChild(div);
-        });
-    }
-
-    function renderDictionary(query = '') {
-        const list = document.getElementById('dict-list');
-        if (!list) return;
-
-        list.innerHTML = '';
-        let count = 0;
-
-        // Show only first 50 if no query to prevent lag
-        const limit = query ? 100 : 50;
-
-        for (const w of window.words) {
-            if (count >= limit) break;
-            if (query && !w.en.toLowerCase().includes(query) && !w.tr.toLowerCase().includes(query)) continue;
-
-            const isLearned = window.store.state.learned.includes(w.en);
-            const isFav = window.store.state.favs.includes(w.en);
-
-            const div = document.createElement('div');
-            div.style.padding = '15px';
-            div.style.borderBottom = '1px solid var(--glass-border)';
-            div.style.display = 'flex';
-            div.style.justifyContent = 'space-between';
-            div.style.alignItems = 'center';
-
-            div.innerHTML = `
-                <div>
-                    <div style="font-weight:700; color:${isLearned ? 'var(--neon-green)' : 'white'}">${w.en}</div>
-                    <div style="font-size:0.85rem; color:var(--text-muted);">${w.tr}</div>
-                </div>
-                <div style="font-size:1.2rem;">${isFav ? '❤️' : ''}</div>
-            `;
-            list.appendChild(div);
-            count++;
-        }
-
-        if (count === 0) {
-            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">Sonuç bulunamadı.</div>';
-        }
-    }
 })();

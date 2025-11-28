@@ -10,6 +10,8 @@ function init() {
     window.initLeaderboard();
     window.initAchievements();
     window.initMultiplayer();
+    window.initAds();
+    window.initDaily();
 
     // Initial Render
     // If no tasks yet, generate them now to prevent empty screen

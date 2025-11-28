@@ -28,9 +28,24 @@ window.playSound = function (type) {
     }
 }
 
+window.speakWord = function (text, lang = 'en-US') {
+    if (!soundEnabled) return;
+    if ('speechSynthesis' in window) {
+        // Cancel previous speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = 0.9; // Slightly slower
+        utterance.volume = soundVolume;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
 window.toggleSound = function (enabled) {
     soundEnabled = enabled;
     localStorage.setItem('soundEnabled', enabled);
+    window.store.update('soundEnabled', enabled);
 }
 
 window.setVolume = function (vol) {
@@ -95,5 +110,3 @@ window.confetti = function () {
     }
     animate();
 }
-
-

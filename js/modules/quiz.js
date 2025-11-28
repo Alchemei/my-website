@@ -9,6 +9,19 @@
         window.showGamesMenu = showGamesMenu;
         window.resetQuiz = showGamesMenu;
         window.handleQuizAns = handleQuizAns;
+        window.handleQuizContinue = handleQuizContinue;
+    }
+
+    async function handleQuizContinue() {
+        try {
+            if (window.showInterstitial) {
+                await window.showInterstitial();
+            }
+        } catch (e) {
+            console.error("Ad show failed:", e);
+        } finally {
+            showGamesMenu();
+        }
     }
 
     function showGamesMenu() {
@@ -329,6 +342,12 @@
         const wordEl = document.getElementById('q-word');
         wordEl.innerText = target.en;
 
+        // Speak the word automatically
+        setTimeout(() => window.speakWord(target.en), 300);
+
+        // Allow clicking to hear again
+        wordEl.onclick = () => window.speakWord(target.en);
+
         let opts = window.words.filter(w => w.en !== target.en)
             .sort(() => 0.5 - Math.random())
             .slice(0, 3)
@@ -426,63 +445,6 @@
         document.getElementById('res-xp').innerText = `+${finalXP}`;
         document.getElementById('result-custom-content').innerHTML = ''; // Clear custom content
 
-        const myData = progress[myId];
-        const oppData = progress[opponentId];
-
-        const isMe = winnerId === myId;
-        const title = isMe ? "KAZANDIN!" : "KAYBETTİN";
-        const xp = isMe ? 100 : 20;
-        const gold = isMe ? `+${betAmount * 2} 🪙` : `-${betAmount} 🪙`;
-
-        finishGame(xp, title);
-
-        // Hide Duel Container explicitly
-        document.getElementById('duel-container').classList.add('hidden');
-        document.getElementById('quiz-play-area').classList.add('hidden');
-
-        // Set Score
-        document.getElementById('res-score').innerText = myData.score;
-
-        // Create Comparison Table in Custom Content Area
-        const customArea = document.getElementById('result-custom-content');
-        customArea.innerHTML = '';
-
-        const table = document.createElement('div');
-        table.className = 'glass-panel duel-result-table';
-
-        table.innerHTML = `
-            <div class="duel-result-header">SONUÇLAR</div>
-            
-            <div class="result-row ${isMe ? 'winner' : 'loser'}">
-                <span class="font-bold">Sen</span>
-                <span class="font-bold">${myData.score} / ${myData.total}</span>
-            </div>
-            <div class="result-row ${!isMe ? 'winner' : 'loser'}">
-                <span class="font-bold">${opponentName}</span>
-                <span class="font-bold">${oppData.score} / ${oppData.total}</span>
-            </div>
-        `;
-
-        customArea.appendChild(table);
-        document.getElementById('res-xp').innerText = `${gold} | +${xp} XP`;
-
-        // Add Rematch Button
-        let btn = document.getElementById('btn-rematch');
-        if (!btn) {
-            btn = document.createElement('button');
-            btn.id = 'btn-rematch';
-            btn.className = 'btn w-full btn-rematch';
-            btn.innerText = '🔄 Rövanş İste';
-            btn.onclick = () => window.multiplayer.requestRematch();
-            // Append to actions area if possible, or custom area
-            document.querySelector('.result-actions').insertBefore(btn, document.querySelector('.result-actions').firstChild);
-        } else {
-            btn.style.display = 'block';
-        }
-
-        // Move question area back to tab-quiz
-        const qArea = document.getElementById('quiz-play-area');
-        document.getElementById('tab-quiz').appendChild(qArea);
     }
 
 

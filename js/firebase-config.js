@@ -35,5 +35,7 @@ window.Firebase = {
     signInWithCustomToken,
     doc,
     setDoc,
-    getDoc
+    setDoc,
+    getDoc,
+    GoogleAuthProvider
 };

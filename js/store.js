@@ -15,7 +15,8 @@ window.store = {
         profileStyle: { frame: null, theme: 'default' },
         soundEnabled: true,
         userId: null,
-        username: 'Player'
+        username: 'Player',
+        weeklyActivity: [0, 0, 0, 0, 0, 0, 0]
     },
 
     init() {
@@ -25,6 +26,7 @@ window.store = {
                 const parsed = JSON.parse(saved);
                 this.state = { ...this.state, ...parsed };
                 if (!this.state.history) this.state.history = {};
+                if (!this.state.weeklyActivity) this.state.weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
                 // Ensure level is set if migrating from old version
                 if (!this.state.level) this.state.level = Math.floor(this.state.xp / 100) + 1;
             } catch (e) {
@@ -40,22 +42,33 @@ window.store = {
 
     save() {
         localStorage.setItem('engApp_v60', JSON.stringify(this.state));
-        window.dispatchEvent(new CustomEvent('state-updated'));
+        // Note: We don't dispatch state-updated here to avoid infinite loops if called from listeners
     },
 
     update(key, value) {
-        const oldXp = this.state.xp;
-        this.state[key] = value;
-
+        // Handle Weekly Activity Update
         if (key === 'xp') {
+            const diff = value - (this.state.xp || 0);
+            if (diff > 0) {
+                const todayIdx = (new Date().getDay() + 6) % 7; // 0=Mon, 6=Sun
+                const activity = [...(this.state.weeklyActivity || [0, 0, 0, 0, 0, 0, 0])];
+                activity[todayIdx] = (activity[todayIdx] || 0) + diff;
+                this.state.weeklyActivity = activity;
+            }
+
+            // Check Level Up
             const newLevel = Math.floor(value / 100) + 1;
-            if (newLevel > this.state.level) {
+            if (newLevel > (this.state.level || 1)) {
                 this.state.level = newLevel;
                 window.dispatchEvent(new CustomEvent('level-up', { detail: { level: newLevel } }));
             }
         }
 
+        this.state[key] = value;
         this.save();
+
+        // Dispatch event for UI updates
+        window.dispatchEvent(new CustomEvent('state-updated', { detail: { key, value } }));
     },
 
     // Helper to get local date key for history
