@@ -1,14 +1,22 @@
 (function () {
     const shopCatalog = {
         frames: [
-            { id: 'frame_gold', name: 'Altın Çerçeve', price: 500, icon: '🟡', css: 'border: 3px solid gold; box-shadow: 0 0 15px gold;' },
-            { id: 'frame_neon', name: 'Neon Çerçeve', price: 1000, icon: '💠', css: 'border: 3px solid var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue);' },
-            { id: 'frame_fire', name: 'Alev Çerçeve', price: 2000, icon: '🔥', css: 'border: 3px solid #f97316; box-shadow: 0 0 20px #f97316;' }
+            { id: 'frame_gold', name: 'Altın Çerçeve', price: 500, icon: '🟡', color: '#FFD700', css: 'border: 3px solid gold; box-shadow: 0 0 15px gold;' },
+            { id: 'frame_neon', name: 'Neon Çerçeve', price: 1000, icon: '💠', color: '#00f2ff', css: 'border: 3px solid var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue);' },
+            { id: 'frame_fire', name: 'Alev Çerçeve', price: 2000, icon: '🔥', color: '#ff4500', css: 'border: 3px solid #f97316; box-shadow: 0 0 20px #f97316;' },
+            { id: 'frame_rainbow', name: 'Gökkuşağı', price: 5000, icon: '🌈', color: 'linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)', css: 'border: 3px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 15px rgba(255,255,255,0.5);' },
+            { id: 'frame_diamond', name: 'Elmas', price: 3500, icon: '💎', color: '#b9f2ff', css: 'border: 3px solid #b9f2ff; box-shadow: 0 0 15px #b9f2ff, inset 0 0 10px #b9f2ff;' },
+            { id: 'frame_cyber', name: 'Siber', price: 2500, icon: '🤖', color: '#00ff00', css: 'border: 3px dashed #00ff00; box-shadow: 0 0 10px #00ff00;' },
+            { id: 'frame_galaxy', name: 'Galaksi', price: 4000, icon: '🌌', color: '#9d00ff', css: 'border: 3px solid #9d00ff; box-shadow: 0 0 20px #9d00ff;' }
         ],
         themes: [
             { id: 'theme_dark', name: 'Karanlık Mod', price: 0, icon: '🌑', css: 'background: var(--glass-surface);' },
             { id: 'theme_ocean', name: 'Okyanus', price: 750, icon: '🌊', css: 'background: linear-gradient(135deg, #1e3a8a, #0f172a);' },
-            { id: 'theme_sunset', name: 'Gün Batımı', price: 1200, icon: '🌅', css: 'background: linear-gradient(135deg, #7c2d12, #1e1b4b);' }
+            { id: 'theme_sunset', name: 'Gün Batımı', price: 1200, icon: '🌅', css: 'background: linear-gradient(135deg, #7c2d12, #1e1b4b);' },
+            { id: 'theme_forest', name: 'Orman', price: 1500, icon: '🌲', css: 'background: linear-gradient(135deg, #064e3b, #022c22);' },
+            { id: 'theme_space', name: 'Uzay', price: 2000, icon: '🚀', css: 'background: radial-gradient(circle at center, #1e1b4b, #000000);' },
+            { id: 'theme_midnight', name: 'Gece Yarısı', price: 1800, icon: '🌃', css: 'background: linear-gradient(to bottom, #0f172a, #000000);' },
+            { id: 'theme_royal', name: 'Kraliyet', price: 3000, icon: '👑', css: 'background: linear-gradient(135deg, #4c1d95, #2e1065);' }
         ]
     };
 

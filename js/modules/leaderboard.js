@@ -21,6 +21,17 @@
 
         list.innerHTML = '<div style="padding:20px; text-align:center;">Yükleniyor...</div>';
 
+        // Frame Color Map (Must match shop catalog)
+        const frameColors = {
+            'frame_gold': '#FFD700',
+            'frame_neon': '#00f2ff',
+            'frame_fire': '#ff4500',
+            'frame_rainbow': 'linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)',
+            'frame_diamond': '#b9f2ff',
+            'frame_cyber': '#00ff00',
+            'frame_galaxy': '#9d00ff'
+        };
+
         try {
             const db = window.Firebase.db;
             // Real-time listener using onSnapshot
@@ -71,11 +82,22 @@
                         if (diffSeconds < 20) isOnline = true;
                     }
 
+                    // Determine Name Style based on Frame
+                    let nameStyle = '';
+                    if (data.frame && frameColors[data.frame]) {
+                        const color = frameColors[data.frame];
+                        if (color.includes('gradient')) {
+                            nameStyle = `background: ${color}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;`;
+                        } else {
+                            nameStyle = `color: ${color}; font-weight: 700; text-shadow: 0 0 10px ${color}40;`;
+                        }
+                    }
+
                     html += `
                         <div class="leaderboard-row ${isMe ? 'me' : ''}">
                             ${rankDisplay}
                             <div class="leaderboard-user-info">
-                                <div class="leaderboard-name ${isMe ? 'me-text' : ''}">${data.name || 'İsimsiz'}</div>
+                                <div class="leaderboard-name ${isMe ? 'me-text' : ''}" style="${nameStyle}">${data.name || 'İsimsiz'}</div>
                                 <div class="leaderboard-lvl">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
                             </div>
                             <div class="leaderboard-row-right">

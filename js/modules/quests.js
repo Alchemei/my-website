@@ -1,16 +1,17 @@
-(function() {
+(function () {
     const taskTemplates = [
         { id: 'learn', text: '5 Yeni Kelime', target: 5, reward: 50, type: 'learn' },
         { id: 'xp', text: '100 XP Kazan', target: 100, reward: 30, type: 'xp' },
         { id: 'quiz', text: 'Quiz Tamamla', target: 1, reward: 40, type: 'quiz' }
     ];
 
-    window.initQuests = function() {
+    window.initQuests = function () {
         checkDailyTasks();
         renderTasks();
-        
+        startCountdown();
+
         window.claimReward = claimReward;
-        
+
         // Listen for task updates
         window.addEventListener('task-update', (e) => {
             updateTask(e.detail.type, e.detail.amount);
@@ -18,14 +19,44 @@
 
         // Listen for general state updates (e.g. cloud sync)
         window.addEventListener('state-updated', renderTasks);
+    };
+
+    function startCountdown() {
+        const timerEl = document.getElementById('quest-reset-timer');
+        if (!timerEl) {
+            console.error("Quest timer element 'quest-reset-timer' not found in DOM!");
+            return;
+        }
+        console.log("Starting quest countdown timer...");
+
+        function update() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            const diff = tomorrow - now;
+
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+
+            const text = `Sıfırlanma: ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            timerEl.innerText = text;
+        }
+
+        update(); // Initial call
+        setInterval(update, 1000);
     }
 
     function checkDailyTasks() {
+        if (!window.store || !window.store.state) return;
+
         const today = new Date().toDateString();
         if (window.store.state.lastLogin !== today) {
-            const yesterday = new Date(); 
+            const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            
+
             if (window.store.state.lastLogin !== yesterday.toDateString()) {
                 if (window.store.state.activeItems.freeze) {
                     window.store.update('activeItems', { ...window.store.state.activeItems, freeze: false });
@@ -38,7 +69,7 @@
             }
             window.store.update('lastLogin', today);
             generateNewTasks();
-        } else if (window.store.state.tasks.length === 0) {
+        } else if (!window.store.state.tasks || window.store.state.tasks.length === 0) {
             generateNewTasks();
         }
     }
@@ -51,6 +82,8 @@
     }
 
     function updateTask(type, amt) {
+        if (!window.store.state.tasks) return;
+
         let updated = false;
         const newTasks = window.store.state.tasks.map(t => {
             if (t.type === type && !t.claimed && t.progress < t.target) {
@@ -64,7 +97,7 @@
             }
             return t;
         });
-        
+
         if (updated) {
             window.store.update('tasks', newTasks);
             renderTasks();
@@ -73,15 +106,15 @@
 
     function claimReward(idx) {
         const t = window.store.state.tasks[idx];
-        if (t.progress >= t.target && !t.claimed) {
+        if (t && t.progress >= t.target && !t.claimed) {
             const newTasks = [...window.store.state.tasks];
             newTasks[idx].claimed = true;
             window.store.update('tasks', newTasks);
-            
+
             window.store.update('coins', window.store.state.coins + t.reward);
             window.store.update('xp', window.store.state.xp + 10);
             window.store.updateHistory(10);
-            
+
             window.confetti();
             window.toast(`+${t.reward} Altın!`);
             renderTasks();
@@ -91,16 +124,17 @@
     function renderTasks() {
         const c = document.getElementById('quests-container');
         if (!c) return;
-        
+        if (!window.store.state.tasks) return;
+
         c.innerHTML = '';
         window.store.state.tasks.forEach((t, i) => {
             const isDone = t.progress >= t.target;
             const pct = (t.progress / t.target) * 100;
-            
-            let action = isDone && !t.claimed 
-                ? `<button class="btn" style="background:var(--neon-green); color:#064e3b; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:700;" onclick="window.claimReward(${i})">Al</button>` 
+
+            let action = isDone && !t.claimed
+                ? `<button class="btn" style="background:var(--neon-green); color:#064e3b; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:700;" onclick="window.claimReward(${i})">Al</button>`
                 : (t.claimed ? `<span style="color:var(--neon-green); font-size:0.8rem; font-weight:700;">Tamamlandı</span>` : `<span style="font-size:0.8rem; color:var(--text-muted);">${t.progress}/${t.target}</span>`);
-                
+
             c.innerHTML += `
                 <div class="glass-panel quest-card ${isDone ? 'completed' : ''}">
                     <div class="quest-row">

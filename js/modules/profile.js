@@ -224,7 +224,8 @@
                     photo: currentUser.photoURL || null,
                     updatedAt: timestamp,
                     lastActive: timestamp,
-                    league: getLeague(window.store.state.xp)
+                    league: getLeague(window.store.state.xp),
+                    frame: window.store.state.profileStyle?.frame || null
                 });
             }
 
@@ -417,6 +418,42 @@
             root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #db2777, #831843)');
             if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #be123c, #2a0a18)';
         }
+        else if (style.theme === 'theme_forest') {
+            root.style.setProperty('--bg-dark', '#022c22');
+            root.style.setProperty('--glass-surface', 'rgba(6, 78, 59, 0.6)');
+            root.style.setProperty('--neon-blue', '#34d399');
+            root.style.setProperty('--neon-purple', '#a7f3d0');
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #065f46, #022c22)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #10b981, #064e3b)');
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #047857, #022c22)';
+        }
+        else if (style.theme === 'theme_space') {
+            root.style.setProperty('--bg-dark', '#000000');
+            root.style.setProperty('--glass-surface', 'rgba(30, 27, 75, 0.6)');
+            root.style.setProperty('--neon-blue', '#818cf8');
+            root.style.setProperty('--neon-purple', '#c084fc');
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #312e81, #1e1b4b)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #4338ca, #312e81)');
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #4c1d95, #000000)';
+        }
+        else if (style.theme === 'theme_midnight') {
+            root.style.setProperty('--bg-dark', '#0f172a');
+            root.style.setProperty('--glass-surface', 'rgba(15, 23, 42, 0.8)');
+            root.style.setProperty('--neon-blue', '#38bdf8');
+            root.style.setProperty('--neon-purple', '#94a3b8');
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #1e293b, #0f172a)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #334155, #1e293b)');
+            if (appBg) appBg.style.background = 'linear-gradient(to bottom, #0f172a, #000000)';
+        }
+        else if (style.theme === 'theme_royal') {
+            root.style.setProperty('--bg-dark', '#2e1065');
+            root.style.setProperty('--glass-surface', 'rgba(76, 29, 149, 0.6)');
+            root.style.setProperty('--neon-blue', '#a78bfa');
+            root.style.setProperty('--neon-purple', '#ddd6fe');
+            root.style.setProperty('--card-bg-front', 'linear-gradient(145deg, #5b21b6, #2e1065)');
+            root.style.setProperty('--card-bg-back', 'linear-gradient(145deg, #7c3aed, #5b21b6)');
+            if (appBg) appBg.style.background = 'radial-gradient(circle at 50% 0%, #6d28d9, #2e1065)';
+        }
         else {
             root.style.setProperty('--bg-dark', '#000000');
             root.style.setProperty('--glass-surface', 'rgba(255, 255, 255, 0.08)');
@@ -429,35 +466,56 @@
 
         // Apply Frame
         const levelBadge = document.querySelector('.level-badge');
+        const profileRing = document.querySelector('.progress-ring-container');
+
         if (levelBadge) {
             levelBadge.style.border = '1px solid var(--glass-border)';
             levelBadge.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-            if (style.frame === 'frame_gold') {
-                levelBadge.style.border = '2px solid gold';
-                levelBadge.style.boxShadow = '0 0 15px gold, inset 0 0 5px gold';
-            } else if (style.frame === 'frame_neon') {
-                levelBadge.style.border = '2px solid var(--neon-blue)';
-                levelBadge.style.boxShadow = '0 0 15px var(--neon-blue), inset 0 0 5px var(--neon-blue)';
-            } else if (style.frame === 'frame_fire') {
-                levelBadge.style.border = '2px solid #f97316';
-                levelBadge.style.boxShadow = '0 0 15px #f97316, inset 0 0 5px #f97316';
-            }
+            levelBadge.style.background = 'rgba(255, 255, 255, 0.1)';
         }
-
-        const profileRing = document.querySelector('.progress-ring-container');
         if (profileRing) {
             profileRing.style.border = 'none';
             profileRing.style.borderRadius = '50%';
             profileRing.style.boxShadow = 'none';
+        }
+
+        if (style.frame) {
+            let border = '', shadow = '', bg = '';
+
             if (style.frame === 'frame_gold') {
-                profileRing.style.border = '4px solid gold';
-                profileRing.style.boxShadow = '0 0 25px gold';
+                border = '2px solid gold';
+                shadow = '0 0 15px gold, inset 0 0 5px gold';
             } else if (style.frame === 'frame_neon') {
-                profileRing.style.border = '4px solid var(--neon-blue)';
-                profileRing.style.boxShadow = '0 0 25px var(--neon-blue)';
+                border = '2px solid var(--neon-blue)';
+                shadow = '0 0 15px var(--neon-blue), inset 0 0 5px var(--neon-blue)';
             } else if (style.frame === 'frame_fire') {
-                profileRing.style.border = '4px solid #f97316';
-                profileRing.style.boxShadow = '0 0 25px #f97316';
+                border = '2px solid #f97316';
+                shadow = '0 0 15px #f97316, inset 0 0 5px #f97316';
+            } else if (style.frame === 'frame_rainbow') {
+                border = '3px solid transparent';
+                shadow = '0 0 15px rgba(255,255,255,0.5)';
+                // Note: Gradient borders are tricky, using simple fallback for badge
+                levelBadge.style.backgroundImage = 'linear-gradient(#000, #000), linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)';
+                levelBadge.style.backgroundOrigin = 'border-box';
+                levelBadge.style.backgroundClip = 'content-box, border-box';
+            } else if (style.frame === 'frame_diamond') {
+                border = '2px solid #b9f2ff';
+                shadow = '0 0 15px #b9f2ff, inset 0 0 5px #b9f2ff';
+            } else if (style.frame === 'frame_cyber') {
+                border = '2px dashed #00ff00';
+                shadow = '0 0 10px #00ff00';
+            } else if (style.frame === 'frame_galaxy') {
+                border = '2px solid #9d00ff';
+                shadow = '0 0 20px #9d00ff';
+            }
+
+            if (levelBadge && border) {
+                levelBadge.style.border = border;
+                levelBadge.style.boxShadow = shadow;
+            }
+            if (profileRing && border) {
+                profileRing.style.border = border.replace('2px', '4px').replace('3px', '4px');
+                profileRing.style.boxShadow = shadow.replace('15px', '25px');
             }
         }
 
