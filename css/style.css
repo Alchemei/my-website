@@ -662,7 +662,7 @@ main::-webkit-scrollbar { display: none; }
 .quiz-timer-text { color: var(--neon-red); font-weight: bold; }
 .quiz-word { font-size: 2.5rem; font-weight: 800; margin-bottom: 30px; }
 .quiz-options-grid { display: grid; gap: 10px; }
-
+.quiz-options-grid > button { text-align: center; }
 /* Match & Hangman Games */
 .match-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
 .btn-back { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 10px; }

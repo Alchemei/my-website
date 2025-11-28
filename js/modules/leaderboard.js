@@ -54,14 +54,23 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.isBot) return;
+
+                    // Filter: Minimum XP (e.g., 50) to appear on leaderboard
+                    // Exception: Always show the current user even if low XP
+                    const isMe = window.Firebase.auth.currentUser && window.Firebase.auth.currentUser.uid === doc.id;
+                    if (!isMe && (data.xp || 0) < 50) return;
+
+                    // Filter: Filter out generic names with low XP
+                    if (!isMe && (data.name === 'Anonim' || data.name === 'Kullanıcı') && (data.xp || 0) < 100) return;
+
                     players.push({ id: doc.id, ...data });
                 });
 
                 // Sort by XP descending
                 players.sort((a, b) => (b.xp || 0) - (a.xp || 0));
 
-                // Take only top 50
-                players = players.slice(0, 50);
+                // Take only top 20
+                players = players.slice(0, 20);
 
                 let html = '';
                 let rank = 1;
