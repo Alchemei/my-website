@@ -334,13 +334,23 @@
     function renderQuizQ() {
         document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
 
+        // Safety check for words
+        if (!window.words || window.words.length === 0) {
+            document.getElementById('q-word').innerText = "No Words";
+            return;
+        }
+
         let target;
         if (quizState.mode === 'duel' && quizState.questions && quizState.questions.length > 0) {
             // Use pre-selected question
             const qIndex = quizState.questions[quizState.currentQ - 1];
-            target = window.words[qIndex];
-        } else {
-            // Random fallback
+            if (typeof qIndex === 'number' && window.words[qIndex]) {
+                target = window.words[qIndex];
+            }
+        }
+
+        // Fallback if target is missing or invalid
+        if (!target) {
             target = window.words[Math.floor(Math.random() * window.words.length)];
         }
 
@@ -355,9 +365,11 @@
 
         // Efficient random selection
         let opts = [];
-        while (opts.length < 3) {
+        let attempts = 0;
+        while (opts.length < 3 && attempts < 100) {
+            attempts++;
             const rand = window.words[Math.floor(Math.random() * window.words.length)];
-            if (rand.en !== target.en && !opts.includes(rand.tr)) {
+            if (rand && rand.en !== target.en && !opts.includes(rand.tr)) {
                 opts.push(rand.tr);
             }
         }
