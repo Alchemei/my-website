@@ -49,10 +49,13 @@
         const totalWords = window.words.length;
         const startIndex = window.store.state.wordIndex;
 
+        // Optimize lookup with Set
+        const learnedSet = new Set(window.store.state.learned);
+
         // Search for the next unlearned word
         for (let i = 0; i < totalWords; i++) {
             let idx = (startIndex + i) % totalWords;
-            if (window.words[idx] && !window.store.state.learned.includes(window.words[idx].en)) {
+            if (window.words[idx] && !learnedSet.has(window.words[idx].en)) {
                 foundIndex = idx;
                 break;
             }

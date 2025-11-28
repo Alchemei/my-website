@@ -32,6 +32,11 @@
         document.getElementById('match-area').classList.add('hidden');
         document.getElementById('hangman-area').classList.add('hidden');
         if (quizState.timer) clearInterval(quizState.timer);
+
+        // Stop multiplayer listeners if active
+        if (window.multiplayer && window.multiplayer.stopDuel) {
+            window.multiplayer.stopDuel();
+        }
     }
 
     function startQuiz() {

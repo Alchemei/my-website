@@ -41,8 +41,15 @@ window.store = {
     },
 
     save() {
+        if (this.saveTimeout) clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(() => {
+            localStorage.setItem('engApp_v60', JSON.stringify(this.state));
+        }, 1000); // Save only once per second max
+    },
+
+    forceSave() {
+        if (this.saveTimeout) clearTimeout(this.saveTimeout);
         localStorage.setItem('engApp_v60', JSON.stringify(this.state));
-        // Note: We don't dispatch state-updated here to avoid infinite loops if called from listeners
     },
 
     update(key, value) {

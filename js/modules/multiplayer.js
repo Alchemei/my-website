@@ -300,6 +300,16 @@
             if (this.opponent) {
                 this.challengeUser(this.opponent.id, this.opponent.name);
             }
+        },
+
+        stopDuel() {
+            if (progressListener) {
+                progressListener();
+                progressListener = null;
+            }
+            this.activeChallengeId = null;
+            this.opponent = null;
+            this.isHost = false;
         }
     };
 

@@ -34,6 +34,9 @@
             }
 
             window.leaderboardUnsub = query.onSnapshot(snapshot => {
+                const tab = document.getElementById('tab-leaderboard');
+                if (tab && tab.classList.contains('hidden')) return;
+
                 if (snapshot.empty) {
                     list.innerHTML = '<div style="padding:20px; text-align:center;">Henüz veri yok.</div>';
                     return;
@@ -68,7 +71,7 @@
                     if (data.lastActive) {
                         const lastActiveDate = data.lastActive.toDate ? data.lastActive.toDate() : new Date(data.lastActive);
                         const diffSeconds = (new Date() - lastActiveDate) / 1000;
-                        if (diffSeconds < 20) isOnline = true;
+                        if (diffSeconds < 60) isOnline = true;
                     }
 
                     html += `
