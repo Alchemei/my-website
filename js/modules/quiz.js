@@ -315,77 +315,110 @@
     }
 
     function startDuelMode(opponent, questions = []) {
-        showGamesMenu();
-        document.getElementById('games-menu').classList.add('hidden');
+        try {
+            console.log("Starting Duel Mode", opponent, questions);
+            if (!opponent) {
+                window.toast("Hata: Rakip bilgisi bulunamadı.");
+                return;
+            }
 
-        const qArea = document.getElementById('quiz-play-area');
-        qArea.classList.remove('hidden');
-        document.getElementById('duel-container').classList.remove('hidden');
+            showGamesMenu();
+            document.getElementById('games-menu').classList.add('hidden');
 
-        // Move question area inside duel container
-        document.getElementById('duel-question-area').appendChild(qArea);
+            const qArea = document.getElementById('quiz-play-area');
+            qArea.classList.remove('hidden');
+            document.getElementById('duel-container').classList.remove('hidden');
 
-        document.getElementById('duel-opponent-name').innerText = opponent.name;
-        document.getElementById('duel-my-bar').style.width = '0%';
-        quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel', questions: questions };
-        renderQuizQ();
+            // Move question area inside duel container
+            const duelQArea = document.getElementById('duel-question-area');
+            if (duelQArea) {
+                duelQArea.appendChild(qArea);
+            }
+
+            const oppNameEl = document.getElementById('duel-opponent-name');
+            if (oppNameEl) oppNameEl.innerText = opponent.name;
+
+            const myBar = document.getElementById('duel-my-bar');
+            if (myBar) myBar.style.width = '0%';
+
+            quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel', questions: questions };
+            renderQuizQ();
+        } catch (e) {
+            console.error("StartDuel Error:", e);
+            window.toast("Oyun başlatılamadı: " + e.message);
+        }
     }
 
     function renderQuizQ() {
-        document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
+        try {
+            document.getElementById('quiz-counter').innerText = `${quizState.currentQ} / ${quizState.totalQ}`;
 
-        // Safety check for words
-        if (!window.words || window.words.length === 0) {
-            document.getElementById('q-word').innerText = "No Words";
-            return;
-        }
-
-        let target;
-        if (quizState.mode === 'duel' && quizState.questions && quizState.questions.length > 0) {
-            // Use pre-selected question
-            const qIndex = quizState.questions[quizState.currentQ - 1];
-            if (typeof qIndex === 'number' && window.words[qIndex]) {
-                target = window.words[qIndex];
+            // Safety check for words
+            if (!window.words || window.words.length === 0) {
+                document.getElementById('q-word').innerText = "Kelime listesi yüklenemedi.";
+                return;
             }
-        }
 
-        // Fallback if target is missing or invalid
-        if (!target) {
-            target = window.words[Math.floor(Math.random() * window.words.length)];
-        }
+            let target;
+            if (quizState.mode === 'duel' && quizState.questions && quizState.questions.length > 0) {
+                // Use pre-selected question
+                const qIndex = quizState.questions[quizState.currentQ - 1];
+                if (typeof qIndex === 'number' && window.words[qIndex]) {
+                    target = window.words[qIndex];
+                }
+            }
 
-        const wordEl = document.getElementById('q-word');
-        wordEl.innerText = target.en;
+            // Fallback if target is missing or invalid
+            if (!target) {
+                target = window.words[Math.floor(Math.random() * window.words.length)];
+            }
 
-        // Speak the word automatically
-        setTimeout(() => window.speakWord(target.en), 300);
+            const wordEl = document.getElementById('q-word');
+            wordEl.innerText = target.en;
 
-        // Allow clicking to hear again
-        wordEl.onclick = () => window.speakWord(target.en);
+            // Speak the word automatically
+            setTimeout(() => {
+                if (window.speakWord) window.speakWord(target.en);
+            }, 300);
 
-        // Efficient random selection
-        let opts = [];
-        let attempts = 0;
-        while (opts.length < 3 && attempts < 100) {
-            attempts++;
-            const rand = window.words[Math.floor(Math.random() * window.words.length)];
-            if (rand && rand.en !== target.en && !opts.includes(rand.tr)) {
+            // Allow clicking to hear again
+            wordEl.onclick = () => {
+                if (window.speakWord) window.speakWord(target.en);
+            };
+
+            // Efficient random selection
+            let opts = [];
+            let attempts = 0;
+            while (opts.length < 3 && attempts < 100) {
+                attempts++;
+                const rand = window.words[Math.floor(Math.random() * window.words.length)];
+                if (rand && rand.en !== target.en && !opts.includes(rand.tr)) {
+                    opts.push(rand.tr);
+                }
+            }
+
+            // Fill with randoms if failed to find unique ones
+            while (opts.length < 3) {
+                const rand = window.words[Math.floor(Math.random() * window.words.length)];
                 opts.push(rand.tr);
             }
+
+            opts.push(target.tr);
+            opts.sort(() => 0.5 - Math.random());
+
+            const div = document.getElementById('q-options');
+            div.innerHTML = '';
+            opts.forEach(o => {
+                const b = document.createElement('button');
+                b.className = 'quiz-opt';
+                b.innerText = o;
+                b.onclick = () => handleQuizAns(b, o, target.tr);
+                div.appendChild(b);
+            });
+        } catch (e) {
+            console.error("RenderQuiz Error:", e);
+            document.getElementById('q-word').innerText = "Hata: " + e.message;
         }
-
-        opts.push(target.tr);
-        opts.sort(() => 0.5 - Math.random());
-
-        const div = document.getElementById('q-options');
-        div.innerHTML = '';
-        opts.forEach(o => {
-            const b = document.createElement('button');
-            b.className = 'quiz-opt';
-            b.innerText = o;
-            b.onclick = () => handleQuizAns(b, o, target.tr);
-            div.appendChild(b);
-        });
     }
 
     function handleQuizAns(btn, selected, correct) {
