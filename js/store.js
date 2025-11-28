@@ -28,7 +28,7 @@ window.store = {
                 if (!this.state.history) this.state.history = {};
                 if (!this.state.weeklyActivity) this.state.weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
                 // Ensure level is set if migrating from old version
-                if (!this.state.level) this.state.level = Math.floor(this.state.xp / 100) + 1;
+                if (!this.state.level) this.state.level = this.getLevel(this.state.xp);
             } catch (e) {
                 console.error('Error loading state:', e);
             }
@@ -57,7 +57,7 @@ window.store = {
             }
 
             // Check Level Up
-            const newLevel = Math.floor(value / 100) + 1;
+            const newLevel = this.getLevel(value);
             if (newLevel > (this.state.level || 1)) {
                 this.state.level = newLevel;
                 window.dispatchEvent(new CustomEvent('level-up', { detail: { level: newLevel } }));
@@ -69,6 +69,41 @@ window.store = {
 
         // Dispatch event for UI updates
         window.dispatchEvent(new CustomEvent('state-updated', { detail: { key, value } }));
+    },
+
+    // Leveling System Helpers
+    // New Formula (Easier): 
+    // XP for next level = 100 + (CurrentLevel - 1) * 20
+    // Total XP for Level L = 10 * (L - 1) * (L + 8)
+    getLevel(xp) {
+        if (xp < 0) return 1;
+        // Inverse of 10 * (L^2 + 7L - 8) = XP
+        // L^2 + 7L - (8 + XP/10) = 0
+        // L = (-7 + sqrt(49 + 4 * (8 + XP/10))) / 2
+        // L = (-7 + sqrt(81 + 0.4 * XP)) / 2
+        return Math.floor((-7 + Math.sqrt(81 + 0.4 * xp)) / 2) || 1;
+    },
+
+    getXPForLevel(level) {
+        if (level <= 1) return 0;
+        return 10 * (level - 1) * (level + 8);
+    },
+
+    getLevelProgress(xp) {
+        const currentLevel = this.getLevel(xp);
+        const nextLevel = currentLevel + 1;
+        const xpStart = this.getXPForLevel(currentLevel);
+        const xpEnd = this.getXPForLevel(nextLevel);
+
+        const xpInLevel = xp - xpStart;
+        const xpRequired = xpEnd - xpStart;
+
+        return {
+            level: currentLevel,
+            current: xpInLevel,
+            required: xpRequired,
+            percent: Math.min(100, Math.max(0, (xpInLevel / xpRequired) * 100))
+        };
     },
 
     // Helper to get local date key for history

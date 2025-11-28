@@ -98,7 +98,7 @@
                             ${rankDisplay}
                             <div class="leaderboard-user-info">
                                 <div class="leaderboard-name ${isMe ? 'me-text' : ''}" style="${nameStyle}">${data.name || 'İsimsiz'}</div>
-                                <div class="leaderboard-lvl">Lvl ${Math.floor((data.xp || 0) / 100) + 1}</div>
+                                <div class="leaderboard-lvl">Lvl ${window.store.getLevel(data.xp || 0)}</div>
                             </div>
                             <div class="leaderboard-row-right">
                                 <div class="leaderboard-xp">${data.xp || 0} XP</div>

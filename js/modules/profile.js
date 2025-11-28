@@ -8,6 +8,7 @@
         console.log("Profile Module Initialized");
         renderProfile();
         waitForFirebase();
+        setTimeout(() => saveCloud(), 3000); // Force sync to update leaderboard with new level logic
 
         window.addEventListener('state-updated', (e) => {
             renderProfile();
@@ -339,9 +340,9 @@
     }
 
     function getLeague(xp) {
-        if (xp >= 10000) return '💎 Elmas';
-        if (xp >= 5000) return '🥇 Altın';
-        if (xp >= 1000) return '🥈 Gümüş';
+        if (xp >= 7500) return '💎 Elmas';
+        if (xp >= 3500) return '🥇 Altın';
+        if (xp >= 800) return '🥈 Gümüş';
         return '🥉 Bronz';
     }
 
@@ -353,8 +354,9 @@
 
         if (streakEl) streakEl.innerText = window.store.state.streak;
         if (coinEl) coinEl.innerText = window.store.state.coins;
-        if (levelEl) levelEl.innerText = window.store.state.level || 1;
-        if (xpBar) xpBar.style.width = (window.store.state.xp % 100) + "%";
+        const progress = window.store.getLevelProgress(window.store.state.xp);
+        if (levelEl) levelEl.innerText = progress.level;
+        if (xpBar) xpBar.style.width = progress.percent + "%";
 
         const totalWords = window.words.length;
         const learnedWords = window.store.state.learned.length;
@@ -384,7 +386,7 @@
             const badge = document.getElementById('career-badge');
             if (badge) badge.innerText = `Lvl ${window.store.state.level || 1} • ${league} Lig`;
         } else {
-            const lvl = Math.floor(window.store.state.xp / 100) + 1;
+            const lvl = window.store.getLevel(window.store.state.xp);
             let title = "Stajyer";
             if (lvl > 2) title = "Çırak";
             if (lvl > 10) title = "Uzman";
