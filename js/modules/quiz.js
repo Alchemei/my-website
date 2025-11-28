@@ -28,7 +28,7 @@
         document.getElementById('games-menu').classList.remove('hidden');
         document.getElementById('quiz-play-area').classList.add('hidden');
         document.getElementById('quiz-result-area').classList.add('hidden');
-        document.getElementById('quiz-challenge-area').classList.add('hidden');
+        document.getElementById('quiz-challenge-area').classList.add('hidden'); // Ensure timer is hidden
         document.getElementById('match-area').classList.add('hidden');
         document.getElementById('hangman-area').classList.add('hidden');
         if (quizState.timer) clearInterval(quizState.timer);
@@ -46,12 +46,15 @@
         showGamesMenu();
         document.getElementById('games-menu').classList.add('hidden');
         document.getElementById('quiz-play-area').classList.remove('hidden');
-        document.getElementById('quiz-challenge-area').classList.remove('hidden');
+        // document.getElementById('quiz-challenge-area').classList.remove('hidden'); // This is the timer span, handled in renderQuizQ or here
 
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 999, mode: 'challenge', timeLeft: 60 };
         renderQuizQ();
 
+        // Global Timer for Challenge
         const timerEl = document.getElementById('challenge-timer');
+        document.getElementById('quiz-challenge-area').classList.remove('hidden');
+
         quizState.timer = setInterval(() => {
             if (!quizState.active || quizState.mode !== 'challenge') {
                 clearInterval(quizState.timer);
@@ -322,6 +325,10 @@
 
         document.getElementById('duel-opponent-name').innerText = opponent.name;
         document.getElementById('duel-my-bar').style.width = '0%';
+
+        // Reset Timer
+        if (quizState.timer) clearInterval(quizState.timer);
+
         quizState = { active: true, currentQ: 1, score: 0, totalQ: 10, mode: 'duel', questions: questions };
         renderQuizQ();
     }
@@ -365,27 +372,78 @@
             b.onclick = () => handleQuizAns(b, o, target.tr);
             div.appendChild(b);
         });
+
+        // --- Timer Logic for Duel ---
+        const timerDisplay = document.getElementById('quiz-challenge-area');
+        const timerVal = document.getElementById('challenge-timer');
+
+        // Clear any existing question timer
+        if (quizState.timer && quizState.mode === 'duel') {
+            clearInterval(quizState.timer);
+        }
+
+        if (quizState.mode === 'duel') {
+            timerDisplay.classList.remove('hidden');
+            quizState.timeLeft = 10;
+            timerVal.innerText = 10;
+
+            // Start countdown
+            quizState.timer = setInterval(() => {
+                quizState.timeLeft--;
+                timerVal.innerText = quizState.timeLeft;
+
+                if (quizState.timeLeft <= 0) {
+                    clearInterval(quizState.timer);
+                    // Time's up! Treat as wrong answer
+                    handleQuizAns(null, null, target.tr);
+                }
+            }, 1000);
+        } else if (quizState.mode === 'challenge') {
+            // Challenge timer is global, handled in startChallenge
+            timerDisplay.classList.remove('hidden');
+        } else {
+            timerDisplay.classList.add('hidden');
+        }
     }
 
     function handleQuizAns(btn, selected, correct) {
         const opts = document.querySelectorAll('.quiz-opt');
         opts.forEach(o => o.onclick = null);
 
+        // Stop timer immediately if answering
+        if (quizState.timer && quizState.mode === 'duel') {
+            clearInterval(quizState.timer);
+        }
+
         let isCorrect = (selected === correct);
-        if (isCorrect) {
-            btn.classList.add('quiz-opt-correct');
-            quizState.score++;
-            window.confetti();
-            window.playSound('success');
+
+        if (btn) {
+            // User clicked a button
+            if (isCorrect) {
+                btn.classList.add('quiz-opt-correct');
+                quizState.score++;
+                window.confetti();
+                window.playSound('success');
+            } else {
+                btn.classList.add('quiz-opt-wrong');
+                opts.forEach(o => {
+                    if (o.innerText === correct) {
+                        o.classList.add('quiz-opt-correct');
+                    }
+                });
+                if (navigator.vibrate) navigator.vibrate(200);
+                window.playSound('error');
+            }
         } else {
-            btn.classList.add('quiz-opt-wrong');
+            // Timeout Case (btn is null)
             opts.forEach(o => {
                 if (o.innerText === correct) {
                     o.classList.add('quiz-opt-correct');
                 }
             });
-            if (navigator.vibrate) navigator.vibrate(200);
+            window.toast("Süre Doldu! ⏳");
             window.playSound('error');
+            if (navigator.vibrate) navigator.vibrate(200);
         }
 
         if (quizState.mode === 'duel') {
@@ -407,6 +465,8 @@
     }
 
     function finishQuiz() {
+        if (quizState.timer) clearInterval(quizState.timer); // Ensure timer is stopped
+
         if (quizState.mode === 'duel') {
             window.multiplayer.sendGameOver(quizState.score, Date.now());
             // handleDuelFinish is called by multiplayer when winner is decided
