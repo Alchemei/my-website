@@ -203,52 +203,16 @@
             background-color: rgba(234, 179, 8, 0.2) !important;
         }
 
-        /* Toast Notifications */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-        .toast {
-            pointer-events: auto;
-            min-width: 300px;
-            padding: 16px;
-            border-radius: 12px;
-            background: white;
-            color: #1e293b;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            opacity: 0;
-            transform: translateX(100%);
-            animation: toast-in 0.3s forwards cubic-bezier(0,1.5,1,1);
-            border-left: 4px solid #3643BA;
-        }
-        .toast.success { border-left-color: #22c55e; }
-        .toast.error { border-left-color: #ef4444; }
-        .toast.warning { border-left-color: #f59e0b; }
+        /* Toast Notifications - Moved to JS (App.showToast) for Tailwind responsiveness
+        #toast-container { ... }
+        */
+        
+        /* Restoring closing animation logic for JS */
         .toast.closing {
             animation: toast-out 0.3s forwards ease-in;
         }
-        @keyframes toast-in {
-            to { opacity: 1; transform: translateX(0); }
-        }
         @keyframes toast-out {
             to { opacity: 0; transform: translateX(100%); }
-        }
-        .dark .toast {
-            background: #1e293b;
-            color: #f1f5f9;
-            border: 1px solid rgba(255,255,255,0.1);
-            /* Border-left colors override below */
         }
 
 
@@ -315,7 +279,7 @@
         }
     </style>
 </head>
-<body class="font-sans text-gray-800 antialiased overflow-hidden h-screen w-screen flex">
+<body class="font-sans text-gray-800 antialiased overflow-hidden h-dvh w-full flex">
 
     <!-- Mobile Menu Toggle -->
     <button id="mobile-menu-btn" class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-xl shadow-md text-decathlon-blue">
@@ -2119,11 +2083,17 @@ HEDEF: [Bu kimin için yazılıyor]`;
             if (!container) {
                 container = document.createElement('div');
                 container.id = 'toast-container';
+                // Positioning: Top-right for all screens, 80% width limit on mobile
+                container.className = "fixed z-50 transition-all duration-300 pointer-events-none flex flex-col items-end gap-2 " +
+                                      "top-4 right-4 w-auto max-w-[80vw] " + // Mobile & Desktop: Top Right, Max 80% width
+                                      "md:max-w-sm md:top-8 md:right-8"; // Desktop: Slightly more padding from edges
                 document.body.appendChild(container);
             }
             
             const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
+            // Styling: Compact size (text-xs/sm), smaller padding
+            toast.className = `toast ${type} pointer-events-auto shadow-lg rounded-xl border flex items-start gap-2 ` +
+                              `p-3 text-xs md:p-4 md:text-sm animate-slide-up backdrop-blur-sm`; // Smaller text/padding
             
             const icons = {
                 success: 'check-circle',
@@ -2133,15 +2103,19 @@ HEDEF: [Bu kimin için yazılıyor]`;
             };
 
             const colors = {
-                success: 'text-green-500',
-                error: 'text-red-500',
-                warning: 'text-yellow-500',
-                info: 'text-blue-500'
+                success: 'text-green-600 bg-green-50/95 border-green-200',
+                error: 'text-red-600 bg-red-50/95 border-red-200',
+                warning: 'text-yellow-700 bg-yellow-50/95 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50/95 border-blue-200'
             };
+
+            // Parse color classes based on type
+            const typeClasses = colors[type] || colors.info;
+            toast.className += ` ${typeClasses}`;
             
             toast.innerHTML = `
-                <i data-lucide="${icons[type] || 'info'}" class="w-5 h-5 flex-shrink-0 ${colors[type] || 'text-blue-500'}"></i>
-                <span class="flex-1">${message}</span>
+                <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                <span class="flex-1 font-medium leading-snug break-words text-left">${message}</span>
             `;
             
             container.appendChild(toast);
@@ -2303,7 +2277,7 @@ HEDEF: [Bu kimin için yazılıyor]`;
              };
 
              return `
-                <div class="max-w-6xl mx-auto animate-fade-in h-[calc(100vh-140px)] flex flex-col">
+                <div class="max-w-6xl mx-auto animate-fade-in lg:h-[calc(100dvh-140px)] h-auto flex flex-col">
                     <div class="mb-6 flex justify-between items-end">
                         <div>
                             <h2 class="font-display font-bold text-3xl text-gray-900 dark:text-white flex items-center gap-3">
@@ -2316,10 +2290,10 @@ HEDEF: [Bu kimin için yazılıyor]`;
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-gray-100 dark:border-slate-700 overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-1 lg:min-h-0 bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-gray-100 dark:border-slate-700 lg:overflow-hidden">
                         
                         <!-- Left: Inputs -->
-                        <div class="p-6 overflow-y-auto space-y-6 border-r border-gray-100 dark:border-slate-700">
+                        <div class="p-6 lg:overflow-y-auto space-y-6 border-r border-gray-100 dark:border-slate-700">
                             
                             <!-- Role -->
                             <div>
@@ -2396,7 +2370,7 @@ HEDEF: [Bu kimin için yazılıyor]`;
                                 </button>
                             </div>
                             
-                            <div class="flex-1 bg-gray-950/50 rounded-xl p-6 border border-gray-800 font-mono text-sm leading-relaxed overflow-y-auto relative">
+                            <div class="lg:flex-1 bg-gray-950/50 rounded-xl p-6 border border-gray-800 font-mono text-sm leading-relaxed lg:overflow-y-auto relative min-h-[300px]">
                                 <div id="wiz-preview" class="text-green-400 whitespace-pre-wrap">Prompt önizlemesi burada görünecek...</div>
                                 
                                 <!-- Placeholder Hint -->
@@ -2512,7 +2486,7 @@ HEDEF: [Bu kimin için yazılıyor]`;
             setTimeout(() => initLessonLogic(content, meta), 50);
 
             return `
-                <div class="max-w-3xl mx-auto h-[calc(100vh-6rem)] flex flex-col animate-fade-in relative z-10">
+                <div class="max-w-3xl mx-auto h-[calc(100dvh-6rem)] flex flex-col animate-fade-in relative z-10">
                     <!-- Lesson Header -->
                     <div class="flex items-center justify-between mb-6">
                         <button onclick="app.router.navigate('curriculum')" class="text-gray-400 hover:text-decathlon-blue transition-colors flex items-center gap-1">
@@ -2525,7 +2499,7 @@ HEDEF: [Bu kimin için yazılıyor]`;
                     </div>
 
                     <!-- Lesson Container -->
-                    <div id="lesson-container" class="bg-white rounded-3xl shadow-2xl overflow-hidden flex-1 relative flex flex-col">
+                    <div id="lesson-container" class="bg-white rounded-3xl shadow-2xl overflow-y-auto flex-1 relative flex flex-col">
                         <!-- Content injected by initLessonLogic -->
                     </div>
                 </div>
