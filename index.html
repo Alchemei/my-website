@@ -325,6 +325,15 @@
                  <span>CRAFT Hatırlatıcı</span>
              </div>
 
+            <div onclick="app.router.navigate('gems')" class="nav-item" data-page="gems">
+                 <i data-lucide="gem" class="w-5 h-5"></i>
+                 <span>Decathlon Gems</span>
+             </div>
+             <div onclick="app.router.navigate('video')" class="nav-item" data-page="video">
+                 <i data-lucide="play-circle" class="w-5 h-5"></i>
+                 <span>Video Eğitim</span>
+             </div>
+
             <!-- Sertifika Bölümü (Ayrı) -->
             <div id="nav-certificate-section" class="!mt-6 pt-4 border-t border-yellow-200 hidden">
                 <p class="px-4 text-xs font-bold text-yellow-600 uppercase tracking-wider mb-2">🏆 Başarı</p>
@@ -1167,6 +1176,7 @@
                         }
                     }
 
+
                     this.currentPage = pageName;
                     
                     // Update Sidebar UI
@@ -1266,6 +1276,137 @@
             }
         }
 
+        // --- Onboarding Tour ---
+        // --- Onboarding Tour ---
+        app.tour = {
+            steps: [
+                { title: "Alchemei'ye Hoş Geldin! 👋", text: "Yapay zeka yolculuğun burada başlıyor. Burası sadece bir panel değil, aynı zamanda senin gelişim üssün. Platformu en verimli nasıl kullanacağını sana hızlıca gösterelim." },
+                { selector: '#dashboard-hero', route: 'dashboard', title: "Ana Kumanda ve Durum 🚀", text: "Burası senin ana merkezin. Mevcut seviyeni, topladığın XP puanlarını ve rozetlerini buradan takip edeceksin. Her gün buraya uğrayıp ilerlemeni kontrol etmeyi unutma." },
+                { selector: '.bg-white.dark\\:bg-slate-800.rounded-3xl.shadow-soft', route: 'curriculum', wait: 800, title: "Eğitim Yolu: Müfredatın 🗺️", text: "İşte asıl olay burada! 'Prompt Mühendisliğine Giriş'ten başlayarak ileri seviye AI tekniklerine kadar uzanan eğitim modülleri burada yer alıyor. Sırayla ilerle, kilitleri aç ve sertifikanı kap!" },
+                { selector: '#wiz-role', route: 'wizard', wait: 800, title: "Prompt Sihirbazı: Senin Gücün 🪄", text: "Prompt yazmakta zorlanıyor musun? Hiç dert etme. Buradan önce bir 'Rol' seç (mesela 'Mağaza Müdürü'), sonra görevini yaz. Biz senin için Decathlon standartlarında mükemmel bir prompt oluşturup sana veriyoruz." },
+                { selector: '.grid > div:first-child', route: 'gems', wait: 800, title: "Decathlon Gems: AI Takım Arkadaşların 💎", text: "Bunlar senin özel asistanların. Örneğin 'Genel Veri Analisti' ile uzun raporları saniyeler içinde özetleyebilir, 'Kayıp Ciro Dedektifi' ile satış fırsatlarını yakalayabilirsin. Her biri Decathlon verileriyle eğitilmiş uzmanlardır." },
+                { selector: '#resource-search', route: 'resources', wait: 800, title: "Kaynak Kütüphanesi 📚", text: "Aklına takılan bir AI terimi mi var? Veya hazır bir e-posta taslağına mı ihtiyacın var? Burası senin dijital kütüphanen. Arama çubuğunu kullanarak ihtiyacın olan her şeye saniyeler içinde ulaşabilirsin." },
+                { selector: '#craft-card', route: 'wizard', wait: 800, title: "Hızlı CRAFT Şablonu 📝", text: "Prompt yazmaya nereden başlayacağını bilemiyor musun? Bu şablon tam sana göre. Tek tıkla kopyala, boşlukları doldur ve mükemmel promptun hazır! Prompt Sihirbazı sayfasında seni bekliyor." },
+                { selector: '#mobile-menu-btn', route: 'settings', wait: 800, title: "Veri Yedekleme (Yeni!) 💾", text: "İlerlemeni kaybetme! Ayarlar menüsünden 'Veri Yedekleme' özelliği ile ilerlemeni dosyaya kaydedebilir ve istediğin zaman geri yükleyebilirsin. Üyelik yok, tamamen senin kontrolünde." }
+            ],
+            current: 0,
+            start() {
+                if(localStorage.getItem('tourCompleted')) return;
+                this.current = 0;
+                this.renderOverlay();
+                this.showStep();
+            },
+            renderOverlay() {
+                if(!document.getElementById('tour-overlay')) {
+                    const ol = document.createElement('div');
+                    ol.id = 'tour-overlay';
+                    ol.className = 'fixed inset-0 bg-black/70 z-[60] transition-opacity duration-300 opacity-0'; 
+                    document.body.appendChild(ol);
+                    setTimeout(() => ol.classList.remove('opacity-0'), 10);
+                    
+                    const tt = document.createElement('div');
+                    tt.id = 'tour-tooltip';
+                    tt.className = 'fixed z-[70] bg-white p-6 rounded-2xl shadow-2xl max-w-sm transition-all duration-300 opacity-0 transform scale-95 border-2 border-white/20';
+                    document.body.appendChild(tt);
+                }
+            },
+            showStep() {
+                const step = this.steps[this.current];
+                const overlay = document.getElementById('tour-overlay');
+                const tooltip = document.getElementById('tour-tooltip');
+                
+                // Cleanup highlights
+                document.querySelectorAll('.tour-active').forEach(el => {
+                    el.classList.remove('tour-active', 'relative', 'z-[65]', 'bg-white', 'rounded-xl', 'shadow-2xl');
+                });
+
+                // Navigation Logic
+                if(step.route && app.router.currentPage !== step.route) {
+                    app.router.navigate(step.route);
+                }
+
+                // Delay for render if needed
+                setTimeout(() => {
+                    let targetEl = null;
+                    if(step.selector) {
+                        targetEl = document.querySelector(step.selector);
+                        if(targetEl) {
+                            targetEl.classList.add('tour-active', 'relative', 'z-[65]', 'bg-white', 'rounded-xl', 'shadow-2xl');
+                            // Scroll to CENTER ensures visibility
+                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+
+                    tooltip.innerHTML = `
+                        <h3 class="font-bold text-xl text-gray-900 mb-2">${step.title}</h3>
+                        <p class="text-gray-600 mb-6 leading-relaxed">${step.text}</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex gap-1">
+                                ${this.steps.map((_, i) => `<div class="w-2 h-2 rounded-full transition-all ${i === this.current ? 'bg-decathlon-blue w-4' : 'bg-gray-200'}"></div>`).join('')}
+                            </div>
+                            <button onclick="app.tour.next()" class="px-6 py-2 bg-decathlon-blue text-white rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-decathlon-blue/30">
+                                ${this.current === this.steps.length - 1 ? 'Başla 🚀' : 'Devam Et'}
+                            </button>
+                        </div>
+                    `;
+
+                    // FIXED POSITIONING (USER REQUEST: Top 50%, Right 20px)
+                    tooltip.classList.remove('opacity-0', 'scale-95');
+                    
+                    // Reset any previous styles that might conflict
+                    tooltip.style.left = 'auto';
+                    tooltip.style.bottom = 'auto';
+
+                    if(window.innerWidth >= 1024) {
+                        // Desktop: Fixed Right Center
+                        tooltip.style.top = '50%';
+                        tooltip.style.right = '20px';
+                        tooltip.style.transform = 'translateY(-50%)';
+                    } else {
+                        // Mobile: Bottom fixed for better usability
+                        tooltip.style.top = 'auto';
+                        tooltip.style.bottom = '20px';
+                        tooltip.style.right = '20px';
+                        tooltip.style.left = '20px'; // Full width-ish on mobile
+                        tooltip.style.transform = 'none';
+                        tooltip.style.maxWidth = 'none'; // Allow full width
+                    }
+
+                }, step.wait || 0);
+            },
+            next() {
+                this.current++;
+                if(this.current >= this.steps.length) {
+                    this.end();
+                } else {
+                    this.showStep();
+                }
+            },
+            end() {
+                const overlay = document.getElementById('tour-overlay');
+                const tooltip = document.getElementById('tour-tooltip');
+                 // Fade out
+                if(overlay) overlay.classList.add('opacity-0');
+                if(tooltip) tooltip.classList.add('opacity-0');
+
+                setTimeout(() => {
+                    if(overlay) overlay.remove();
+                    if(tooltip) tooltip.remove();
+                }, 300);
+
+                document.querySelectorAll('.tour-active').forEach(el => {
+                    el.classList.remove('tour-active', 'relative', 'z-[65]', 'bg-white', 'rounded-xl', 'shadow-2xl');
+                });
+                localStorage.setItem('tourCompleted', 'true');
+                fireConfetti();
+                
+                // Go back to dashboard if ended elsewhere
+                if(app.router.currentRoute !== 'dashboard') {
+                    setTimeout(() => app.router.navigate('dashboard'), 500);
+                }
+            }
+        };
+
         // --- Views ---
         app.views.onboarding = () => {
              // Handle onboarding completion
@@ -1286,6 +1427,12 @@
                    // We need to use setTimeout to allow state save to persist and router to pick it up
                    setTimeout(() => {
                        app.router.navigate('dashboard');
+                       // Start Tour after dashboard renders
+                       setTimeout(() => {
+                           if(!localStorage.getItem('tourCompleted')) {
+                               app.tour.start();
+                           }
+                       }, 600);
                    }, 100);
              };
 
@@ -1314,87 +1461,7 @@
              `;
         };
 
-        app.views.dashboard = () => {
-             const state = app.store.state;
-             return `
-                <div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
-                    <!-- Hero Section -->
-                    <div class="relative overflow-hidden rounded-3xl bg-decathlon-blue text-white shadow-2xl shadow-decathlon-blue/20">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-decathlon-green blur-3xl rounded-full opacity-20 -mr-16 -mt-16 mix-blend-overlay"></div>
-                        <div class="absolute bottom-0 left-0 w-48 h-48 bg-decathlon-tech blur-3xl rounded-full opacity-30 -ml-16 -mb-16 mix-blend-overlay"></div>
-                        
-                        <div class="relative z-10 p-8 lg:p-12">
-                            <h2 class="font-display font-bold text-4xl lg:text-5xl mb-4 tracking-tight">Hoş geldin, ${state.user.name}! 🚀</h2>
-                            <p class="text-blue-100 text-lg max-w-2xl mb-8">Decathlon'un dijital geleceğini şekillendirmek için hazırsın. Prompt mühendisliği yeteneklerini geliştir ve rozetleri topla.</p>
-                            
-                            
-                            <div class="flex flex-wrap gap-4">
-                                <button onclick="app.router.navigate('curriculum')" class="bg-decathlon-green text-decathlon-dark font-bold py-3 px-8 rounded-xl shadow-lg shadow-decathlon-green/20 hover:scale-105 transition-transform flex items-center gap-2">
-                                    <i data-lucide="play-circle"></i> Öğrenmeye Başla
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Stats Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="glass-panel p-6 rounded-2xl flex items-center gap-4 group hover:-translate-y-1 transition-transform duration-300">
-                            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-decathlon-blue flex items-center justify-center group-hover:bg-decathlon-blue group-hover:text-white transition-colors duration-300">
-                                <i data-lucide="zap" class="w-7 h-7"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm font-medium">Toplam XP</p>
-                                <p class="text-3xl font-display font-bold text-gray-900">${state.user.xp}</p>
-                            </div>
-                        </div>
-
-                         <div class="glass-panel p-6 rounded-2xl flex items-center gap-4 group hover:-translate-y-1 transition-transform duration-300">
-                            <div class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
-                                <i data-lucide="award" class="w-7 h-7"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm font-medium">Seviye</p>
-                                <p class="text-3xl font-display font-bold text-gray-900">${state.user.level}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity / Continue Learning -->
-                    <div class="glass-panel p-8 rounded-3xl">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="font-display font-bold text-2xl text-gray-800">Devam Et</h3>
-                            <button class="text-decathlon-blue font-medium hover:underline text-sm">Tümünü Gör</button>
-                        </div>
-                        
-                        <!-- Placeholder for dynamic course card -->
-                        <div class="border border-gray-100 bg-white rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center gap-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="app.router.navigate('curriculum')">
-                            <div class="w-full md:w-48 h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden relative">
-                                <div class="absolute inset-0 bg-decathlon-blue/10 flex items-center justify-center">
-                                    <i data-lucide="code-2" class="w-10 h-10 text-decathlon-blue"></i>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded uppercase">Modül 1</span>
-                                    <span class="text-gray-400 text-xs flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> 15dk</span>
-                                </div>
-                                <h4 class="font-bold text-lg text-gray-900 mb-1">Prompt Mühendisliğine Giriş</h4>
-                                <p class="text-gray-500 text-sm mb-4">Temel kavramları ve AI modelleriyle nasıl etkili iletişim kuracağını öğren.</p>
-                                
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-decathlon-green h-2 rounded-full" style="width: 35%"></div>
-                                </div>
-                            </div>
-                            <div class="hidden md:block">
-                                <button class="w-12 h-12 rounded-full bg-decathlon-blue text-white flex items-center justify-center hover:bg-decathlon-tech transition-colors">
-                                    <i data-lucide="play" class="w-5 h-5 ml-1"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-             `;
-        };
 
         // --- Views ---
         app.views.dashboard = () => {
@@ -1402,7 +1469,7 @@
              return `
                 <div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
                     <!-- Hero Section -->
-                    <div class="relative overflow-hidden rounded-3xl bg-decathlon-blue text-white shadow-2xl shadow-decathlon-blue/20">
+                    <div id="dashboard-hero" class="relative overflow-hidden rounded-3xl bg-decathlon-blue text-white shadow-2xl shadow-decathlon-blue/20">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-decathlon-green blur-3xl rounded-full opacity-20 -mr-16 -mt-16 mix-blend-overlay"></div>
                         <div class="absolute bottom-0 left-0 w-48 h-48 bg-decathlon-tech blur-3xl rounded-full opacity-30 -ml-16 -mb-16 mix-blend-overlay"></div>
                         
@@ -1684,26 +1751,35 @@
                     const isVisible = !searchQuery || searchData.toLowerCase().includes(searchQuery);
                     
                     html += `
-                        <div class="resource-item bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-lg transition-all hover:-translate-y-1 flex flex-col h-full border border-gray-100 dark:border-slate-700 group ${isVisible ? '' : 'hidden'}" data-search="${searchData}">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="px-3 py-1 bg-blue-50 text-decathlon-blue dark:bg-blue-900/30 dark:text-blue-300 text-xs font-bold rounded-lg uppercase">${prompt.category}</span>
-                                <div class="flex gap-1">
-                                    <button onclick="toggleFavorite(${originalIdx})" class="${isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-400 dark:text-gray-600 dark:hover:text-red-400'} transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" title="${isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}">
-                                        <i data-lucide="${isFavorite ? 'heart' : 'heart'}" class="w-5 h-5 ${isFavorite ? 'fill-current' : ''}"></i>
-                                    </button>
-                                    <button onclick="copyToClipboard(this, '${originalIdx}')" class="text-gray-400 hover:text-decathlon-blue transition-colors p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700" title="Kopyala">
-                                        <i data-lucide="copy" class="w-5 h-5"></i>
-                                    </button>
+                        <div class="resource-item bg-white dark:bg-slate-800 rounded-2xl p-0 shadow-soft hover:shadow-lg transition-all hover:-translate-y-1 flex flex-col h-full border border-gray-100 dark:border-slate-700 group overflow-hidden ${isVisible ? '' : 'hidden'}" data-search="${searchData}">
+                            <!-- Header -->
+                            <div class="p-5 border-b border-gray-50 dark:border-slate-700/50 flex justify-between items-start bg-gray-50/50 dark:bg-slate-800/50">
+                                <div>
+                                    <span class="inline-block px-2.5 py-1 bg-white border border-gray-200 text-gray-600 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-300 text-[10px] font-bold rounded-md uppercase tracking-wide mb-2">${prompt.category}</span>
+                                    <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 leading-tight">${prompt.title}</h3>
+                                </div>
+                                <button onclick="toggleFavorite(${originalIdx})" class="${isFavorite ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-gray-300 hover:text-red-400 bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20'} transition-all p-2 rounded-xl shadow-sm border border-gray-100 dark:border-slate-600" title="${isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}">
+                                    <i data-lucide="${isFavorite ? 'heart' : 'heart'}" class="w-4 h-4 ${isFavorite ? 'fill-current' : ''}"></i>
+                                </button>
+                            </div>
+
+                            <!-- Content (Scrollable) -->
+                            <div class="p-5 flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-800">
+                                <div class="bg-gray-50 dark:bg-slate-900 rounded-xl p-4 border border-gray-100 dark:border-slate-700 relative group-hover:border-decathlon-blue/20 transition-colors flex-1 flex flex-col min-h-[120px] max-h-[320px]">
+                                     <!-- Scrollable Area -->
+                                     <div class="overflow-y-auto pr-2 custom-scrollbar flex-1">
+                                        <p class="text-sm text-gray-700 dark:text-gray-300 font-mono leading-relaxed whitespace-pre-wrap select-all" id="prompt-text-${originalIdx}">${prompt.content}</p>
+                                     </div>
                                 </div>
                             </div>
-                            <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">${prompt.title}</h3>
-                            <div class="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-4 flex-1 mb-4 relative overflow-hidden group-hover:bg-blue-50/30 dark:group-hover:bg-blue-900/20 transition-colors">
-                                 <p class="text-sm text-gray-600 dark:text-gray-300 font-mono leading-relaxed line-clamp-4 select-all" id="prompt-text-${originalIdx}">${prompt.content}</p>
-                                 <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-50 dark:from-slate-900 to-transparent group-hover:from-white/0"></div>
+                            
+                            <!-- Footer Actions -->
+                            <div class="p-4 pt-0 bg-white dark:bg-slate-800">
+                                <button onclick="copyToClipboard(this, '${originalIdx}')" class="w-full py-3 rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold text-sm hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group-btn">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                    <span class="btn-text">Kopyala</span>
+                                </button>
                             </div>
-                            <button onclick="copyToClipboard(this, '${originalIdx}')" class="w-full py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-400 font-medium hover:scale-[1.02] hover:bg-decathlon-blue hover:text-white dark:hover:bg-decathlon-blue dark:hover:text-white hover:border-transparent transition-all active:scale-95 flex items-center justify-center gap-2 group-btn">
-                                <span class="btn-text">Kopyala</span>
-                            </button>
                         </div>
                     `;
                 });
@@ -1927,26 +2003,56 @@
                         </div>
                     </div>
 
-                    <!-- Quick Template -->
-                    <div class="bg-gradient-to-br from-decathlon-blue to-decathlon-tech text-white rounded-3xl p-8 shadow-xl">
-                        <h3 class="font-display font-bold text-2xl mb-4 flex items-center gap-3">
-                            <i data-lucide="copy" class="w-6 h-6"></i>
-                            Hızlı CRAFT Şablonu
-                        </h3>
-                        <div class="bg-white/10 backdrop-blur rounded-2xl p-5 font-mono text-sm leading-relaxed mb-4" id="craft-template">
-<span class="text-blue-200">ROL:</span> Sen [rol/uzmanlık alanı] uzmansın.
 
-<span class="text-purple-200">BAĞLAM:</span> [Durumu açıkla - ne oluyor, neden önemli]
+            `;
+        };
 
-<span class="text-green-200">GÖREV:</span> [Ne yapmasını istiyorsun - spesifik ol]
-
-<span class="text-orange-200">FORMAT:</span> [Çıktı nasıl görünsün - liste, tablo, paragraf, uzunluk vb.]
-
-<span class="text-red-200">HEDEF:</span> [Bu kimin için yazılıyor]
+        // --- VIDEO PAGE ---
+        app.views.video = () => {
+            return `
+                <div class="max-w-4xl mx-auto animate-fade-in space-y-8 pb-10">
+                    <!-- Header -->
+                    <div class="text-center">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-bold mb-4 shadow-lg">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            VİDEO EĞİTİM
                         </div>
-                        <button onclick="copyCraftTemplate()" class="bg-white text-decathlon-blue px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center gap-2">
-                            <i data-lucide="clipboard-copy" class="w-5 h-5"></i>
-                            Şablonu Kopyala
+                        <h2 class="font-display font-bold text-3xl md:text-4xl text-gray-900 dark:text-white mb-2">Yapay Zeka Anlıyor</h2>
+                        <p class="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">Yapay zekanın temellerini bu video ile keşfet.</p>
+                    </div>
+
+                    <!-- Video Player -->
+                    <div class="bg-black rounded-3xl overflow-hidden shadow-2xl shadow-black/30 border border-gray-800">
+                        <video 
+                            controls 
+                            controlsList="nodownload" 
+                            class="w-full aspect-video" 
+                            poster=""
+                            preload="metadata"
+                        >
+                            <source src="4.mp4" type="video/mp4">
+                            Tarayıcın bu videoyu desteklemiyor.
+                        </video>
+                    </div>
+
+                    <!-- Info Card -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                                <i data-lucide="info" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-1">Bu Video Hakkında</h3>
+                                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Bu eğitim videosu, yapay zekanın temel kavramlarını ve günlük iş hayatında nasıl kullanılabileceğini anlatıyor. Videoyu izledikten sonra müfredattaki derslere geçerek öğrendiklerini pekiştirebilirsin.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="text-center">
+                        <button onclick="app.router.navigate('curriculum')" class="px-8 py-4 bg-decathlon-blue text-white font-bold rounded-2xl hover:bg-decathlon-tech transition-all hover:scale-105 shadow-lg shadow-decathlon-blue/30 inline-flex items-center gap-2">
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            Derslere Geç
                         </button>
                     </div>
                 </div>
@@ -1968,11 +2074,93 @@ HEDEF: [Bu kimin için yazılıyor]`;
             });
         };
 
-        // --- SETTINGS VIEW ---
+
+
+        
+        // --- File Based Backup Manager (Client Side) ---
+        app.backup = {
+            exportData() {
+                try {
+                    const state = app.store.state;
+                    const dataStr = JSON.stringify(state, null, 2);
+                    const blob = new Blob([dataStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    const date = new Date().toISOString().slice(0,10);
+                    a.href = url;
+                    a.download = `alchemei-yedek-${state.user.name.replace(/\s+/g, '-').toLowerCase()}-${date}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    return { success: true, message: "Yedek dosyası indirildi! 📥" };
+                } catch (err) {
+                    console.error(err);
+                    return { success: false, message: "İndirme sırasında hata oluştu." };
+                }
+            },
+
+            importData(file) {
+                return new Promise((resolve) => {
+                    if (!file) {
+                        resolve({ success: false, message: "Dosya seçilmedi." });
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const json = JSON.parse(e.target.result);
+                            // Basic validation
+                            if (!json.user || !json.progress) {
+                                throw new Error("Geçersiz yedek dosyası formatı.");
+                            }
+
+                            // Restore
+                            app.store.state = json;
+                            app.store.save();
+                            resolve({ success: true, message: "Yedek başarıyla yüklendi! Sayfa yenileniyor...", reload: true });
+                        } catch (err) {
+                            console.error(err);
+                            resolve({ success: false, message: "Hata: Dosya okunamadı veya bozuk." });
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+            }
+        };
+
+        // --- View Updates for Settings ---
         app.views.settings = () => {
             const state = app.store.state;
 
-            // Handle name change
+            window.handleExport = () => {
+                const res = app.backup.exportData();
+                showToast(res.message, res.success ? 'success' : 'error');
+            };
+
+            window.handleImport = async (input) => {
+                const file = input.files[0];
+                if(!file) return;
+
+                const btn = document.getElementById('import-btn');
+                btn.innerText = "Yükleniyor...";
+                btn.disabled = true;
+
+                const res = await app.backup.importData(file);
+                showToast(res.message, res.success ? 'success' : 'error');
+
+                if (res.reload) {
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    btn.innerText = "Yedek Yükle (Geri Getir)";
+                    btn.disabled = false;
+                    input.value = ''; // Reset input
+                }
+            };
+
             window.handleNameChange = () => {
                 const input = document.getElementById('settings-name-input');
                 const newName = input.value.trim();
@@ -1986,23 +2174,18 @@ HEDEF: [Bu kimin için yazılıyor]`;
                 }
             };
 
-            // Handle reset (Double Confirm UI Pattern)
             window.handleResetProgress = (btn) => {
                 if (!btn.dataset.confirmed) {
-                    // First click: Ask for confirmation
                     const originalText = btn.innerText;
                     btn.innerText = 'Emin misin? (Son Karar)';
                     btn.classList.add('bg-red-800', 'scale-105');
                     btn.dataset.confirmed = "true";
-                    
-                    // Revert after 3 seconds if not clicked
                     setTimeout(() => {
                         btn.innerText = originalText;
                         btn.classList.remove('bg-red-800', 'scale-105');
                         delete btn.dataset.confirmed;
                     }, 3000);
                 } else {
-                    // Second click: Execute
                     localStorage.removeItem(CONSTANTS.STORAGE_KEY);
                     showToast('Tüm ilerleme sıfırlandı. Sayfa yenileniyor...', 'warning');
                     setTimeout(() => location.reload(), 1000);
@@ -2010,73 +2193,101 @@ HEDEF: [Bu kimin için yazılıyor]`;
             };
 
             return `
-                <div class="max-w-2xl mx-auto animate-fade-in space-y-8">
+                <div class="max-w-2xl mx-auto animate-fade-in space-y-8 pb-12">
                     <div>
-                        <h2 class="font-display font-bold text-3xl text-gray-900">Ayarlar</h2>
-                        <p class="text-gray-500 mt-2">Profilini ve tercihlerini yönet.</p>
+                        <h2 class="font-display font-bold text-3xl text-gray-900 dark:text-white">Ayarlar</h2>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2">Profilini ve tercihlerini yönet.</p>
+                    </div>
+
+                    <!-- Backup Section -->
+                    <div class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl p-6 shadow-soft border border-indigo-100 dark:border-indigo-800/30">
+                        <h3 class="font-bold text-lg text-indigo-900 dark:text-indigo-300 mb-2 flex items-center gap-2">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                            Veri Yedekleme
+                        </h3>
+                        <p class="text-sm text-indigo-700 dark:text-indigo-400 mb-6">
+                            İlerlemeni kaybetmemek için verilerini bilgisayarına indirip saklayabilirsin. Başka bir tarayıcıya veya cihaza geçtiğinde bu dosyayı yükleyerek kaldığın yerden devam edebilirsin.
+                        </p>
+                        
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <button onclick="handleExport()" class="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-5 h-5"></i>
+                                Yedeği İndir (Kaydet)
+                            </button>
+                            
+                            <div class="flex-1 relative">
+                                <input type="file" id="backup-file" accept=".json" class="hidden" onchange="handleImport(this)">
+                                <button id="import-btn" onclick="document.getElementById('backup-file').click()" class="w-full px-4 py-3 bg-white text-indigo-700 border border-indigo-200 dark:bg-slate-800 dark:border-indigo-700 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-center gap-2">
+                                    <i data-lucide="upload" class="w-5 h-5"></i>
+                                    Yedek Yükle (Geri Getir)
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Name Change -->
-                    <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-100">
-                        <h3 class="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <i data-lucide="user" class="w-5 h-5 text-decathlon-blue"></i>
                             Kullanıcı Adı
                         </h3>
-                        <div class="flex gap-3">
-                            <input type="text" id="settings-name-input" value="${state.user.name}" placeholder="Adını yaz..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-decathlon-blue focus:ring-2 focus:ring-decathlon-blue/20">
-                            <button onclick="handleNameChange()" class="px-6 py-3 bg-decathlon-blue text-white font-bold rounded-xl hover:bg-decathlon-tech transition-colors">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="settings-name-input" value="${state.user.name}" placeholder="Adını yaz..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-decathlon-blue focus:ring-2 focus:ring-decathlon-blue/20 min-w-0">
+                            <button onclick="handleNameChange()" class="px-6 py-3 bg-decathlon-blue text-white font-bold rounded-xl hover:bg-decathlon-tech transition-colors shrink-0">
                                 Kaydet
                             </button>
                         </div>
                     </div>
 
                     <!-- Stats -->
-                    <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-100">
-                        <h3 class="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-5 h-5 text-decathlon-blue"></i>
                             İstatistiklerin
                         </h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-2xl font-bold text-gray-900">${state.user.xp}</p>
-                                <p class="text-xs text-gray-500 uppercase font-medium">Toplam XP</p>
+                            <div class="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">${state.user.xp}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Toplam XP</p>
                             </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-2xl font-bold text-gray-900">${state.user.level}</p>
-                                <p class="text-xs text-gray-500 uppercase font-medium">Seviye</p>
+                            <div class="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">${state.user.level}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Seviye</p>
                             </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-2xl font-bold text-gray-900">${state.progress.completedLessons.length}</p>
-                                <p class="text-xs text-gray-500 uppercase font-medium">Ders</p>
+                            <div class="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">${state.progress.completedLessons.length}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Ders</p>
                             </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-2xl font-bold text-gray-900">${state.user.badges.length}</p>
-                                <p class="text-xs text-gray-500 uppercase font-medium">Rozet</p>
+                            <div class="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">${state.user.badges.length}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Rozet</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Danger Zone -->
-                    <div class="bg-red-50 rounded-2xl p-6 border border-red-200">
-                        <h3 class="font-bold text-lg text-red-700 mb-2 flex items-center gap-2">
+                    <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 border border-red-200 dark:border-red-800/50">
+                        <h3 class="font-bold text-lg text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
                             <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                             Tehlikeli Bölge
                         </h3>
-                        <p class="text-red-600 text-sm mb-4">Bu işlem geri alınamaz. Tüm ilerleme ve XP kaybedilir.</p>
-                        <button onclick="handleResetProgress(this)" class="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all active:scale-95 duration-200">
+                        <p class="text-red-600 dark:text-red-300 text-sm mb-4">Bu işlem geri alınamaz. Tüm ilerleme ve XP kaybedilir.</p>
+                        <button onclick="handleResetProgress(this)" class="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all active:scale-95 duration-200 shadow-lg shadow-red-200 dark:shadow-none">
                             Tüm İlerlemeyi Sıfırla
                         </button>
                     </div>
 
                     <!-- App Info -->
-                    <div class="text-center text-gray-400 text-xs pt-4 border-t border-gray-100">
+                    <div class="text-center text-gray-400 dark:text-gray-600 text-xs pt-4 border-t border-gray-100 dark:border-slate-800">
                         <p class="mb-1"><span class="font-bold">Alchemei</span> by Decathlon Academy</p>
-                        <p>Versiyon 2.0 • 2026</p>
+                        <p>Versiyon 2.1 • 2026</p>
                     </div>
                 </div>
             `;
         };
         
+        console.log("Settings view defined.");
+
         // --- Toast Notification Logic ---
         window.showToast = (message, type = 'info') => {
             let container = document.getElementById('toast-container');
@@ -2218,6 +2429,133 @@ HEDEF: [Bu kimin için yazılıyor]`;
              `;
         };
 
+        app.views.gems = () => {
+             const gems = [
+                 {
+                     title: "Genel Veri ve Rapor Analisti",
+                     desc: "Karmaşık veri setlerini ve raporları analiz eder, özetler ve içgörüler sunar. Uzun raporları saniyeler içinde anlayın.",
+                     url: "https://gemini.google.com/gem/1XyjDRODGJaz5T3zNdWZee31rlR5_4jPM?usp=sharing",
+                     icon: "bar-chart-2",
+                     color: "from-blue-500 to-cyan-400"
+                 },
+                 {
+                     title: "Mağaza vs. Bölge Karşılaştırıcı",
+                     desc: "Mağaza performansını bölge ortalamalarıyla karşılaştırarak güçlü ve zayıf yönleri belirler. Stratejik kararlar için ideal.",
+                     url: "https://gemini.google.com/gem/1A_OQ8_NT1EyYNBUhwx_2OvJCkhPILBya?usp=sharing",
+                     icon: "map",
+                     color: "from-purple-500 to-pink-500"
+                 },
+                 {
+                     title: "Kayıp Ciro ve Fırsat Dedektifi",
+                     desc: "Satış verilerini inceleyerek kaçırılan fırsatları ve potansiyel ciro artış alanlarını tespit eder. Büyüme odaklı analiz.",
+                     url: "https://gemini.google.com/gem/1AhWCGaQ2p2DL09RIFWJU1O-MH_XwS-kV?usp=sharing",
+                     icon: "search",
+                     color: "from-amber-400 to-orange-500"
+                 }
+             ];
+
+             return `
+                <div class="max-w-6xl mx-auto animate-fade-in space-y-8">
+                    <div>
+                        <h2 class="font-display font-bold text-3xl text-gray-900 dark:text-white flex items-center gap-3">
+                            <span class="bg-gradient-to-tr from-indigo-500 to-purple-500 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+                                <i data-lucide="gem" class="w-6 h-6"></i>
+                            </span>
+                            Decathlon Gems
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2">Size özel eğitilmiş yapay zeka asistanları ile verimliliğinizi artırın.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${gems.map(gem => `
+                            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700 hover:shadow-lg transition-all group flex flex-col h-full">
+                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${gem.color} flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                    <i data-lucide="${gem.icon}" class="w-8 h-8"></i>
+                                </div>
+                                
+                                <h3 class="font-display font-bold text-xl text-gray-900 dark:text-white mb-3 group-hover:text-decathlon-blue transition-colors">
+                                    ${gem.title}
+                                </h3>
+                                
+                                <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-1">
+                                    ${gem.desc}
+                                </p>
+                                
+                                <a href="${gem.url}" target="_blank" class="w-full py-3 px-4 bg-gray-50 dark:bg-slate-700/50 hover:bg-decathlon-blue hover:text-white text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-all flex items-center justify-center gap-2 group-hover:shadow-md">
+                                    <span>Gemini'da Aç</span>
+                                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex items-start gap-4">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800/30 rounded-lg text-decathlon-blue dark:text-blue-300 shrink-0">
+                            <i data-lucide="info" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900 dark:text-white mb-1">Gem Nedir?</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Gem'ler, Google'ın Gemini modelinin Decathlon'a özel verilerle ve talimatlarla özelleştirilmiş versiyonlarıdır. Her biri belirli bir görevde uzmanlaşmıştır.</p>
+                        </div>
+                    </div>
+
+                    <!-- Internal Role Templates -->
+                    <div>
+                        <h2 class="font-display font-bold text-2xl text-gray-900 dark:text-white flex items-center gap-3 mb-6">
+                            <i data-lucide="wand-2" class="w-6 h-6 text-decathlon-blue"></i>
+                            Rol Bazlı Asistanlar (Sihirbaz Şablonları)
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Customer Service -->
+                            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700 hover:shadow-lg transition-all group flex flex-col h-full cursor-pointer" 
+                                 onclick="openWizardWithParams({role: 'Müşteri İlişkileri', context: 'Kızgın bir müşteri, stokta görünen ürünün mağazada bulunmaması nedeniyle şikayet ediyor.', task: 'Müşteriyi sakinleştiren, durumu açıklayan ve alternatif çözüm (online sipariş + ücretsiz kargo gibi) sunan empatik bir yanıt hazırla.', tone: 'Empatik'})">
+                                <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                    <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-display font-bold text-lg text-gray-900 dark:text-white mb-2">Müşteri Empati Koçu</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">Zorlu müşteri şikayetleri için sakinleştirici ve çözüm odaklı yanıtlar oluşturur.</p>
+                                <div class="text-decathlon-blue font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Şablonu Kullan <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+
+                            <!-- Tech Service -->
+                            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700 hover:shadow-lg transition-all group flex flex-col h-full cursor-pointer"
+                                 onclick="openWizardWithParams({role: 'Teknik Servis', context: 'Müşterinin bisikletindeki vites geçiş sorunu arka aktarıcı ayarsızlığından kaynaklanıyor. Teknik terimler müşteriye karmaşık geliyor.', task: 'Bu teknik sorunu ve çözümünü, mekanik bilgisi olmayan birinin anlayacağı basit dilde açıkla.', format: 'Basit açıklama + Çözüm adımları'})">
+                                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <i data-lucide="wrench" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-display font-bold text-lg text-gray-900 dark:text-white mb-2">Teknik Tercüman</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">Karmaşık teknik servis sorunlarını müşteriler için basit ve anlaşılır dile çevirir.</p>
+                                <div class="text-decathlon-blue font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Şablonu Kullan <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- HR/Interview -->
+                            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-slate-700 hover:shadow-lg transition-all group flex flex-col h-full cursor-pointer"
+                                 onclick="openWizardWithParams({role: 'İnsan Kaynakları', context: 'Sorumluluk bilinci yüksek ve takım çalışmasına yatkın bir departman müdürü adayı arıyoruz.', task: 'Adayın bu yetkinliklerini ölçmek için senaryo bazlı 5 mülakat sorusu hazırla.', format: 'Liste'})">
+                                <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                    <i data-lucide="users" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-display font-bold text-lg text-gray-900 dark:text-white mb-2">İşe Alım Asistanı</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">Yetkinlik bazlı mülakat soruları ve değerlendirme kriterleri hazırlar.</p>
+                                <div class="text-decathlon-blue font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Şablonu Kullan <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             `;
+        };
+
+        // Helper to open wizard with params
+        window.openWizardWithParams = (params) => {
+            window.wizardParams = params;
+            app.router.navigate('wizard');
+        };
+
         app.views.wizard = () => {
              // Wizard Logic
              window.updatePromptPreview = () => {
@@ -2276,6 +2614,40 @@ HEDEF: [Bu kimin için yazılıyor]`;
                  updatePromptPreview();
              };
 
+             // Auto-fill form if parameters exist
+             setTimeout(() => {
+                 if (window.wizardParams) {
+                     const p = window.wizardParams;
+                     if(p.role) {
+                         const roleSelect = document.getElementById('wiz-role');
+                         // Check if role exists in options
+                         let found = false;
+                         for(let i=0; i<roleSelect.options.length; i++) {
+                             if(roleSelect.options[i].text.includes(p.role) || roleSelect.options[i].value === p.role) {
+                                 roleSelect.selectedIndex = i;
+                                 found = true;
+                                 break;
+                             }
+                         }
+                         if(!found) {
+                             roleSelect.value = 'custom';
+                             toggleCustomRole('custom');
+                             document.getElementById('wiz-custom-role').value = p.role;
+                         } else {
+                             toggleCustomRole(roleSelect.value);
+                         }
+                     }
+                     if(p.context) document.getElementById('wiz-context').value = p.context;
+                     if(p.task) document.getElementById('wiz-task').value = p.task;
+                     if(p.format) document.getElementById('wiz-format').value = p.format;
+                     if(p.tone) document.getElementById('wiz-tone').value = p.tone;
+                     
+                     updatePromptPreview();
+                     window.wizardParams = null; // Clear after use
+                     showToast('Şablon yüklendi!', 'success');
+                 }
+             }, 100);
+
              return `
                 <div class="max-w-6xl mx-auto animate-fade-in lg:h-[calc(100dvh-140px)] h-auto flex flex-col">
                     <div class="mb-6 flex justify-between items-end">
@@ -2311,6 +2683,26 @@ HEDEF: [Bu kimin için yazılıyor]`;
                                 <div id="wiz-custom-role-container" class="hidden mt-2 animate-fade-in">
                                     <input type="text" id="wiz-custom-role" oninput="updatePromptPreview()" placeholder="Örn: Sen olimpik bir yüzücüsün..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:border-decathlon-blue placeholder-gray-400">
                                 </div>
+                            </div>
+
+                            <!-- Quick Template (Relocated) -->
+                            <div id="craft-card" class="hidden lg:block bg-gradient-to-br from-decathlon-blue to-decathlon-tech text-white rounded-2xl p-6 shadow-lg transform scale-95 origin-left hover:scale-100 transition-transform mb-6">
+                                 <div class="flex justify-between items-start mb-4">
+                                    <h3 class="font-bold text-lg flex items-center gap-2">
+                                        <i data-lucide="copy" class="w-5 h-5"></i>
+                                        Hızlı Şablon
+                                    </h3>
+                                    <button onclick="copyCraftTemplate()" class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors border border-white/10" title="Kopyala">
+                                        <i data-lucide="clipboard-copy" class="w-4 h-4"></i>
+                                    </button>
+                                 </div>
+                                 <div class="bg-white/10 backdrop-blur rounded-xl p-3 font-mono text-xs leading-relaxed border border-white/10" id="craft-template">
+                                    <span class="text-blue-200 font-bold">ROL:</span> Sen [rol/uzmanlık alanı] uzmansın.<br>
+                                    <span class="text-purple-200 font-bold">BAĞLAM:</span> [Durumu açıkla - ne oluyor, neden önemli]<br>
+                                    <span class="text-green-200 font-bold">GÖREV:</span> [Ne yapmasını istiyorsun - spesifik ol]<br>
+                                    <span class="text-orange-200 font-bold">FORMAT:</span> [Çıktı nasıl görünsün - liste, tablo, paragraf, uzunluk vb.]<br>
+                                    <span class="text-red-200 font-bold">HEDEF:</span> [Bu kimin için yazılıyor]
+                                 </div>
                             </div>
 
                             <!-- Context -->
@@ -2965,10 +3357,46 @@ HEDEF: [Bu kimin için yazılıyor]`;
         // (Removed duplicate copyToClipboard to prevent override)
 
         // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
+        // Global Error Handler
+        window.onerror = function(msg, url, line, col, error) {
+            const errorOverlay = document.createElement('div');
+            errorOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);color:white;z-index:9999;padding:20px;font-family:monospace;overflow:auto;';
+            errorOverlay.innerHTML = `
+                <h2 style="color:red;font-size:20px;margin-bottom:10px;">KRİTİK HATA</h2>
+                <div style="background:#333;padding:10px;border-radius:5px;margin-bottom:10px;">
+                    <strong>Mesaj:</strong> ${msg}<br>
+                    <strong>Dosya:</strong> ${url}<br>
+                    <strong>Satır:</strong> ${line}:${col}
+                </div>
+                <pre style="color:#aaa;white-space:pre-wrap;">${error ? error.stack : 'Stack trace yok'}</pre>
+                <button onclick="location.reload()" style="padding:10px 20px;background:blue;color:white;border:none;border-radius:5px;cursor:pointer;margin-top:20px;">Sayfayı Yenile</button>
+            `;
+            document.body.appendChild(errorOverlay);
+            return false;
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log("Alchemei App Initialized");
             // Render Initial View
             renderUserUI();
-            app.router.navigate('dashboard');
+            
+            // Routing Logic
+            const state = app.store.state;
+            if(!state.hasOnboarded && state.user.name === "Decathlon Teammate") {
+                app.router.navigate('onboarding');
+            } else {
+                app.router.navigate('dashboard');
+                
+                // Check if Tour needs to run (e.g. user reset it or new feature)
+                // Wait for dashboard to render
+                setTimeout(() => {
+                    if(!localStorage.getItem('tourCompleted')) {
+                         app.tour.start();
+                    }
+                }, 1000);
+            }
+
             lucide.createIcons();
             app.initDarkMode(); // Initialize dark mode from localStorage
 
@@ -2977,21 +3405,36 @@ HEDEF: [Bu kimin için yazılıyor]`;
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
-            btn.addEventListener('click', () => {
-                sidebar.classList.remove('-translate-x-full');
-                sidebar.classList.add('translate-x-0');
-                overlay.classList.remove('hidden');
-                // timeout to allow display:block to apply before opacity transition
-                setTimeout(() => overlay.classList.add('opacity-100'), 10);
-            });
+            if(btn && sidebar && overlay) { // Check existence
+                btn.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                    overlay.classList.remove('hidden');
+                    // timeout to allow display:block to apply before opacity transition
+                    setTimeout(() => overlay.classList.add('opacity-100'), 10);
+                });
 
-            overlay.addEventListener('click', () => {
-                sidebar.classList.remove('translate-x-0');
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.remove('opacity-100');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            });
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.remove('opacity-100');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                });
+
+            }
+
+        } catch (err) {
+            console.error("CRITICAL INIT ERROR:", err);
+            // Manually trigger error handler if it didn't catch it
+            if(window.onerror) window.onerror(err.message, window.location.href, 0, 0, err);
+        }
         });
+        
+        // Debug Helper
+        window.resetTour = () => {
+            localStorage.removeItem('tourCompleted');
+            location.reload();
+        };
 
     </script>
 </body>
