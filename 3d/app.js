@@ -1633,36 +1633,54 @@ btnReset.addEventListener('click', () => {
 
 // Init on load
 (async () => {
-    await idb.init();
+    try {
+        await idb.init();
 
-    const savedItems = await idb.get('items');
-    if (savedItems && Array.isArray(savedItems) && savedItems.length > 0) {
-        items = savedItems;
-        items.forEach(item => {
-            if (item.type === 'custom_glb' && item.fileData) {
-                if (item.url) URL.revokeObjectURL(item.url);
-                item.url = URL.createObjectURL(item.fileData);
-            }
-        });
-    } else {
-        items = [...defaultItems]; // fallback to initialized state
-    }
+        const savedItems = await idb.get('items');
+        if (savedItems && Array.isArray(savedItems) && savedItems.length > 0) {
+            items = savedItems;
+            // custom_glb: fileData'dan yeni blob URL oluştur
+            items.forEach(item => {
+                if (item.type === 'custom_glb' && item.fileData) {
+                    if (item.url) try { URL.revokeObjectURL(item.url); } catch (e) { }
+                    item.url = URL.createObjectURL(item.fileData);
+                }
+            });
+            // Geçersiz blob: URL'li item'ları temizle (fileData olmayan custom_glb'ler)
+            items = items.filter(item => {
+                if (item.type === 'custom_glb' && !item.fileData && item.url && item.url.startsWith('blob:')) {
+                    return false; // Geçersiz blob URL, kaldır
+                }
+                return true;
+            });
+        } else {
+            items = [...defaultItems];
+        }
 
-    const savedDxf = await idb.get('dxf');
-    if (savedDxf && savedDxf.content) dxfData = savedDxf;
+        const savedDxf = await idb.get('dxf');
+        if (savedDxf && savedDxf.content) dxfData = savedDxf;
 
-    const savedUnit = await idb.get('dxfUnit');
-    if (savedUnit) dxfUnit = savedUnit;
+        const savedUnit = await idb.get('dxfUnit');
+        if (savedUnit) dxfUnit = savedUnit;
 
-    const savedCustomModels = await idb.get('customModels');
-    if (savedCustomModels && Array.isArray(savedCustomModels)) {
-        customModels = savedCustomModels;
-        customModels.forEach(model => {
-            if (model.fileData) {
-                if (model.url) URL.revokeObjectURL(model.url);
-                model.url = URL.createObjectURL(model.fileData);
-            }
-        });
+        const savedCustomModels = await idb.get('customModels');
+        if (savedCustomModels && Array.isArray(savedCustomModels)) {
+            customModels = savedCustomModels;
+            customModels.forEach(model => {
+                if (model.fileData) {
+                    if (model.url) try { URL.revokeObjectURL(model.url); } catch (e) { }
+                    model.url = URL.createObjectURL(model.fileData);
+                }
+            });
+            // Geçersiz blob URL'li modelleri temizle
+            customModels = customModels.filter(m => {
+                if (!m.fileData && m.url && m.url.startsWith('blob:')) return false;
+                return true;
+            });
+        }
+    } catch (e) {
+        console.error('Init yükleme hatası:', e);
+        items = [...defaultItems];
     }
 
     initThree();
