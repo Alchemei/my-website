@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Planner 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Glassmorphism sidebar */
+        .sidebar-glass {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.97) 0%, rgba(15, 23, 42, 0.92) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        /* Section card */
+        .section-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .section-card:hover {
+            border-color: rgba(71, 85, 105, 0.5);
+        }
+
+        /* Section header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .section-header .icon-wrap {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .section-header h3 {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Item button */
+        .item-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            background: rgba(30, 41, 59, 0.4);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, currentColor, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .item-btn:hover::before {
+            opacity: 0.06;
+        }
+
+        .item-btn:hover {
+            border-color: currentColor;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .item-btn:active {
+            transform: scale(0.97);
+        }
+
+        .item-btn .icon {
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+
+        .item-btn span {
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        /* Upload button */
+        .upload-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px dashed;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .upload-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Floating panels */
+        .float-panel {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 12px 24px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease;
+        }
+
+        /* Input styling */
+        .input-field {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(71, 85, 105, 0.4);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            color: #e2e8f0;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+        }
+
+        /* Range slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 4px;
+            background: rgba(71, 85, 105, 0.5);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Bottom bar */
+        .bottom-bar {
+            background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.8) 100%);
+        }
+
+        /* Toast */
+        .toast-anim {
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex h-screen w-full bg-[#0a0f1e] text-white overflow-hidden select-none relative">
+
+    <!-- ===== FLOATING PANELS ===== -->
+
+    <!-- Drawing Mode -->
+    <div id="drawing-mode-panel" class="hidden float-panel bg-blue-600/80 border border-blue-400/30 text-white">
+        <div class="flex items-center gap-2">
+            <i data-lucide="route" class="w-4 h-4"></i>
+            <span class="font-bold text-xs tracking-wide">YOL ÇİZİM</span>
+        </div>
+        <div class="w-px h-4 bg-blue-400/40"></div>
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] text-blue-200 font-semibold">Gen (m)</span>
+            <input id="input-road-width" type="number" step="0.1" min="0.1" max="10" value="1.5"
+                class="w-14 bg-blue-900/50 border border-blue-400/40 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-white" />
+        </div>
+        <div class="w-px h-4 bg-blue-400/40"></div>
+        <button id="btn-undo-road"
+            class="bg-blue-500/80 hover:bg-blue-400 text-white px-3 py-1.5 rounded-full text-[10px] font-bold transition-all">Geri
+            Al</button>
+        <button id="btn-end-drawing"
+            class="bg-white text-blue-700 hover:bg-blue-50 px-4 py-1.5 rounded-full text-[10px] font-bold transition-colors">Bitir</button>
+    </div>
+
+    <!-- Eraser Mode -->
+    <div id="eraser-mode-panel" class="hidden float-panel bg-red-600/80 border border-red-400/30 text-white">
+        <div class="flex items-center gap-2">
+            <i data-lucide="eraser" class="w-4 h-4"></i>
+            <span class="font-bold text-xs tracking-wide">SİLGİ</span>
+        </div>
+        <div class="w-px h-4 bg-red-400/40"></div>
+        <span class="text-[10px] text-red-100">Basılı tutup sürükleyin</span>
+        <button id="btn-end-eraser"
+            class="bg-white text-red-700 hover:bg-red-50 px-4 py-1.5 rounded-full text-[10px] font-bold transition-colors">Kapat</button>
+    </div>
+
+    <!-- Measure Mode -->
+    <div id="measure-mode-panel" class="hidden float-panel bg-amber-600/80 border border-amber-400/30 text-white">
+        <div class="flex items-center gap-2">
+            <i data-lucide="ruler" class="w-4 h-4"></i>
+            <span class="font-bold text-xs tracking-wide">ÖLÇÜM</span>
+        </div>
+        <div class="w-px h-4 bg-amber-400/40"></div>
+        <span class="text-[10px] text-amber-100" id="measure-info-text">Başlangıç noktasına tıklayın...</span>
+        <button id="btn-end-measure"
+            class="bg-white text-amber-700 hover:bg-amber-50 px-4 py-1.5 rounded-full text-[10px] font-bold transition-colors">Kapat</button>
+    </div>
+
+    <!-- Undo Toast -->
+    <div id="undo-toast"
+        class="hidden absolute bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-800/90 backdrop-blur text-white px-5 py-2.5 rounded-xl shadow-2xl border border-slate-600/50 flex items-center gap-2.5 toast-anim">
+        <i data-lucide="rotate-ccw" class="w-4 h-4 text-blue-400"></i>
+        <span class="text-sm font-medium">İşlem Geri Alındı</span>
+    </div>
+
+    <!-- 3D Measure Labels -->
+    <div id="labels-container" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="w-full md:w-[300px] sidebar-glass border-r border-white/[0.06] z-10 flex flex-col h-full shrink-0">
+
+        <!-- Logo -->
+        <div class="px-5 pt-5 pb-4">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="tent" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h1
+                        class="text-base font-extrabold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent leading-tight">
+                        CAMP PLANNER</h1>
+                    <p class="text-[10px] text-slate-500 font-medium">1 Kare = 1 Metre</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent"></div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-3">
+
+            <!-- Araçlar -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon-wrap bg-slate-700/50"><i data-lucide="wrench"
+                            class="w-3.5 h-3.5 text-slate-400"></i></div>
+                    <h3 class="text-slate-400">Araçlar</h3>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button id="btn-toggle-eraser" class="item-btn text-red-400 border-slate-700 bg-slate-800">
+                        <i data-lucide="eraser" class="w-4 h-4 icon"></i>
+                        <span id="label-toggle-eraser" class="text-slate-300">Silgi</span>
+                    </button>
+                    <button id="btn-measure" class="item-btn text-amber-400 border-slate-700 bg-slate-800">
+                        <i data-lucide="ruler" class="w-4 h-4 icon"></i>
+                        <span class="text-slate-300">Ölçüm</span>
+                    </button>
+                    <button id="btn-add-road" class="item-btn text-blue-400 border-slate-700 bg-slate-800">
+                        <i data-lucide="route" class="w-4 h-4 icon"></i>
+                        <span class="text-slate-300">Yol</span>
+                    </button>
+                    <button id="btn-toggle-grass" class="item-btn text-slate-400 border-slate-700 bg-slate-800">
+                        <i data-lucide="grid-2x2" class="w-4 h-4 icon"></i>
+                        <span id="label-toggle-grass" class="text-slate-300">Beton</span>
+                    </button>
+                </div>
+                <!-- Eraser slider -->
+                <div id="eraser-slider-container" class="hidden mt-3 animate-fade-in">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-[10px] text-slate-500 font-semibold uppercase">Fırça Boyutu</span>
+                        <span id="label-eraser-size" class="text-[10px] text-red-400 font-bold">0.8m</span>
+                    </div>
+                    <input id="input-eraser-size" type="range" min="0.2" max="3" step="0.1" value="0.8" />
+                </div>
+            </div>
+
+            <!-- Harita (DXF) -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon-wrap bg-sky-500/10"><i data-lucide="map" class="w-3.5 h-3.5 text-sky-400"></i>
+                    </div>
+                    <h3 class="text-sky-400">Zemin Planı</h3>
+                </div>
+
+                <div id="dxf-loaded-container" class="hidden animate-fade-in">
+                    <div
+                        class="flex items-center justify-between p-2.5 bg-sky-500/10 rounded-lg border border-sky-500/20 mb-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="file-check" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+                            <span id="label-dxf-filename" class="text-[11px] text-sky-300 font-medium truncate"></span>
+                        </div>
+                        <button id="btn-remove-dxf"
+                            class="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-all shrink-0">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button data-dxf-unit="m"
+                            class="dxf-unit-btn flex-1 p-1.5 text-[10px] font-bold rounded-lg border transition-colors bg-sky-500/20 text-sky-300 border-sky-500/40">Metre</button>
+                        <button data-dxf-unit="cm"
+                            class="dxf-unit-btn flex-1 p-1.5 text-[10px] font-bold rounded-lg border transition-colors border-slate-700 text-slate-400 hover:border-slate-500">CM</button>
+                        <button data-dxf-unit="mm"
+                            class="dxf-unit-btn flex-1 p-1.5 text-[10px] font-bold rounded-lg border transition-colors border-slate-700 text-slate-400 hover:border-slate-500">MM</button>
+                    </div>
+                </div>
+
+                <div id="dxf-upload-container">
+                    <input type="file" accept=".dxf" id="input-dxf-upload" class="hidden" />
+                    <button id="btn-upload-dxf"
+                        class="upload-btn w-full border-sky-500/30 bg-sky-500/5 hover:bg-sky-500/10 text-sky-400">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Harita Yükle (.DXF)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Öğe Ekle -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon-wrap bg-emerald-500/10"><i data-lucide="plus-circle"
+                            class="w-3.5 h-3.5 text-emerald-400"></i></div>
+                    <h3 class="text-emerald-400">Öğe Ekle</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-2" id="add-items-grid">
+                    <button data-add-type="floor" data-add-label="Zemin Plakası"
+                        class="item-btn text-amber-400 col-span-2">
+                        <i data-lucide="square" class="w-4 h-4 icon"></i>
+                        <span>Zemin Plakası</span>
+                    </button>
+                </div>
+
+                <!-- GLB Upload -->
+                <div class="mt-3">
+                    <input type="file" accept=".glb,.gltf" id="input-glb-upload" class="hidden" />
+                    <button id="btn-upload-glb"
+                        class="upload-btn w-full border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10 text-blue-400">
+                        <i data-lucide="box" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">3D Model (.GLB)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ana Modeller -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon-wrap bg-purple-500/10"><i data-lucide="tent"
+                            class="w-3.5 h-3.5 text-purple-400"></i></div>
+                    <h3 class="text-purple-400">Çadır Modelleri</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button data-add-type="predefined_glb" data-add-label="2 Kişilik" data-url="./assets/2 kişilik.glb"
+                        class="item-btn text-purple-400">
+                        <i data-lucide="tent" class="w-4 h-4 icon"></i>
+                        <span>2 Kişilik</span>
+                    </button>
+                    <button data-add-type="predefined_glb" data-add-label="2 Second" data-url="./assets/2 second.glb"
+                        class="item-btn text-purple-400">
+                        <i data-lucide="tent" class="w-4 h-4 icon"></i>
+                        <span>2 Second</span>
+                    </button>
+                    <button data-add-type="predefined_glb" data-add-label="4.1 Çadır" data-url="./assets/4.1 çadır.glb"
+                        class="item-btn text-purple-400">
+                        <i data-lucide="tent" class="w-4 h-4 icon"></i>
+                        <span>4.1 Çadır</span>
+                    </button>
+                    <button data-add-type="predefined_glb" data-add-label="4.2 Çadır" data-url="./assets/4.2.glb"
+                        class="item-btn text-purple-400">
+                        <i data-lucide="tent" class="w-4 h-4 icon"></i>
+                        <span>4.2 Çadır</span>
+                    </button>
+                    <button data-add-type="predefined_glb" data-add-label="Gölgelik" data-url="./assets/gölgelik.glb"
+                        class="item-btn text-purple-400">
+                        <i data-lucide="umbrella" class="w-4 h-4 icon"></i>
+                        <span>Gölgelik</span>
+                    </button>
+                    <button data-add-type="predefined_glb" data-add-label="MH100 3K"
+                        data-url="./assets/mh100 3 kişilik.glb" class="item-btn text-purple-400">
+                        <i data-lucide="tent" class="w-4 h-4 icon"></i>
+                        <span>MH100 3K</span>
+                    </button>
+                    <button data-add-type="predefined_glb" data-add-label="MH100 4K"
+                        data-url="./assets/mh100 4 kişilik.glb" class="item-btn text-purple-400 col-span-3">
+                        <i data-lucide="tent" class="w-4 h-4 icon"></i>
+                        <span>MH100 4 Kişilik</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Özel Modeller -->
+            <section class="hidden" id="custom-library-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="icon-wrap bg-blue-500/10"><i data-lucide="library"
+                                class="w-3.5 h-3.5 text-blue-400"></i></div>
+                        <h3 class="text-blue-400">Özel Modelleriniz</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2" id="custom-library-grid"></div>
+                </div>
+            </section>
+
+            <!-- Seçili Öğe Paneli -->
+            <section id="selected-item-panel" class="hidden animate-fade-in">
+                <div class="section-card border-blue-500/30">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="icon-wrap bg-blue-500/10"><i data-lucide="mouse-pointer-2"
+                                    class="w-3.5 h-3.5 text-blue-400"></i></div>
+                            <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-widest">Seçili Öğe</h3>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button id="btn-lock-selected"
+                                class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-all"
+                                title="Kilitle / Aç">
+                                <i data-lucide="lock-open" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button id="btn-delete-selected"
+                                class="p-1.5 text-red-400 hover:text-white hover:bg-red-500/20 rounded-lg transition-all"
+                                title="Sil">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p id="selected-item-label" class="font-bold text-sm text-slate-200"></p>
+                    <p id="selected-item-pos" class="text-[10px] text-slate-500 mt-0.5"></p>
+
+                    <!-- Color -->
+                    <div id="selected-item-color-section" class="hidden mt-3 pt-3 border-t border-slate-700/30">
+                        <label class="text-[10px] font-semibold text-slate-500 uppercase block mb-1.5">Zemin
+                            Rengi</label>
+                        <input id="input-selected-color" type="color"
+                            class="w-full h-8 cursor-pointer rounded-lg bg-slate-800 border border-slate-700" />
+                    </div>
+
+                    <!-- Grass Texture for Floor -->
+                    <div id="selected-item-grass-section" class="hidden mt-3 pt-3 border-t border-slate-700/30">
+                        <label class="text-[10px] font-semibold text-slate-500 uppercase block mb-1.5">Zemin
+                            Texturesi</label>
+                        <button id="btn-floor-grass"
+                            class="w-full py-2 px-3 rounded-lg border border-slate-700 text-slate-400 text-[11px] font-bold transition-all hover:border-emerald-500/50 hover:text-emerald-400 flex items-center justify-center gap-2">
+                            <i data-lucide="tree-pine" class="w-3.5 h-3.5"></i>
+                            Çim Ekle
+                        </button>
+                    </div>
+
+                    <!-- Road Width -->
+                    <div id="selected-item-road-section" class="hidden mt-3 pt-3 border-t border-slate-700/30">
+                        <label class="text-[10px] font-semibold text-slate-500 uppercase block mb-1.5">Yol Genişliği
+                            (m)</label>
+                        <input id="input-selected-road-width" type="number" step="0.1" min="0.1" max="10"
+                            class="input-field" />
+                    </div>
+
+                    <!-- Transform -->
+                    <div id="selected-item-transform-section" class="hidden mt-3 pt-3 border-t border-slate-700/30">
+                        <p class="text-[10px] font-semibold text-slate-500 uppercase mb-2">Boyutlar (CM)</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[9px] text-slate-500 block mb-1">Genişlik</label>
+                                <input id="input-scale-x" type="number" class="input-field" />
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-slate-500 block mb-1">Yükseklik</label>
+                                <input id="input-scale-y" type="number" class="input-field" />
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-slate-500 block mb-1">Uzunluk</label>
+                                <input id="input-scale-z" type="number" class="input-field" />
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-[10px] font-semibold text-slate-500 uppercase">Döndür</label>
+                                <span id="label-rotation" class="text-[10px] text-blue-400 font-bold">0°</span>
+                            </div>
+                            <input id="input-rotation" type="range" min="0" max="360" value="0" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Objeler Listesi -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon-wrap bg-slate-700/50"><i data-lucide="layers"
+                            class="w-3.5 h-3.5 text-slate-400"></i></div>
+                    <h3 class="text-slate-400">Sahne</h3>
+                </div>
+                <div id="items-list-container" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
+            </div>
+
+        </div><!-- end scrollable -->
+
+        <!-- Bottom bar -->
+        <div class="px-5 py-3 border-t border-white/[0.04] flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span class="text-[11px] text-slate-400 font-medium">Objeler: <span id="label-item-count"
+                        class="text-white font-bold">0</span></span>
+            </div>
+            <button id="btn-reset"
+                class="text-[10px] uppercase font-bold text-red-500/70 hover:text-red-400 transition-colors tracking-widest">
+                Sıfırla
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== 3D CANVAS ===== -->
+    <div class="flex-1 relative bg-[#0a0f1e]" id="threejs-container">
+        <div class="absolute bottom-4 right-4 pointer-events-none z-10">
+            <div
+                class="bg-[#0f172a]/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/[0.06] flex flex-col items-end">
+                <span class="text-[9px] font-mono text-emerald-400/70 uppercase tracking-[0.15em]">Grid Active</span>
+                <span class="text-[10px] font-medium text-slate-400">1m × 1m</span>
+            </div>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

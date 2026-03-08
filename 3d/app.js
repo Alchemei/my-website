@@ -308,17 +308,27 @@ const loadCustomGLB = (url, onLoad) => {
     const group = new THREE.Group();
     const loader = new THREE.GLTFLoader();
 
-    // Türkçe karakter içeren dosya yollarını encode et (blob: URL'lere dokunma)
+    // URL'yi sunucu uyumlu hale getir
     let safeUrl = url;
-    if (!url.startsWith('blob:')) {
-        // Sadece dosya adı kısmını encode et, dizin ayırıcıları koru
-        safeUrl = url.split('/').map((part, i) => {
-            if (i === 0 && part === '.') return part;
-            return encodeURIComponent(part);
-        }).join('/');
+    if (!url.startsWith('blob:') && !url.startsWith('data:')) {
+        // Zaten encode edilmiş mi kontrol et
+        try {
+            const decoded = decodeURIComponent(url);
+            if (decoded === url) {
+                // Henüz encode edilmemiş, encode et
+                safeUrl = url.split('/').map((part, i) => {
+                    if (i === 0 && (part === '.' || part === '..')) return part;
+                    if (part === '') return part;
+                    return encodeURIComponent(part);
+                }).join('/');
+            }
+            // Zaten encode edilmişse olduğu gibi bırak
+        } catch (e) {
+            // decodeURIComponent hata verirse zaten encode edilmiş demektir
+        }
     }
 
-    loader.load(safeUrl, (gltf) => {
+    const handleLoad = (gltf) => {
         const model = gltf.scene;
         const box = new THREE.Box3().setFromObject(model);
         const size = new THREE.Vector3();
@@ -340,9 +350,20 @@ const loadCustomGLB = (url, onLoad) => {
         });
         group.add(model);
         if (onLoad) onLoad(group);
-    }, undefined, (error) => {
-        console.error('GLB yükleme hatası:', url, error);
-    });
+    };
+
+    const handleError = (error) => {
+        console.warn('GLB yükleme hatası (ilk deneme):', safeUrl, error);
+        // Fallback: encode edilmemiş orijinal URL ile dene
+        if (safeUrl !== url) {
+            console.log('Orijinal URL ile yeniden deneniyor:', url);
+            loader.load(url, handleLoad, undefined, (err2) => {
+                console.error('GLB yükleme hatası (her iki URL de başarısız):', url, err2);
+            });
+        }
+    };
+
+    loader.load(safeUrl, handleLoad, undefined, handleError);
     return group;
 };
 
