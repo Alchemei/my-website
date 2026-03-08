@@ -1,3 +1,194 @@
+// --- Prosedürel Beton Texture Oluşturucu ---
+function generateConcreteTexture(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Base color - medium gray concrete
+    ctx.fillStyle = '#656565';
+    ctx.fillRect(0, 0, size, size);
+
+    // Surface noise / aggregate texture
+    for (let i = 0; i < size * size * 0.5; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const brightness = Math.random() * 25 - 12;
+        const base = 100 + brightness;
+        ctx.fillStyle = `rgba(${base + Math.random() * 10},${base + Math.random() * 8},${base + Math.random() * 6},${0.3 + Math.random() * 0.35})`;
+        ctx.fillRect(x, y, Math.random() * 2 + 0.5, Math.random() * 2 + 0.5);
+    }
+
+    // Slight color variations (patches)
+    for (let i = 0; i < 40; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = Math.random() * 30 + 15;
+        const brightness = Math.random() * 18 - 9;
+        const base = 108 + brightness;
+        ctx.fillStyle = `rgba(${base},${base - 2},${base - 4},${0.1 + Math.random() * 0.15})`;
+        ctx.beginPath();
+        ctx.ellipse(x, y, r, r * (0.6 + Math.random() * 0.8), Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Fine grain texture (lighter speckles)
+    for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const v = 90 + Math.random() * 40;
+        ctx.fillStyle = `rgba(${v},${v - 1},${v - 2},${0.18 + Math.random() * 0.22})`;
+        ctx.beginPath();
+        ctx.arc(x, y, Math.random() * 1 + 0.2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+
+    // Very tiny imperfections (micro scratches, dust)
+    for (let i = 0; i < 800; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const len = Math.random() * 4 + 1;
+        const angle = Math.random() * Math.PI * 2;
+        ctx.strokeStyle = `rgba(${80 + Math.random() * 35},${78 + Math.random() * 30},${75 + Math.random() * 28},${0.1 + Math.random() * 0.12})`;
+        ctx.lineWidth = Math.random() * 0.5 + 0.2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+        ctx.stroke();
+    }
+
+    return canvas;
+}
+
+// --- Prosedürel Çim Texture Oluşturucu (Zemin Plakası için) ---
+function generateGrassTexture(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Base color - rich green
+    ctx.fillStyle = '#2d5a1e';
+    ctx.fillRect(0, 0, size, size);
+
+    // Noise layer for variation
+    for (let i = 0; i < size * size * 0.3; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const brightness = Math.random() * 40 - 20;
+        const r = 45 + brightness;
+        const g = 90 + brightness + Math.random() * 30;
+        const b = 30 + brightness * 0.5;
+        ctx.fillStyle = `rgb(${Math.max(0, Math.min(255, r))},${Math.max(0, Math.min(255, g))},${Math.max(0, Math.min(255, b))})`;
+        ctx.fillRect(x, y, Math.random() * 3 + 1, Math.random() * 3 + 1);
+    }
+
+    // Grass blades - Layer 1 (dark)
+    for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const length = Math.random() * 12 + 4;
+        const angle = (Math.random() - 0.5) * 0.8 - Math.PI / 2;
+        const g = 60 + Math.random() * 40;
+        ctx.strokeStyle = `rgba(${20 + Math.random() * 20},${g},${10 + Math.random() * 15},${0.6 + Math.random() * 0.4})`;
+        ctx.lineWidth = Math.random() * 1.5 + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+        ctx.stroke();
+    }
+
+    // Grass blades - Layer 2 (medium)
+    for (let i = 0; i < 4000; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const length = Math.random() * 10 + 3;
+        const angle = (Math.random() - 0.5) * 1.0 - Math.PI / 2;
+        const g = 100 + Math.random() * 60;
+        ctx.strokeStyle = `rgba(${30 + Math.random() * 25},${g},${20 + Math.random() * 20},${0.5 + Math.random() * 0.5})`;
+        ctx.lineWidth = Math.random() * 1.2 + 0.3;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        const cx = x + Math.cos(angle) * length * 0.5 + (Math.random() - 0.5) * 3;
+        const cy = y + Math.sin(angle) * length * 0.5;
+        ctx.quadraticCurveTo(cx, cy, x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+        ctx.stroke();
+    }
+
+    // Grass blades - Layer 3 (bright highlights)
+    for (let i = 0; i < 2000; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const length = Math.random() * 8 + 2;
+        const angle = (Math.random() - 0.5) * 0.6 - Math.PI / 2;
+        const g = 140 + Math.random() * 80;
+        ctx.strokeStyle = `rgba(${50 + Math.random() * 30},${g},${30 + Math.random() * 25},${0.3 + Math.random() * 0.4})`;
+        ctx.lineWidth = Math.random() * 0.8 + 0.2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+        ctx.stroke();
+    }
+
+    // Tiny dots for soil/seeds
+    for (let i = 0; i < 500; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        ctx.fillStyle = `rgba(${60 + Math.random() * 40},${50 + Math.random() * 30},${20 + Math.random() * 20},${0.3 + Math.random() * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(x, y, Math.random() * 1.5 + 0.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Yellow-ish dried grass hints
+    for (let i = 0; i < 400; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const length = Math.random() * 6 + 2;
+        const angle = (Math.random() - 0.5) * 0.5 - Math.PI / 2;
+        ctx.strokeStyle = `rgba(${120 + Math.random() * 40},${130 + Math.random() * 40},${40 + Math.random() * 20},${0.15 + Math.random() * 0.2})`;
+        ctx.lineWidth = Math.random() * 0.6 + 0.2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+        ctx.stroke();
+    }
+
+    return canvas;
+}
+
+// Toggle beton zemin on/off
+function toggleConcrete(enable) {
+    grassEnabled = enable;
+    if (!floorMesh) return;
+
+    const grid = scene.getObjectByName('mainGrid');
+
+    if (grassEnabled) {
+        floorMesh.material.dispose();
+        floorMesh.material = new THREE.MeshStandardMaterial({
+            map: concreteTexture,
+            roughness: 0.88,
+            metalness: 0.02,
+            color: 0x808080,
+        });
+        floorMesh.material.needsUpdate = true;
+        floorMesh.position.y = -0.01;
+        floorMesh.receiveShadow = true;
+        if (grid) grid.visible = false;
+    } else {
+        floorMesh.material.dispose();
+        floorMesh.material = new THREE.MeshStandardMaterial({
+            color: 0x0f172a,
+            transparent: true,
+            opacity: 0.2
+        });
+        floorMesh.material.needsUpdate = true;
+        if (grid) grid.visible = true;
+    }
+}
+
 // --- Nesne Modelleri (Vanilla Three.js) ---
 
 const createTent = () => {
@@ -80,13 +271,29 @@ const createVan = () => {
     return group;
 };
 
-const createFloor = (colorHex = '#8b5a2b') => {
+const createFloor = (colorHex = '#8b5a2b', textureMode = null) => {
     const group = new THREE.Group();
-    const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.9 });
+    let mat;
+    if (textureMode === 'grass' && grassFloorTexture) {
+        const tex = grassFloorTexture.clone();
+        tex.needsUpdate = true;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(2, 2);
+        mat = new THREE.MeshStandardMaterial({
+            map: tex,
+            roughness: 0.95,
+            metalness: 0.0,
+            color: 0x4a8c3f
+        });
+    } else {
+        mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.9 });
+    }
     const box = new THREE.Mesh(new THREE.BoxGeometry(2, 0.02, 2, 16, 1, 16), mat);
     box.position.set(0, 0.01, 0);
     box.receiveShadow = true;
     box.castShadow = true;
+    box.userData.isFloorMesh = true;
     group.add(box);
     return group;
 };
@@ -173,7 +380,7 @@ const createModel = (item, onLoad) => {
         case 'tree': return wrapInGroup(createTree());
         case 'fire': return wrapInGroup(createFire());
         case 'van': return wrapInGroup(createVan());
-        case 'floor': return wrapInGroup(createFloor(item.color));
+        case 'floor': return wrapInGroup(createFloor(item.color, item.textureMode));
         case 'custom_glb':
         case 'predefined_glb':
             return loadCustomGLB(item.url, onLoad);
@@ -370,6 +577,9 @@ let eraserSize = 0.8;
 let dxfData = { content: null, filename: null };
 let dxfUnit = 'm';
 let customModels = [];
+let grassEnabled = false;
+let concreteTexture = null;
+let grassFloorTexture = null;
 
 const saveState = () => {
     const currentStateStr = JSON.stringify(items);
@@ -442,6 +652,8 @@ const labelToggleEraser = document.getElementById('label-toggle-eraser');
 const eraserSliderContainer = document.getElementById('eraser-slider-container');
 const inputEraserSize = document.getElementById('input-eraser-size');
 const labelEraserSize = document.getElementById('label-eraser-size');
+const btnToggleGrass = document.getElementById('btn-toggle-grass');
+const labelToggleGrass = document.getElementById('label-toggle-grass');
 
 const container = document.getElementById('threejs-container');
 const labelItemCount = document.getElementById('label-item-count');
@@ -525,6 +737,19 @@ const updateUI = () => {
     }
     labelEraserSize.textContent = `${eraserSize}m`;
 
+    // Sidebar Beton Toggle
+    if (btnToggleGrass) {
+        if (grassEnabled) {
+            btnToggleGrass.classList.add('bg-emerald-500/20', 'border-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.2)]');
+            btnToggleGrass.classList.remove('bg-slate-800', 'border-slate-700');
+            if (labelToggleGrass) labelToggleGrass.textContent = 'Beton Açık';
+        } else {
+            btnToggleGrass.classList.remove('bg-emerald-500/20', 'border-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.2)]');
+            btnToggleGrass.classList.add('bg-slate-800', 'border-slate-700');
+            if (labelToggleGrass) labelToggleGrass.textContent = 'Beton';
+        }
+    }
+
     // Sidebar DXF
     if (dxfData.content) {
         dxfLoadedContainer.classList.remove('hidden');
@@ -600,8 +825,28 @@ const updateUI = () => {
             selectedItemColorSection.classList.remove('hidden');
             inputSelectedColor.value = selectedItem.color || '#8b5a2b';
             inputSelectedColor.disabled = isLocked;
+            // Show/update grass toggle for floor
+            const grassSection = document.getElementById('selected-item-grass-section');
+            if (grassSection) {
+                grassSection.classList.remove('hidden');
+                const grassBtn = document.getElementById('btn-floor-grass');
+                if (grassBtn) {
+                    if (selectedItem.textureMode === 'grass') {
+                        grassBtn.classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-400');
+                        grassBtn.classList.remove('border-slate-700', 'text-slate-400');
+                        grassBtn.textContent = 'Çim Aktif';
+                    } else {
+                        grassBtn.classList.remove('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-400');
+                        grassBtn.classList.add('border-slate-700', 'text-slate-400');
+                        grassBtn.textContent = 'Çim Ekle';
+                    }
+                    grassBtn.disabled = isLocked;
+                }
+            }
         } else {
             selectedItemColorSection.classList.add('hidden');
+            const grassSection = document.getElementById('selected-item-grass-section');
+            if (grassSection) grassSection.classList.add('hidden');
         }
     } else {
         selectedItemPanel.classList.add('hidden');
@@ -760,7 +1005,24 @@ const initThree = () => {
     scene.add(new THREE.HemisphereLight(0xffffff, 0x0f172a, 0.4));
 
     const grid = new THREE.GridHelper(2000, 2000, 0x475569, 0x334155);
+    grid.name = 'mainGrid';
     scene.add(grid);
+
+    // Generate concrete texture for main floor
+    const concreteCanvas = generateConcreteTexture(512);
+    concreteTexture = new THREE.CanvasTexture(concreteCanvas);
+    concreteTexture.wrapS = THREE.RepeatWrapping;
+    concreteTexture.wrapT = THREE.RepeatWrapping;
+    concreteTexture.repeat.set(200, 200);
+    concreteTexture.encoding = THREE.sRGBEncoding;
+
+    // Generate grass texture for floor plates
+    const grassCanvas = generateGrassTexture(256);
+    grassFloorTexture = new THREE.CanvasTexture(grassCanvas);
+    grassFloorTexture.wrapS = THREE.RepeatWrapping;
+    grassFloorTexture.wrapT = THREE.RepeatWrapping;
+    grassFloorTexture.repeat.set(2, 2);
+    grassFloorTexture.encoding = THREE.sRGBEncoding;
 
     floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     floorMesh = new THREE.Mesh(
@@ -944,6 +1206,10 @@ const syncObjects = () => {
                 if (item.scale) obj.scale.set(item.scale.x, item.scale.y, item.scale.z);
                 if (item.rotationY) obj.rotation.y = item.rotationY;
 
+                if (item.type === 'floor') {
+                    obj.userData.textureMode = item.textureMode || null;
+                }
+
                 scene.add(obj);
                 sceneObjects.set(item.id, obj);
                 interactableObjects.push(obj);
@@ -961,9 +1227,32 @@ const syncObjects = () => {
                     obj.scale.set(item.scale.x, item.scale.y, item.scale.z);
                 }
 
-                if (item.color) {
+                // Update grass texture repeat based on scale
+                if (item.type === 'floor' && item.textureMode === 'grass') {
                     obj.traverse(child => {
-                        if (child.isMesh && child.material && item.type === 'floor') {
+                        if (child.isMesh && child.material && child.material.map) {
+                            const sx = item.scale?.x || 1;
+                            const sz = item.scale?.z || 1;
+                            child.material.map.repeat.set(2 * sx, 2 * sz);
+                        }
+                    });
+                }
+
+                if (item.type === 'floor') {
+                    // Check if textureMode changed, if so rebuild
+                    const currentTexMode = obj.userData.textureMode || null;
+                    if (currentTexMode !== (item.textureMode || null)) {
+                        scene.remove(obj);
+                        sceneObjects.delete(item.id);
+                        const idx = interactableObjects.indexOf(obj);
+                        if (idx > -1) interactableObjects.splice(idx, 1);
+                        return; // will be recreated next frame
+                    }
+                }
+
+                if (item.color && item.type === 'floor' && !item.textureMode) {
+                    obj.traverse(child => {
+                        if (child.isMesh && child.material) {
                             child.material.color.set(item.color);
                         }
                     });
@@ -1379,6 +1668,15 @@ btnToggleEraser.addEventListener('click', () => {
     updateUI();
 });
 
+if (btnToggleGrass) {
+    btnToggleGrass.addEventListener('click', () => {
+        grassEnabled = !grassEnabled;
+        toggleConcrete(grassEnabled);
+        idb.set('grassEnabled', grassEnabled).catch(() => { });
+        updateUI();
+    });
+}
+
 inputEraserSize.addEventListener('input', (e) => {
     eraserSize = Number(e.target.value);
     updateUI();
@@ -1587,10 +1885,23 @@ btnDeleteSelected.addEventListener('click', () => {
 
 inputSelectedColor.addEventListener('input', (e) => {
     if (selectedId) {
-        items = items.map(i => i.id === selectedId ? { ...i, color: e.target.value } : i);
+        items = items.map(i => i.id === selectedId ? { ...i, color: e.target.value, textureMode: null } : i);
         updateUI();
     }
 });
+
+// Floor grass texture toggle
+const btnFloorGrass = document.getElementById('btn-floor-grass');
+if (btnFloorGrass) {
+    btnFloorGrass.addEventListener('click', () => {
+        if (!selectedId) return;
+        const item = items.find(i => i.id === selectedId);
+        if (!item || item.type !== 'floor' || item.locked) return;
+        const newMode = item.textureMode === 'grass' ? null : 'grass';
+        items = items.map(i => i.id === selectedId ? { ...i, textureMode: newMode } : i);
+        updateUI();
+    });
+}
 
 const handleDimensionChange = (axis, valueInCm) => {
     if (!selectedId) return;
@@ -1683,5 +1994,13 @@ btnReset.addEventListener('click', () => {
         items = [...defaultItems];
     }
 
+    const savedGrass = await idb.get('grassEnabled');
+    if (savedGrass) grassEnabled = savedGrass;
+
     initThree();
+
+    // Apply concrete after initThree if was saved on
+    if (grassEnabled) {
+        toggleConcrete(true);
+    }
 })();

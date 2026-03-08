@@ -339,7 +339,7 @@
                             class="w-3.5 h-3.5 text-slate-400"></i></div>
                     <h3 class="text-slate-400">Araçlar</h3>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-4 gap-2">
                     <button id="btn-toggle-eraser" class="item-btn text-red-400 border-slate-700 bg-slate-800">
                         <i data-lucide="eraser" class="w-4 h-4 icon"></i>
                         <span id="label-toggle-eraser" class="text-slate-300">Silgi</span>
@@ -351,6 +351,10 @@
                     <button id="btn-add-road" class="item-btn text-blue-400 border-slate-700 bg-slate-800">
                         <i data-lucide="route" class="w-4 h-4 icon"></i>
                         <span class="text-slate-300">Yol</span>
+                    </button>
+                    <button id="btn-toggle-grass" class="item-btn text-slate-400 border-slate-700 bg-slate-800">
+                        <i data-lucide="grid-2x2" class="w-4 h-4 icon"></i>
+                        <span id="label-toggle-grass" class="text-slate-300">Beton</span>
                     </button>
                 </div>
                 <!-- Eraser slider -->
@@ -519,6 +523,17 @@
                             Rengi</label>
                         <input id="input-selected-color" type="color"
                             class="w-full h-8 cursor-pointer rounded-lg bg-slate-800 border border-slate-700" />
+                    </div>
+
+                    <!-- Grass Texture for Floor -->
+                    <div id="selected-item-grass-section" class="hidden mt-3 pt-3 border-t border-slate-700/30">
+                        <label class="text-[10px] font-semibold text-slate-500 uppercase block mb-1.5">Zemin
+                            Texturesi</label>
+                        <button id="btn-floor-grass"
+                            class="w-full py-2 px-3 rounded-lg border border-slate-700 text-slate-400 text-[11px] font-bold transition-all hover:border-emerald-500/50 hover:text-emerald-400 flex items-center justify-center gap-2">
+                            <i data-lucide="tree-pine" class="w-3.5 h-3.5"></i>
+                            Çim Ekle
+                        </button>
                     </div>
 
                     <!-- Road Width -->
