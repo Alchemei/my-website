@@ -354,12 +354,14 @@ const loadCustomGLB = (url, onLoad) => {
 
     const handleError = (error) => {
         console.warn('GLB yükleme hatası (ilk deneme):', safeUrl, error);
-        // Fallback: encode edilmemiş orijinal URL ile dene
         if (safeUrl !== url) {
             console.log('Orijinal URL ile yeniden deneniyor:', url);
             loader.load(url, handleLoad, undefined, (err2) => {
                 console.error('GLB yükleme hatası (her iki URL de başarısız):', url, err2);
+                alert("Model yüklenemedi (Dosya bulunamadı veya Sunucu engelledi): \n\n" + url + "\n\nLütfen sunucu terminalindeki hataları kontrol edin.");
             });
+        } else {
+            alert("Model yüklenemedi (Dosya bulunamadı veya Sunucu engelledi): \n\n" + url + "\n\nLütfen sunucu terminalindeki hataları kontrol edin.");
         }
     };
 
@@ -661,6 +663,177 @@ const idb = {
     }
 };
 
+// --- Proje Export/Import Yardımcıları ---
+const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const bytes = new Uint8Array(reader.result);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            resolve(btoa(binary));
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+};
+
+const base64ToBlob = (base64, type = 'application/octet-stream') => {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type });
+};
+
+const exportProject = async () => {
+    const exportData = {
+        version: 1,
+        timestamp: new Date().toISOString(),
+        items: [],
+        dxfData: dxfData,
+        dxfUnit: dxfUnit,
+        grassEnabled: grassEnabled,
+        customModels: []
+    };
+
+    // İtemleri işle
+    for (const item of items) {
+        const exportItem = { ...item };
+        // custom_glb ile yüklenmiş dosya varsa base64'e çevir
+        if (item.type === 'custom_glb' && item.fileData) {
+            try {
+                exportItem.fileDataBase64 = await fileToBase64(item.fileData);
+                exportItem.fileName = item.fileData.name || 'model.glb';
+            } catch (e) {
+                console.warn('Dosya base64 dönüştürülemedi:', e);
+            }
+            delete exportItem.fileData;
+        }
+        // blob URL'leri temizle (geçersiz olacaklar)
+        if (exportItem.url && exportItem.url.startsWith('blob:')) {
+            delete exportItem.url;
+        }
+        // erasedStrokes'u da kaydet (silgi verileri)
+        exportData.items.push(exportItem);
+    }
+
+    // Özel modelleri işle
+    for (const model of customModels) {
+        const exportModel = { ...model };
+        if (model.fileData) {
+            try {
+                exportModel.fileDataBase64 = await fileToBase64(model.fileData);
+                exportModel.fileName = model.fileData.name || 'model.glb';
+            } catch (e) {
+                console.warn('Model dosyası base64 dönüştürülemedi:', e);
+            }
+            delete exportModel.fileData;
+        }
+        if (exportModel.url && exportModel.url.startsWith('blob:')) {
+            delete exportModel.url;
+        }
+        exportData.customModels.push(exportModel);
+    }
+
+    const json = JSON.stringify(exportData);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `camp-planner-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
+const importProject = (file) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+
+            // Mevcut URL'leri temizle
+            items.forEach(item => {
+                if (item.type === 'custom_glb' && item.url) {
+                    try { URL.revokeObjectURL(item.url); } catch (e) { }
+                }
+            });
+            customModels.forEach(m => {
+                if (m.url) try { URL.revokeObjectURL(m.url); } catch (e) { }
+            });
+
+            // İtemleri geri yükle
+            if (data.items && Array.isArray(data.items)) {
+                items = data.items.map(item => {
+                    if (item.fileDataBase64) {
+                        const blob = base64ToBlob(item.fileDataBase64);
+                        const f = new File([blob], item.fileName || 'model.glb');
+                        item.fileData = f;
+                        item.url = URL.createObjectURL(blob);
+                        delete item.fileDataBase64;
+                        delete item.fileName;
+                    }
+                    return item;
+                });
+            }
+
+            // Özel modelleri geri yükle
+            if (data.customModels && Array.isArray(data.customModels)) {
+                customModels = data.customModels.map(model => {
+                    if (model.fileDataBase64) {
+                        const blob = base64ToBlob(model.fileDataBase64);
+                        const f = new File([blob], model.fileName || 'model.glb');
+                        model.fileData = f;
+                        model.url = URL.createObjectURL(blob);
+                        delete model.fileDataBase64;
+                        delete model.fileName;
+                    }
+                    return model;
+                });
+            }
+
+            // Diğer ayarları geri yükle
+            if (data.dxfData) dxfData = data.dxfData;
+            if (data.dxfUnit) dxfUnit = data.dxfUnit;
+            if (data.grassEnabled !== undefined) {
+                grassEnabled = data.grassEnabled;
+                if (typeof toggleConcrete === 'function') toggleConcrete(grassEnabled);
+            }
+
+            // Sahne objelerini temizle (yeniden oluşturulacak)
+            for (const [id, obj] of sceneObjects.entries()) {
+                scene.remove(obj);
+            }
+            sceneObjects.clear();
+            interactableObjects = [];
+
+            // DXF sahnesini de sıfırla
+            if (dxfSceneGroup) {
+                scene.remove(dxfSceneGroup);
+                dxfSceneGroup = null;
+            }
+            currentDxfString = null;
+
+            selectedId = null;
+            drawingMode = false;
+            eraserMode = false;
+            actionHistory = [];
+
+            updateUI();
+            console.log('Proje başarıyla yüklendi! Obje sayısı:', items.length);
+        } catch (e) {
+            console.error('Import hatası:', e);
+            alert('Proje dosyası okunamadı: ' + e.message);
+        }
+    };
+    reader.readAsText(file);
+};
+
 // --- DOM Elemanları ---
 const drawingModePanel = document.getElementById('drawing-mode-panel');
 const eraserModePanel = document.getElementById('eraser-mode-panel');
@@ -936,12 +1109,14 @@ const updateUI = () => {
                         id: Math.random().toString(36).substr(2, 9),
                         type: 'custom_glb',
                         url: model.url,
-                        fileData: model.fileData,
+                        fileDataBase64: model.fileDataBase64,
+                        fileName: model.fileName,
                         label: model.label,
                         position: [Math.floor(Math.random() * 6) - 3, 0, Math.floor(Math.random() * 6) - 3],
                         scale: { x: 1, y: 1, z: 1 },
                         rotationY: 0
                     };
+                    saveState();
                     items.push(newItem);
                     selectedId = newItem.id;
                     updateUI();
@@ -1836,26 +2011,34 @@ if (btnEndMeasure) {
 
 btnUploadGlb.addEventListener('click', () => inputGlbUpload.click());
 
-inputGlbUpload.addEventListener('change', (e) => {
+inputGlbUpload.addEventListener('change', async (e) => {
     if (drawingMode) drawingMode = false;
     if (eraserMode) eraserMode = false;
 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const url = URL.createObjectURL(file);
-    const label = file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name;
+    try {
+        const base64 = await fileToBase64(file);
+        const blob = base64ToBlob(base64);
+        const url = URL.createObjectURL(blob);
+        const label = file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name;
 
-    const newModel = {
-        id: Math.random().toString(36).substr(2, 9),
-        fileData: file,
-        url: url,
-        label: label
-    };
+        const newModel = {
+            id: Math.random().toString(36).substr(2, 9),
+            fileDataBase64: base64,
+            fileName: file.name,
+            url: url,
+            label: label
+        };
 
-    customModels.push(newModel);
-    e.target.value = '';
-    updateUI();
+        customModels.push(newModel);
+        e.target.value = '';
+        updateUI();
+    } catch (err) {
+        console.error('Model dönüştürme hatası:', err);
+        alert('Model yüklenirken bir hata oluştu.');
+    }
 });
 
 btnUploadDxf.addEventListener('click', () => inputDxfUpload.click());
@@ -1952,6 +2135,7 @@ inputRotation.addEventListener('input', (e) => {
 });
 
 btnReset.addEventListener('click', () => {
+    if (!confirm('Tüm sahne sıfırlanacak. Emin misiniz?')) return;
     items.forEach(item => {
         if (item.type === 'custom_glb') URL.revokeObjectURL(item.url);
     });
@@ -1963,6 +2147,43 @@ btnReset.addEventListener('click', () => {
     updateUI();
 });
 
+// -- Proje Kaydet/Yükle Listeners --
+const btnSaveProject = document.getElementById('btn-save-project');
+const btnLoadProject = document.getElementById('btn-load-project');
+const inputProjectImport = document.getElementById('input-project-import');
+
+if (btnSaveProject) {
+    btnSaveProject.addEventListener('click', async () => {
+        btnSaveProject.disabled = true;
+        btnSaveProject.querySelector('span').textContent = 'Kaydediliyor...';
+        try {
+            await exportProject();
+        } catch (e) {
+            console.error('Export hatası:', e);
+            alert('Proje kaydedilemedi: ' + e.message);
+        }
+        btnSaveProject.disabled = false;
+        btnSaveProject.querySelector('span').textContent = 'Kaydet';
+    });
+}
+
+if (btnLoadProject) {
+    btnLoadProject.addEventListener('click', () => {
+        if (inputProjectImport) inputProjectImport.click();
+    });
+}
+
+if (inputProjectImport) {
+    inputProjectImport.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (confirm('Mevcut sahne silinecek ve kayıtlı proje yüklenecek. Devam etmek istiyor musunuz?')) {
+            importProject(file);
+        }
+        e.target.value = '';
+    });
+}
+
 // Init on load
 (async () => {
     try {
@@ -1971,17 +2192,16 @@ btnReset.addEventListener('click', () => {
         const savedItems = await idb.get('items');
         if (savedItems && Array.isArray(savedItems) && savedItems.length > 0) {
             items = savedItems;
-            // custom_glb: fileData'dan yeni blob URL oluştur
             items.forEach(item => {
-                if (item.type === 'custom_glb' && item.fileData) {
+                if (item.type === 'custom_glb' && item.fileDataBase64) {
                     if (item.url) try { URL.revokeObjectURL(item.url); } catch (e) { }
-                    item.url = URL.createObjectURL(item.fileData);
+                    const blob = base64ToBlob(item.fileDataBase64);
+                    item.url = URL.createObjectURL(blob);
                 }
             });
-            // Geçersiz blob: URL'li item'ları temizle (fileData olmayan custom_glb'ler)
             items = items.filter(item => {
-                if (item.type === 'custom_glb' && !item.fileData && item.url && item.url.startsWith('blob:')) {
-                    return false; // Geçersiz blob URL, kaldır
+                if (item.type === 'custom_glb' && !item.fileDataBase64) {
+                    return false;
                 }
                 return true;
             });
@@ -1999,14 +2219,14 @@ btnReset.addEventListener('click', () => {
         if (savedCustomModels && Array.isArray(savedCustomModels)) {
             customModels = savedCustomModels;
             customModels.forEach(model => {
-                if (model.fileData) {
+                if (model.fileDataBase64) {
                     if (model.url) try { URL.revokeObjectURL(model.url); } catch (e) { }
-                    model.url = URL.createObjectURL(model.fileData);
+                    const blob = base64ToBlob(model.fileDataBase64);
+                    model.url = URL.createObjectURL(blob);
                 }
             });
-            // Geçersiz blob URL'li modelleri temizle
             customModels = customModels.filter(m => {
-                if (!m.fileData && m.url && m.url.startsWith('blob:')) return false;
+                if (!m.fileDataBase64) return false;
                 return true;
             });
         }
