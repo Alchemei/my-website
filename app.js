@@ -772,11 +772,7 @@ const importProject = (file) => {
                 items = data.items.map(item => {
                     if (item.fileDataBase64) {
                         const blob = base64ToBlob(item.fileDataBase64);
-                        const f = new File([blob], item.fileName || 'model.glb');
-                        item.fileData = f;
                         item.url = URL.createObjectURL(blob);
-                        delete item.fileDataBase64;
-                        delete item.fileName;
                     }
                     return item;
                 });
@@ -787,11 +783,7 @@ const importProject = (file) => {
                 customModels = data.customModels.map(model => {
                     if (model.fileDataBase64) {
                         const blob = base64ToBlob(model.fileDataBase64);
-                        const f = new File([blob], model.fileName || 'model.glb');
-                        model.fileData = f;
                         model.url = URL.createObjectURL(blob);
-                        delete model.fileDataBase64;
-                        delete model.fileName;
                     }
                     return model;
                 });
